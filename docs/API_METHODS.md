@@ -295,3 +295,16 @@ Authorization: Bearer <jwt_token>
       "error": { "code": 400, "message": "Некорректный запрос" }
     }
     ```
+
+## Каталоги (catalogs) — справочные методы API
+
+Для получения списков справочников используются отдельные эндпоинты:
+
+- `GET /api/catalogs/car_brands` — список марок автомобилей
+- `GET /api/catalogs/event_types` — список типов мероприятий
+- `GET /api/catalogs/guide_object_kinds` — виды гид-объектов
+- `GET /api/catalogs/guide_object_types` — типы гид-объектов
+- `GET /api/catalogs/roles` — роли пользователей
+- `GET /api/catalogs/statuses` — статусы сущностей
+
+> Эти методы используются для заполнения выпадающих списков, фильтрации и валидации данных на фронтенде и в боте.

@@ -1,0 +1,7 @@
+2025-07-17T17:38:40+02:00 
+2025-07-17T17:39:39+02:00 {"update_id":146532968,
+"message":{"message_id":3,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752765996,"text":"\u0422\u0435\u0441\u0442"}}
+2025-07-17T17:39:39+02:00 {"update_id":146532969,
+"message":{"message_id":4,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752766488,"text":"/test","entities":[{"offset":0,"length":5,"type":"bot_command"}]}}
+2025-07-17T17:39:50+02:00 {"update_id":146532970,
+"message":{"message_id":6,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752766791,"text":"/test","entities":[{"offset":0,"length":5,"type":"bot_command"}]}}
