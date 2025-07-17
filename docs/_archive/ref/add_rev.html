@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mobile WebApp Modal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #232427;
+      font-family: 'Montserrat', Arial, sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* Хедер приложения */
+    .app-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 56px;
+      background: #18191B;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.1em;
+      font-weight: 700;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      padding: 0 12px;
+    }
+    .header-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+    }
+    .header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    /* Затемнение фона */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(24,25,27,0.85);
+      z-index: 10;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .modal-backdrop.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* Модальное окно */
+    .modal {
+      width: 100vw;
+      max-width: 430px;
+      background: #18191B;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -4px 32px rgba(0,0,0,0.25);
+      padding: 28px 18px 18px 18px;
+      margin-bottom: 0;
+      animation: slideUp 0.3s;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%);}
+      to { transform: translateY(0);}
+    }
+    h1 {
+      font-size: 1.3em;
+      font-weight: 700;
+      margin-bottom: 18px;
+      text-align: left;
+      color: #fff;
+    }
+    .input, .textarea {
+      width: 100%;
+      background: #232427;
+      border: none;
+      border-radius: 18px;
+      padding: 16px;
+      color: #fff;
+      font-size: 1em;
+      margin-bottom: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .textarea {
+      min-height: 80px;
+      resize: none;
+    }
+    .section-title {
+      font-size: 1.05em;
+      font-weight: 700;
+      margin: 22px 0 6px 0;
+      color: #fff;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95em;
+      color: #bdbdbd;
+      margin-bottom: 2px;
+    }
+    .slider {
+      width: 100%;
+      margin: 8px 0 0 0;
+      accent-color: #339CFF;
+      height: 4px;
+    }
+    .stars {
+      display: flex;
+      gap: 18px;
+      margin: 12px 0 22px 0;
+    }
+    .star {
+      font-size: 1.7em;
+      color: #bdbdbd;
+      cursor: pointer;
+      transition: color 0.2s;
+      user-select: none;
+    }
+    .star.selected {
+      color: #339CFF;
+    }
+    .recommendation {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px 0;
+      border-radius: 24px;
+      border: none;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-recommend {
+      background: #339CFF;
+      color: #fff;
+    }
+    .btn-not {
+      background: #232427;
+      color: #fff;
+      border: 1px solid #393A3D;
+    }
+    @media (max-width: 480px) {
+      .modal {
+        max-width: 100vw;
+        padding: 18px 8px 12px 8px;
+      }
+      .app-header {
+        font-size: 1em;
+        height: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <button class="header-btn" aria-label="Back">&#8592;</button>
+    <span class="header-title">MyApp</span>
+    <button class="header-btn" aria-label="Menu">&#8942;</button>
+  </div>
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" id="modal-window" onclick="event.stopPropagation()">
+      <h1>Add Service Review</h1>
+      <input class="input" type="text" placeholder="">
+      <textarea class="textarea" placeholder="Write your review"></textarea>
+
+      <div class="section-title">Price</div>
+      <div class="slider-labels">
+        <span>Low</span>
+        <span>High</span>
+      </div>
+      <input type="range" min="1" max="10" value="5" step="1" class="slider">
+
+      <div class="section-title">Quality</div>
+      <div class="slider-labels">
+        <span>Low</span>
+        <span>High</span>
+      </div>
+      <input type="range" min="1" max="10" value="5" step="1" class="slider">
+
+      <div class="section-title">Rating</div>
+      <div class="stars" id="stars">
+        <span class="star" data-value="1">&#9733;</span>
+        <span class="star" data-value="2">&#9733;</span>
+        <span class="star" data-value="3">&#9733;</span>
+        <span class="star" data-value="4">&#9733;</span>
+        <span class="star" data-value="5">&#9733;</span>
+      </div>
+
+      <div class="section-title">Recommendation</div>
+      <div class="recommendation">
+        <button class="btn btn-not">Do Not Recommend</button>
+        <button class="btn btn-recommend">Recommend</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Закрытие модалки по клику на фон
+    document.getElementById('modal-backdrop').onclick = function() {
+      this.classList.add('hidden');
+    };
+    // Звёзды
+    const stars = document.querySelectorAll('.star');
+    stars.forEach(star => {
+      star.onclick = function() {
+        const val = +this.dataset.value;
+        stars.forEach((s, i) => {
+          s.classList.toggle('selected', i < val);
+        });
+      };
+    });
+  </script>
+</body>
+</html>
