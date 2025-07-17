@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тестирование БД CabrioRide</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    h1 { color: #2196F3; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 0.5em 0; cursor: pointer; color: #1565C0; }
+    li:hover { text-decoration: underline; }
+    #fields { margin-top: 2em; }
+    .error { color: #F44336; }
+  </style>
+</head>
+<body>
+  <h1>Тестирование БД CabrioRide</h1>
+  
+  <div id="webhook-block" style="margin-bottom:2em; padding:1em; border:1px solid #2196F3; background:#E3F2FD;">
+    <h2>Генератор команды обновления webhook Telegram-бота</h2>
+    <div style="margin-bottom:0.5em;">Скопируйте и выполните команду для обновления webhook на текущий домен:</div>
+    <input type="text" id="webhook-cmd" style="width:100%; font-family:monospace; font-size:1em;" readonly>
+    <button onclick="copyWebhookCmd()">Скопировать</button>
+    <div id="webhook-error" class="error"></div>
+  </div>
+  <h2>Список таблиц:</h2>
+  <ul id="tables"></ul>
+  <div id="fields"></div>
+
+  <script>
+    // Генерация команды для обновления webhook Telegram-бота
+    function updateWebhookCmd(token) {
+      const origin = window.location.origin;
+      // Получаем путь до каталога проекта (например, /app)
+      const path = window.location.pathname;
+      const base = path.split('/_test')[0];
+      const url = encodeURIComponent(origin + base + '/bot/webhook.php');
+      const cmd = `curl "https://api.telegram.org/bot${token}/setWebhook?url=${url}"`;
+      document.getElementById('webhook-cmd').value = cmd;
+    }
+
+    // Получить токен из .env через testUtils.php
+    fetch('testUtils.php?action=get_token')
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById('webhook-error').textContent = data.error;
+        } else {
+          updateWebhookCmd(data.token);
+        }
+      })
+      .catch(e => {
+        document.getElementById('webhook-error').textContent = 'Ошибка получения токена';
+      });
+
+    function copyWebhookCmd() {
+      const input = document.getElementById('webhook-cmd');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+
+    // Получить список таблиц
+    fetch('testUtils.php?action=tables')
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById('tables').innerHTML = '<li class="error">' + data.error + '</li>';
+          return;
+        }
+        data.tables.forEach(table => {
+          const li = document.createElement('li');
+          li.textContent = table;
+          li.onclick = () => showFields(table);
+          document.getElementById('tables').appendChild(li);
+        });
+      });
+
+    function showFields(table) {
+      fetch('testUtils.php?action=fields&table=' + encodeURIComponent(table))
+        .then(r => r.json())
+        .then(data => {
+          const div = document.getElementById('fields');
+          if (data.error) {
+            div.innerHTML = '<div class="error">' + data.error + '</div>';
+            return;
+          }
+          let html = `<h2>Поля таблицы <b>${table}</b>:</h2><table border="1" cellpadding="5"><tr><th>Поле</th><th>Тип</th><th>Null</th><th>Ключ</th><th>Default</th><th>Extra</th></tr>`;
+          data.fields.forEach(f => {
+            html += `<tr><td>${f.Field}</td><td>${f.Type}</td><td>${f.Null}</td><td>${f.Key}</td><td>${f.Default ?? ''}</td><td>${f.Extra}</td></tr>`;
+          });
+          html += '</table>';
+          div.innerHTML = html;
+        });
+    }
+  </script>
+</body>
+</html> 

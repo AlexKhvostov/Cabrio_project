@@ -128,3 +128,63 @@ npm run dev
 - При добавлении любой новой функции (эндпоинта, обработчика, действия) обязательно указывайте её в файле `config/sectionGroups.ts` в объекте `FUNCTION_ROLES` с минимальной ролью доступа.
 - Вся логика доступа централизована в этом файле: https://github.com/your-repo/app/blob/main/config/sectionGroups.ts
 - Подробнее о принципах доступа — см. комментарии внутри `config/sectionGroups.ts` и в [docs/ACCESS_SCHEME.md](ACCESS_SCHEME.md) 
+
+---
+
+## Cloudflare Tunnel для разработки и тестирования (cloudflared)
+
+**Cloudflared** — это бесплатный инструмент для проброса локального сервера (например, XAMPP/Apache с PHP) в интернет с HTTPS. Идеально подходит для тестирования Telegram WebApp и webhook, особенно если ngrok и localtunnel недоступны.
+
+### Пошаговая инструкция
+
+1. **Скачайте cloudflared**
+   - [Официальная страница загрузки](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
+   - Для Windows скачайте `cloudflared-windows-amd64.exe`, переименуйте в `cloudflared.exe`, положите в `C:\cloudflared\`
+
+2. **Откройте PowerShell и перейдите в папку**
+   ```powershell
+   Set-Location C:\cloudflared
+   ```
+
+3. **Проверьте работоспособность**
+   ```powershell
+   .\cloudflared.exe --version
+   ```
+
+4. **Запустите локальный сервер (XAMPP/Apache)**
+   - Убедитесь, что сайт работает по адресу: `http://localhost/` (или на другом порту)
+
+5. **Запустите туннель cloudflared**
+   - Для HTTP (порт 80):
+     ```powershell
+     .\cloudflared.exe tunnel --url http://localhost:80
+     ```
+   - Для другого порта (например, 8080):
+     ```powershell
+     .\cloudflared.exe tunnel --url http://localhost:8080
+     ```
+
+6. **Получите публичный HTTPS-адрес**
+   - В консоли появится строка вида:
+     ```
+     Your quick Tunnel has been created! Visit it at:
+     https://your-tunnel-name.trycloudflare.com
+     ```
+   - Этот адрес доступен из интернета по HTTPS.
+
+7. **Используйте этот адрес для Telegram WebApp или webhook**
+   - Укажите этот HTTPS-адрес в настройках Telegram-бота или WebApp.
+
+8. **Работа с туннелем**
+   - Туннель работает, пока открыта консоль с cloudflared.
+   - Для постоянной работы — держите окно открытым или используйте отдельную вкладку/процесс.
+
+### Памятка
+
+- Cloudflared не требует регистрации для быстрых туннелей.
+- Не требует пароля для внешних сервисов.
+- Не блокируется в РФ/РБ.
+- Можно использовать для любого локального сервера (PHP, Node.js, Python и т.д.).
+- Для продакшн-решений рекомендуется использовать Named Tunnel и домен Cloudflare (см. официальную документацию).
+
+--- 

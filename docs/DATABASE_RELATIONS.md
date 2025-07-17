@@ -114,3 +114,14 @@ flowchart TD
 - **from_user_id** — внешний ключ на users(id), указывает на пользователя, который поставил respect.
 - **to_user_id** — внешний ключ на users(id), указывает на пользователя, которому поставлен respect.
 - Таблица respect_logs позволяет отслеживать историю выдачи respect, а также контролировать лимиты (1 раз в сутки одному человеку, максимум N респектов в день). 
+
+## Связи с каталогами (catalogs)
+
+- **cars.brand_id** → **car_brands.id**
+- **events.type_id** → **event_types.id**
+- **guide_objects.kind_id** → **guide_object_kinds.id**
+- **guide_objects.type_id** → **guide_object_types.id**
+- **users.role_id** → **roles.id**
+- **cars.status_id**, **events.status_id**, **guide_objects.status_id** → **statuses.id**
+
+> Все основные сущности ссылаются на соответствующие каталоги для обеспечения целостности и стандартизации данных. 
