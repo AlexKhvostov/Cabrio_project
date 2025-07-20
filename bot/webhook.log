@@ -1,0 +1,4184 @@
+﻿2025-07-19T23:58:42+02:00 Received update:
+{"update_id":146533087,
+"message":{"message_id":156,"from":{"id":5625181605,"is_bot":false,"first_name":"fotokubik.by","username":"fotokubikby","language_code":"ru"},"chat":{"id":5625181605,"first_name":"fotokubik.by","username":"fotokubikby","type":"private"},"date":1752962321,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-19T23:58:42+02:00 BotService: Initializing...
+
+2025-07-19T23:58:42+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-19T23:58:42+02:00 BotService: Initialized successfully
+
+2025-07-19T23:58:42+02:00 BotService: Initializing...
+
+2025-07-19T23:58:42+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-19T23:58:42+02:00 BotService: Initialized successfully
+
+2025-07-19T23:58:42+02:00 Update type check:
+{
+    "update_id": 146533087,
+    "message": {
+        "message_id": 156,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962321,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-19T23:58:42+02:00 Processing message:
+{
+    "message_id": 156,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962321,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-19T23:58:42+02:00 Webhook: Starting membership check
+{
+    "user_id": 5625181605,
+    "main_chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)"
+}
+
+2025-07-19T23:58:42+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 5625181605
+}
+
+2025-07-19T23:58:42+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-19T23:58:42+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "status": "left"
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: Member check result
+{
+    "status": "left",
+    "is_member": false,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-19T23:58:42+02:00 Webhook: Membership check result
+{
+    "user_id": 5625181605,
+    "main_chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "is_member": false
+}
+
+2025-07-19T23:58:42+02:00 Webhook: User is not a member
+{
+    "user_id": 5625181605,
+    "chat_id": 5625181605
+}
+
+2025-07-19T23:58:42+02:00 Webhook: Allowing /start command for non-member
+
+2025-07-19T23:58:42+02:00 MessageHandler: Processing message
+{
+    "message_id": 156,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962321,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-19T23:58:42+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 156,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962321,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-19T23:58:42+02:00 StartCommand: Starting command execution
+
+2025-07-19T23:58:42+02:00 StartCommand: Sending welcome message
+{
+    "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+    "buttons": [
+        [
+            {
+                "text": "🔍 Проверить авто",
+                "callback_data": "check_car"
+            },
+            {
+                "text": "📋 Справка",
+                "callback_data": "help"
+            }
+        ],
+        [
+            {
+                "text": "🌐 Перейти в приложение",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-19T23:58:42+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 5625181605,
+    "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+    "buttons": [
+        [
+            {
+                "text": "🔍 Проверить авто",
+                "callback_data": "check_car"
+            },
+            {
+                "text": "📋 Справка",
+                "callback_data": "help"
+            }
+        ],
+        [
+            {
+                "text": "🌐 Перейти в приложение",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-19T23:58:42+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 5625181605,
+        "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-19T23:58:42+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 5625181605,
+        "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 157,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962322,
+            "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 157,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962322,
+            "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-19T23:58:42+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:04:02+02:00 Received update:
+{"update_id":146533088,
+"message":{"message_id":158,"from":{"id":5625181605,"is_bot":false,"first_name":"fotokubik.by","username":"fotokubikby","language_code":"ru"},"chat":{"id":5625181605,"first_name":"fotokubik.by","username":"fotokubikby","type":"private"},"date":1752962641,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:04:02+02:00 BotService: Initializing...
+
+2025-07-20T00:04:02+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:04:02+02:00 BotService: Initialized successfully
+
+2025-07-20T00:04:02+02:00 BotService: Initializing...
+
+2025-07-20T00:04:02+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:04:02+02:00 BotService: Initialized successfully
+
+2025-07-20T00:04:02+02:00 Update type check:
+{
+    "update_id": 146533088,
+    "message": {
+        "message_id": 158,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962641,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:04:02+02:00 Processing message:
+{
+    "message_id": 158,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962641,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:04:02+02:00 MessageHandler: Processing message
+{
+    "message_id": 158,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962641,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:04:02+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 158,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962641,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:04:02+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:04:02+02:00 BotService: Verifying membership
+{
+    "user_id": 5625181605,
+    "chat_id": 5625181605
+}
+
+2025-07-20T00:04:02+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 5625181605
+}
+
+2025-07-20T00:04:02+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:04:02+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "status": "left"
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: Member check result
+{
+    "status": "left",
+    "is_member": false,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:04:02+02:00 StartCommand: User is not a member
+
+2025-07-20T00:04:02+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 5625181605,
+    "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+    "buttons": [
+        [
+            {
+                "text": "💬 Вступить в чат",
+                "url": "https://t.me/+your_chat_invite_link"
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:04:02+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:04:02+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 159,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962642,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 159,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962642,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:04:02+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:04:20+02:00 Received update:
+{"update_id":146533089,
+"message":{"message_id":160,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752962659,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:04:20+02:00 BotService: Initializing...
+
+2025-07-20T00:04:20+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:04:20+02:00 BotService: Initialized successfully
+
+2025-07-20T00:04:20+02:00 BotService: Initializing...
+
+2025-07-20T00:04:20+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:04:20+02:00 BotService: Initialized successfully
+
+2025-07-20T00:04:20+02:00 Update type check:
+{
+    "update_id": 146533089,
+    "message": {
+        "message_id": 160,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752962659,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:04:20+02:00 Processing message:
+{
+    "message_id": 160,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752962659,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:04:20+02:00 MessageHandler: Processing message
+{
+    "message_id": 160,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752962659,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:04:20+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 160,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752962659,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:04:20+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:04:20+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:04:20+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:04:20+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:04:20+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:04:20+02:00 StartCommand: Sending welcome message
+{
+    "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+    "buttons": [
+        [
+            {
+                "text": "🔍 Проверить авто",
+                "callback_data": "check_car"
+            },
+            {
+                "text": "📋 Справка",
+                "callback_data": "help"
+            }
+        ],
+        [
+            {
+                "text": "🌐 Перейти в приложение",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:04:20+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 287536885,
+    "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+    "buttons": [
+        [
+            {
+                "text": "🔍 Проверить авто",
+                "callback_data": "check_car"
+            },
+            {
+                "text": "📋 Справка",
+                "callback_data": "help"
+            }
+        ],
+        [
+            {
+                "text": "🌐 Перейти в приложение",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:04:20+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:04:20+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 161,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752962660,
+            "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 161,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752962660,
+            "text": "👋 Привет! Я бот клуба CabrioRide.\n\nЯ помогу вам с поиском автомобилей и доступом к функциям клуба.\n\n🚗 Выберите действие:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:04:20+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:06:22+02:00 Received update:
+{"update_id":146533090,
+"message":{"message_id":162,"from":{"id":5625181605,"is_bot":false,"first_name":"fotokubik.by","username":"fotokubikby","language_code":"ru"},"chat":{"id":5625181605,"first_name":"fotokubik.by","username":"fotokubikby","type":"private"},"date":1752962781,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:06:22+02:00 BotService: Initializing...
+
+2025-07-20T00:06:22+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:06:22+02:00 BotService: Initialized successfully
+
+2025-07-20T00:06:22+02:00 BotService: Initializing...
+
+2025-07-20T00:06:22+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:06:22+02:00 BotService: Initialized successfully
+
+2025-07-20T00:06:22+02:00 Update type check:
+{
+    "update_id": 146533090,
+    "message": {
+        "message_id": 162,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962781,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:06:22+02:00 Processing message:
+{
+    "message_id": 162,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962781,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:06:22+02:00 MessageHandler: Processing message
+{
+    "message_id": 162,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752962781,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:06:22+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 162,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752962781,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:06:22+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:06:22+02:00 BotService: Verifying membership
+{
+    "user_id": 5625181605,
+    "chat_id": 5625181605
+}
+
+2025-07-20T00:06:22+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 5625181605
+}
+
+2025-07-20T00:06:22+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:06:22+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "status": "left"
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: Member check result
+{
+    "status": "left",
+    "is_member": false,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:06:22+02:00 StartCommand: User is not a member
+
+2025-07-20T00:06:22+02:00 BotService: Sending non-member message
+
+2025-07-20T00:06:22+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 5625181605,
+    "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+    "buttons": [
+        [
+            {
+                "text": "💬 Вступить в чат",
+                "url": "https://t.me/+your_chat_invite_link"
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:06:22+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:06:22+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 163,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962781,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 163,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752962781,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:06:22+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:13:45+02:00 Received update:
+{"update_id":146533091,
+"message":{"message_id":164,"from":{"id":5625181605,"is_bot":false,"first_name":"fotokubik.by","username":"fotokubikby","language_code":"ru"},"chat":{"id":5625181605,"first_name":"fotokubik.by","username":"fotokubikby","type":"private"},"date":1752963224,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:13:45+02:00 BotService: Initializing...
+
+2025-07-20T00:13:45+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:13:45+02:00 BotService: Initialized successfully
+
+2025-07-20T00:13:45+02:00 BotService: Initializing...
+
+2025-07-20T00:13:45+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:13:45+02:00 BotService: Initialized successfully
+
+2025-07-20T00:13:45+02:00 Update type check:
+{
+    "update_id": 146533091,
+    "message": {
+        "message_id": 164,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752963224,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:13:45+02:00 Processing message:
+{
+    "message_id": 164,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752963224,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:13:45+02:00 MessageHandler: Processing message
+{
+    "message_id": 164,
+    "from": {
+        "id": 5625181605,
+        "is_bot": false,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 5625181605,
+        "first_name": "fotokubik.by",
+        "username": "fotokubikby",
+        "type": "private"
+    },
+    "date": 1752963224,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:13:45+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 164,
+        "from": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 5625181605,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "type": "private"
+        },
+        "date": 1752963224,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:13:45+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:13:45+02:00 BotService: Verifying membership
+{
+    "user_id": 5625181605,
+    "chat_id": 5625181605
+}
+
+2025-07-20T00:13:45+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 5625181605
+}
+
+2025-07-20T00:13:45+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:13:45+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 5625181605
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 5625181605,
+            "is_bot": false,
+            "first_name": "fotokubik.by",
+            "username": "fotokubikby",
+            "language_code": "ru"
+        },
+        "status": "left"
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: Member check result
+{
+    "status": "left",
+    "is_member": false,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 5625181605,
+                "is_bot": false,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "language_code": "ru"
+            },
+            "status": "left"
+        }
+    }
+}
+
+2025-07-20T00:13:45+02:00 StartCommand: User is not a member
+
+2025-07-20T00:13:45+02:00 BotService: Sending non-member message
+
+2025-07-20T00:13:45+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 5625181605,
+    "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+    "buttons": [
+        [
+            {
+                "text": "💬 Вступить в чат",
+                "url": "https://t.me/+your_chat_invite_link"
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:13:45+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:13:45+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:13:45+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 5625181605,
+        "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcac \\u0412\\u0441\\u0442\\u0443\\u043f\\u0438\\u0442\\u044c \\u0432 \\u0447\\u0430\\u0442\",\"url\":\"https:\\/\\/t.me\\/+your_chat_invite_link\"}]]}"
+    }
+}
+
+2025-07-20T00:13:46+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 165,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752963225,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:13:46+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 165,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 5625181605,
+                "first_name": "fotokubik.by",
+                "username": "fotokubikby",
+                "type": "private"
+            },
+            "date": 1752963225,
+            "text": "❌ К сожалению, я работаю только с участниками клубного чата.\n\n📱 Для доступа к функциям бота вступите в наш чат:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "💬 Вступить в чат",
+                            "url": "https://t.me/+your_chat_invite_link"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:13:46+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:14:14+02:00 Received update:
+{"update_id":146533092,
+"message":{"message_id":166,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752963253,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:14:14+02:00 BotService: Initializing...
+
+2025-07-20T00:14:14+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:14:14+02:00 BotService: Initialized successfully
+
+2025-07-20T00:14:14+02:00 BotService: Initializing...
+
+2025-07-20T00:14:14+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:14:14+02:00 BotService: Initialized successfully
+
+2025-07-20T00:14:14+02:00 Update type check:
+{
+    "update_id": 146533092,
+    "message": {
+        "message_id": 166,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752963253,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:14:14+02:00 Processing message:
+{
+    "message_id": 166,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752963253,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:14:14+02:00 MessageHandler: Processing message
+{
+    "message_id": 166,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752963253,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:14:14+02:00 MessageHandler: Processing command
+{
+    "command": "/start",
+    "message": {
+        "message_id": 166,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752963253,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:14:14+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:14:14+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:14:14+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:14:14+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:14:14+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: Checking user role via API
+{
+    "user_id": 287536885
+}
+
+2025-07-20T00:14:14+02:00 BotService: API response
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>"
+}
+
+2025-07-20T00:14:14+02:00 BotService: Failed to get user role
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>"
+}
+
+2025-07-20T00:14:14+02:00 StartCommand: User role check
+{
+    "user_id": 287536885,
+    "role": "external"
+}
+
+2025-07-20T00:14:14+02:00 BotService: Sending registration message
+
+2025-07-20T00:14:14+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 287536885,
+    "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+    "buttons": [
+        [
+            {
+                "text": "📝 Зарегистрироваться",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:14:14+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcdd \\u0417\\u0430\\u0440\\u0435\\u0433\\u0438\\u0441\\u0442\\u0440\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:14:14+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcdd \\u0417\\u0430\\u0440\\u0435\\u0433\\u0438\\u0441\\u0442\\u0440\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 167,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963254,
+            "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "📝 Зарегистрироваться",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 167,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963254,
+            "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "📝 Зарегистрироваться",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:14:14+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:20:17+02:00 Received update:
+{"update_id":146533093,
+"message":{"message_id":168,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752963616,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}
+
+2025-07-20T00:20:17+02:00 BotService: Initializing...
+
+2025-07-20T00:20:17+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:17+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:17+02:00 BotService: Initializing...
+
+2025-07-20T00:20:17+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:17+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:17+02:00 Update type check:
+{
+    "update_id": 146533093,
+    "message": {
+        "message_id": 168,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752963616,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:20:17+02:00 Processing message:
+{
+    "message_id": 168,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752963616,
+    "text": "/start",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:20:17+02:00 MessageHandler: Processing message
+
+2025-07-20T00:20:17+02:00 BotService: Initializing...
+
+2025-07-20T00:20:17+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:17+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:17+02:00 StartCommand: Starting command execution
+
+2025-07-20T00:20:17+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:20:17+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:20:17+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:20:17+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:20:17+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: Checking user role via API
+{
+    "user_id": 287536885
+}
+
+2025-07-20T00:20:18+02:00 BotService: API response
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>"
+}
+
+2025-07-20T00:20:18+02:00 BotService: Failed to get user role
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>"
+}
+
+2025-07-20T00:20:18+02:00 StartCommand: User role check
+{
+    "user_id": 287536885,
+    "role": "external"
+}
+
+2025-07-20T00:20:18+02:00 BotService: Sending registration message
+
+2025-07-20T00:20:18+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 287536885,
+    "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+    "buttons": [
+        [
+            {
+                "text": "📝 Зарегистрироваться",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:20:18+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcdd \\u0417\\u0430\\u0440\\u0435\\u0433\\u0438\\u0441\\u0442\\u0440\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:20:18+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udcdd \\u0417\\u0430\\u0440\\u0435\\u0433\\u0438\\u0441\\u0442\\u0440\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c\\u0441\\u044f\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 169,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963617,
+            "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "📝 Зарегистрироваться",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 169,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963617,
+            "text": "Привет, Lex! 👋\n\nДля использования бота нужно зарегистрироваться в приложении CabrioRide.",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "📝 Зарегистрироваться",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:20:18+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:20:21+02:00 Received update:
+{"update_id":146533094,
+"message":{"message_id":170,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752963620,"text":"/help","entities":[{"offset":0,"length":5,"type":"bot_command"}]}}
+
+2025-07-20T00:20:21+02:00 BotService: Initializing...
+
+2025-07-20T00:20:21+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:21+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:21+02:00 BotService: Initializing...
+
+2025-07-20T00:20:21+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:21+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:21+02:00 Update type check:
+{
+    "update_id": 146533094,
+    "message": {
+        "message_id": 170,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752963620,
+        "text": "/help",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 5,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
+
+2025-07-20T00:20:21+02:00 Processing message:
+{
+    "message_id": 170,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752963620,
+    "text": "/help",
+    "entities": [
+        {
+            "offset": 0,
+            "length": 5,
+            "type": "bot_command"
+        }
+    ]
+}
+
+2025-07-20T00:20:21+02:00 MessageHandler: Processing message
+
+2025-07-20T00:20:21+02:00 BotService: Initializing...
+
+2025-07-20T00:20:21+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:21+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:21+02:00 BotService: Sending inline keyboard
+{
+    "chat_id": 287536885,
+    "text": "🤖 Справка по командам бота\n\n📋 Основные команды:\n/start - Запустить бота\n/help - Показать эту справку\n\n🔍 Поиск автомобилей:\n• Отправьте фото номера для распознавания\n• Отправьте номер текстом для поиска\n• В групповом чате отправьте фото с '?' для распознавания",
+    "buttons": [
+        [
+            {
+                "text": "🔍 Проверить авто",
+                "callback_data": "check_car"
+            },
+            {
+                "text": "📋 Справка",
+                "callback_data": "help"
+            }
+        ],
+        [
+            {
+                "text": "🌐 Перейти в приложение",
+                "web_app": {
+                    "url": "https://app.cabrioride.by/?expand=true"
+                }
+            }
+        ]
+    ]
+}
+
+2025-07-20T00:20:21+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "🤖 Справка по командам бота\n\n📋 Основные команды:\n/start - Запустить бота\n/help - Показать эту справку\n\n🔍 Поиск автомобилей:\n• Отправьте фото номера для распознавания\n• Отправьте номер текстом для поиска\n• В групповом чате отправьте фото с '?' для распознавания",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:20:21+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:20:21+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "🤖 Справка по командам бота\n\n📋 Основные команды:\n/start - Запустить бота\n/help - Показать эту справку\n\n🔍 Поиск автомобилей:\n• Отправьте фото номера для распознавания\n• Отправьте номер текстом для поиска\n• В групповом чате отправьте фото с '?' для распознавания",
+        "parse_mode": "HTML",
+        "reply_markup": "{\"inline_keyboard\":[[{\"text\":\"\\ud83d\\udd0d \\u041f\\u0440\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u044c \\u0430\\u0432\\u0442\\u043e\",\"callback_data\":\"check_car\"},{\"text\":\"\\ud83d\\udccb \\u0421\\u043f\\u0440\\u0430\\u0432\\u043a\\u0430\",\"callback_data\":\"help\"}],[{\"text\":\"\\ud83c\\udf10 \\u041f\\u0435\\u0440\\u0435\\u0439\\u0442\\u0438 \\u0432 \\u043f\\u0440\\u0438\\u043b\\u043e\\u0436\\u0435\\u043d\\u0438\\u0435\",\"web_app\":{\"url\":\"https:\\/\\/app.cabrioride.by\\/?expand=true\"}}]]}"
+    }
+}
+
+2025-07-20T00:20:21+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 171,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963620,
+            "text": "🤖 Справка по командам бота\n\n📋 Основные команды:\n/start - Запустить бота\n/help - Показать эту справку\n\n🔍 Поиск автомобилей:\n• Отправьте фото номера для распознавания\n• Отправьте номер текстом для поиска\n• В групповом чате отправьте фото с '?' для распознавания",
+            "entities": [
+                {
+                    "offset": 50,
+                    "length": 6,
+                    "type": "bot_command"
+                },
+                {
+                    "offset": 74,
+                    "length": 5,
+                    "type": "bot_command"
+                }
+            ],
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:20:21+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 171,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963620,
+            "text": "🤖 Справка по командам бота\n\n📋 Основные команды:\n/start - Запустить бота\n/help - Показать эту справку\n\n🔍 Поиск автомобилей:\n• Отправьте фото номера для распознавания\n• Отправьте номер текстом для поиска\n• В групповом чате отправьте фото с '?' для распознавания",
+            "entities": [
+                {
+                    "offset": 50,
+                    "length": 6,
+                    "type": "bot_command"
+                },
+                {
+                    "offset": 74,
+                    "length": 5,
+                    "type": "bot_command"
+                }
+            ],
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "🔍 Проверить авто",
+                            "callback_data": "check_car"
+                        },
+                        {
+                            "text": "📋 Справка",
+                            "callback_data": "help"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "🌐 Перейти в приложение",
+                            "web_app": {
+                                "url": "https://app.cabrioride.by/?expand=true"
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+}
+
+2025-07-20T00:20:21+02:00 BotService: Inline keyboard sent successfully
+
+2025-07-20T00:20:31+02:00 Received update:
+{"update_id":146533095,
+"message":{"message_id":172,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752963630,"photo":[{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA","file_unique_id":"AQAD8foxGwUz4Et4","file_size":1809,"width":67,"height":90},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA","file_unique_id":"AQAD8foxGwUz4Ety","file_size":30876,"width":240,"height":320},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA","file_unique_id":"AQAD8foxGwUz4Et9","file_size":168100,"width":600,"height":800},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA","file_unique_id":"AQAD8foxGwUz4Et-","file_size":259147,"width":960,"height":1280}]}}
+
+2025-07-20T00:20:31+02:00 BotService: Initializing...
+
+2025-07-20T00:20:31+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:31+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:31+02:00 BotService: Initializing...
+
+2025-07-20T00:20:31+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:31+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:31+02:00 Update type check:
+{
+    "update_id": 146533095,
+    "message": {
+        "message_id": 172,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752963630,
+        "photo": [
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et4",
+                "file_size": 1809,
+                "width": 67,
+                "height": 90
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Ety",
+                "file_size": 30876,
+                "width": 240,
+                "height": 320
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et9",
+                "file_size": 168100,
+                "width": 600,
+                "height": 800
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et-",
+                "file_size": 259147,
+                "width": 960,
+                "height": 1280
+            }
+        ]
+    }
+}
+
+2025-07-20T00:20:31+02:00 Processing message:
+{
+    "message_id": 172,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752963630,
+    "photo": [
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et4",
+            "file_size": 1809,
+            "width": 67,
+            "height": 90
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Ety",
+            "file_size": 30876,
+            "width": 240,
+            "height": 320
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et9",
+            "file_size": 168100,
+            "width": 600,
+            "height": 800
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "width": 960,
+            "height": 1280
+        }
+    ]
+}
+
+2025-07-20T00:20:31+02:00 MessageHandler: Processing message
+
+2025-07-20T00:20:31+02:00 BotService: Initializing...
+
+2025-07-20T00:20:31+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:20:31+02:00 BotService: Initialized successfully
+
+2025-07-20T00:20:31+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:20:31+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:20:31+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:20:31+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: Getting file info
+{
+    "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+}
+
+2025-07-20T00:20:31+02:00 BotService: Making request
+{
+    "method": "getFile",
+    "data": {
+        "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getFile"
+}
+
+2025-07-20T00:20:31+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: API response
+{
+    "method": "getFile",
+    "response": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "file_path": "photos/file_0.jpg"
+        }
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: Request successful
+{
+    "method": "getFile",
+    "result": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "file_path": "photos/file_0.jpg"
+        }
+    }
+}
+
+2025-07-20T00:20:31+02:00 BotService: Downloading file
+{
+    "file_path": "photos/file_0.jpg"
+}
+
+2025-07-20T00:20:32+02:00 BotService: File downloaded successfully
+{
+    "temp_path": "C:\\Users\\alexe\\AppData\\Local\\Temp\\tg_2044.tmp"
+}
+
+2025-07-20T00:20:32+02:00 BotService: Sending message
+{
+    "chat_id": 287536885,
+    "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+    "parse_mode": "HTML"
+}
+
+2025-07-20T00:20:32+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:20:32+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:20:32+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:20:32+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 173,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963632,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:20:32+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 173,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752963632,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:20:32+02:00 BotService: Message sent successfully
+
+2025-07-20T00:27:14+02:00 Received update:
+{"update_id":146533096,
+"message":{"message_id":174,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752964033,"photo":[{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA","file_unique_id":"AQAD8foxGwUz4Et4","file_size":1809,"width":67,"height":90},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA","file_unique_id":"AQAD8foxGwUz4Ety","file_size":30876,"width":240,"height":320},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA","file_unique_id":"AQAD8foxGwUz4Et9","file_size":168100,"width":600,"height":800},{"file_id":"AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA","file_unique_id":"AQAD8foxGwUz4Et-","file_size":259147,"width":960,"height":1280}]}}
+
+2025-07-20T00:27:14+02:00 BotService: Initializing...
+
+2025-07-20T00:27:14+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:14+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:14+02:00 BotService: Initializing...
+
+2025-07-20T00:27:14+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:14+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:14+02:00 Update type check:
+{
+    "update_id": 146533096,
+    "message": {
+        "message_id": 174,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752964033,
+        "photo": [
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et4",
+                "file_size": 1809,
+                "width": 67,
+                "height": 90
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Ety",
+                "file_size": 30876,
+                "width": 240,
+                "height": 320
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et9",
+                "file_size": 168100,
+                "width": 600,
+                "height": 800
+            },
+            {
+                "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+                "file_unique_id": "AQAD8foxGwUz4Et-",
+                "file_size": 259147,
+                "width": 960,
+                "height": 1280
+            }
+        ]
+    }
+}
+
+2025-07-20T00:27:14+02:00 Processing message:
+{
+    "message_id": 174,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752964033,
+    "photo": [
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANzAAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et4",
+            "file_size": 1809,
+            "width": 67,
+            "height": 90
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAANtAAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Ety",
+            "file_size": 30876,
+            "width": 240,
+            "height": 320
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN4AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et9",
+            "file_size": 168100,
+            "width": 600,
+            "height": 800
+        },
+        {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "width": 960,
+            "height": 1280
+        }
+    ]
+}
+
+2025-07-20T00:27:14+02:00 MessageHandler: Processing message
+
+2025-07-20T00:27:14+02:00 BotService: Initializing...
+
+2025-07-20T00:27:14+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:14+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:14+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:27:14+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:27:14+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:27:14+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: Getting file info
+{
+    "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+}
+
+2025-07-20T00:27:14+02:00 BotService: Making request
+{
+    "method": "getFile",
+    "data": {
+        "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+    }
+}
+
+2025-07-20T00:27:14+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getFile"
+}
+
+2025-07-20T00:27:14+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA"
+    }
+}
+
+2025-07-20T00:27:15+02:00 BotService: API response
+{
+    "method": "getFile",
+    "response": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "file_path": "photos/file_0.jpg"
+        }
+    }
+}
+
+2025-07-20T00:27:15+02:00 BotService: Request successful
+{
+    "method": "getFile",
+    "result": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAANYaHvrfPJDv1rN6v_gAb65ZBPq_84AAvH6MRsFM-BLdOJya0RP37IBAAMCAAN5AAM2BA",
+            "file_unique_id": "AQAD8foxGwUz4Et-",
+            "file_size": 259147,
+            "file_path": "photos/file_0.jpg"
+        }
+    }
+}
+
+2025-07-20T00:27:15+02:00 BotService: Downloading file
+{
+    "file_path": "photos/file_0.jpg"
+}
+
+2025-07-20T00:27:15+02:00 BotService: File downloaded successfully
+{
+    "temp_path": "C:\\Users\\alexe\\AppData\\Local\\Temp\\tg_4861.tmp"
+}
+
+2025-07-20T00:27:15+02:00 OcrCommand: Sending photo to OCR API
+{
+    "photo_path": "C:\\Users\\alexe\\AppData\\Local\\Temp\\tg_4861.tmp"
+}
+
+2025-07-20T00:27:15+02:00 OcrCommand: API URL
+{
+    "url": "https://app.cabrioride.by/?expand=true/api/ocr/recognize.php"
+}
+
+2025-07-20T00:27:15+02:00 OcrCommand: OCR API Response
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>",
+    "curl_error": ""
+}
+
+2025-07-20T00:27:15+02:00 OcrCommand: Decoded response
+{
+    "result": null
+}
+
+2025-07-20T00:27:15+02:00 BotService: Sending message
+{
+    "chat_id": 287536885,
+    "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+    "parse_mode": "HTML"
+}
+
+2025-07-20T00:27:15+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:27:15+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:27:15+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:27:16+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 175,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752964035,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:27:16+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 175,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752964035,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:27:16+02:00 BotService: Message sent successfully
+
+2025-07-20T00:27:38+02:00 Received update:
+{"update_id":146533097,
+"message":{"message_id":176,"from":{"id":287536885,"is_bot":false,"first_name":"Lex","username":"LihachOK","language_code":"ru"},"chat":{"id":287536885,"first_name":"Lex","username":"LihachOK","type":"private"},"date":1752964057,"photo":[{"file_id":"AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANzAAM2BA","file_unique_id":"AQADP_wxGwUz4Et4","file_size":1859,"width":90,"height":67},{"file_id":"AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANtAAM2BA","file_unique_id":"AQADP_wxGwUz4Ety","file_size":30306,"width":320,"height":239},{"file_id":"AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA","file_unique_id":"AQADP_wxGwUz4Et9","file_size":51607,"width":543,"height":405}]}}
+
+2025-07-20T00:27:38+02:00 BotService: Initializing...
+
+2025-07-20T00:27:38+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:38+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:38+02:00 BotService: Initializing...
+
+2025-07-20T00:27:38+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:38+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:38+02:00 Update type check:
+{
+    "update_id": 146533097,
+    "message": {
+        "message_id": 176,
+        "from": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 287536885,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "type": "private"
+        },
+        "date": 1752964057,
+        "photo": [
+            {
+                "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANzAAM2BA",
+                "file_unique_id": "AQADP_wxGwUz4Et4",
+                "file_size": 1859,
+                "width": 90,
+                "height": 67
+            },
+            {
+                "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANtAAM2BA",
+                "file_unique_id": "AQADP_wxGwUz4Ety",
+                "file_size": 30306,
+                "width": 320,
+                "height": 239
+            },
+            {
+                "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA",
+                "file_unique_id": "AQADP_wxGwUz4Et9",
+                "file_size": 51607,
+                "width": 543,
+                "height": 405
+            }
+        ]
+    }
+}
+
+2025-07-20T00:27:38+02:00 Processing message:
+{
+    "message_id": 176,
+    "from": {
+        "id": 287536885,
+        "is_bot": false,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "language_code": "ru"
+    },
+    "chat": {
+        "id": 287536885,
+        "first_name": "Lex",
+        "username": "LihachOK",
+        "type": "private"
+    },
+    "date": 1752964057,
+    "photo": [
+        {
+            "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANzAAM2BA",
+            "file_unique_id": "AQADP_wxGwUz4Et4",
+            "file_size": 1859,
+            "width": 90,
+            "height": 67
+        },
+        {
+            "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAANtAAM2BA",
+            "file_unique_id": "AQADP_wxGwUz4Ety",
+            "file_size": 30306,
+            "width": 320,
+            "height": 239
+        },
+        {
+            "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA",
+            "file_unique_id": "AQADP_wxGwUz4Et9",
+            "file_size": 51607,
+            "width": 543,
+            "height": 405
+        }
+    ]
+}
+
+2025-07-20T00:27:38+02:00 MessageHandler: Processing message
+
+2025-07-20T00:27:38+02:00 BotService: Initializing...
+
+2025-07-20T00:27:38+02:00 BotService: Token check
+{
+    "token_prefix": "77624...",
+    "is_valid": true
+}
+
+2025-07-20T00:27:38+02:00 BotService: Initialized successfully
+
+2025-07-20T00:27:38+02:00 BotService: Verifying membership
+{
+    "user_id": 287536885,
+    "chat_id": 287536885
+}
+
+2025-07-20T00:27:38+02:00 BotService: Checking chat member
+{
+    "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+    "user_id": 287536885
+}
+
+2025-07-20T00:27:38+02:00 BotService: Making request
+{
+    "method": "getChatMember",
+    "data": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getChatMember"
+}
+
+2025-07-20T00:27:38+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": "-1002873258290     # ID основного чата (можно несколько через запятую)",
+        "user_id": 287536885
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: API response
+{
+    "method": "getChatMember",
+    "response": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: Request successful
+{
+    "method": "getChatMember",
+    "result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: getChatMember API response
+{
+    "ok": true,
+    "result": {
+        "user": {
+            "id": 287536885,
+            "is_bot": false,
+            "first_name": "Lex",
+            "username": "LihachOK",
+            "language_code": "ru"
+        },
+        "status": "creator",
+        "is_anonymous": false
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: Member check result
+{
+    "status": "creator",
+    "is_member": true,
+    "raw_result": {
+        "ok": true,
+        "result": {
+            "user": {
+                "id": 287536885,
+                "is_bot": false,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "language_code": "ru"
+            },
+            "status": "creator",
+            "is_anonymous": false
+        }
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: Getting file info
+{
+    "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA"
+}
+
+2025-07-20T00:27:38+02:00 BotService: Making request
+{
+    "method": "getFile",
+    "data": {
+        "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA"
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/getFile"
+}
+
+2025-07-20T00:27:38+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA"
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: API response
+{
+    "method": "getFile",
+    "response": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA",
+            "file_unique_id": "AQADP_wxGwUz4Et9",
+            "file_size": 51607,
+            "file_path": "photos/file_1.jpg"
+        }
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: Request successful
+{
+    "method": "getFile",
+    "result": {
+        "ok": true,
+        "result": {
+            "file_id": "AgACAgIAAxkBAAOwaHwb2UiJhXuvQ9YpyFFbn1QfnnIAAj_8MRsFM-BL7J7MegGhQtgBAAMCAAN4AAM2BA",
+            "file_unique_id": "AQADP_wxGwUz4Et9",
+            "file_size": 51607,
+            "file_path": "photos/file_1.jpg"
+        }
+    }
+}
+
+2025-07-20T00:27:38+02:00 BotService: Downloading file
+{
+    "file_path": "photos/file_1.jpg"
+}
+
+2025-07-20T00:27:38+02:00 BotService: File downloaded successfully
+{
+    "temp_path": "C:\\Users\\alexe\\AppData\\Local\\Temp\\tg_A3B1.tmp"
+}
+
+2025-07-20T00:27:38+02:00 OcrCommand: Sending photo to OCR API
+{
+    "photo_path": "C:\\Users\\alexe\\AppData\\Local\\Temp\\tg_A3B1.tmp"
+}
+
+2025-07-20T00:27:38+02:00 OcrCommand: API URL
+{
+    "url": "https://app.cabrioride.by/?expand=true/api/ocr/recognize.php"
+}
+
+2025-07-20T00:27:39+02:00 OcrCommand: OCR API Response
+{
+    "http_code": 200,
+    "response": "<!DOCTYPE html>\r\n<html lang=\"ru\">\r\n  <head>\r\n    <meta charset=\"UTF-8\">\r\n    <link rel=\"icon\" href=\"/favicon.ico\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\r\n    <meta name=\"theme-color\" content=\"#1a1a1a\">\r\n    <title>CabrioRide</title>\r\n    <script src=\"https://telegram.org/js/telegram-web-app.js\"></script>\r\n    <script src=\"https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU\" type=\"text/javascript\"></script>\r\n    <script type=\"module\" crossorigin src=\"/assets/index.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/vendor.js\">\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/icons.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">\n  </head>\r\n  <body>\r\n    <div id=\"app\"></div>\r\r\n  </body>\r\n</html>",
+    "curl_error": ""
+}
+
+2025-07-20T00:27:39+02:00 OcrCommand: Decoded response
+{
+    "result": null
+}
+
+2025-07-20T00:27:39+02:00 BotService: Sending message
+{
+    "chat_id": 287536885,
+    "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+    "parse_mode": "HTML"
+}
+
+2025-07-20T00:27:39+02:00 BotService: Making request
+{
+    "method": "sendMessage",
+    "data": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:27:39+02:00 BotService: API URL
+{
+    "url": "https://api.telegram.org/bot***/sendMessage"
+}
+
+2025-07-20T00:27:39+02:00 BotService: Request options
+{
+    "headers": "Content-Type: application/json\r\n",
+    "method": "POST",
+    "content": {
+        "chat_id": 287536885,
+        "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото.",
+        "parse_mode": "HTML"
+    }
+}
+
+2025-07-20T00:27:39+02:00 BotService: API response
+{
+    "method": "sendMessage",
+    "response": {
+        "ok": true,
+        "result": {
+            "message_id": 177,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752964058,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:27:39+02:00 BotService: Request successful
+{
+    "method": "sendMessage",
+    "result": {
+        "ok": true,
+        "result": {
+            "message_id": 177,
+            "from": {
+                "id": 7762475766,
+                "is_bot": true,
+                "first_name": "CabrioBot",
+                "username": "CabrioControl_bot"
+            },
+            "chat": {
+                "id": 287536885,
+                "first_name": "Lex",
+                "username": "LihachOK",
+                "type": "private"
+            },
+            "date": 1752964058,
+            "text": "❌ Не удалось распознать номер. Попробуйте сделать более четкое фото."
+        }
+    }
+}
+
+2025-07-20T00:27:39+02:00 BotService: Message sent successfully
+

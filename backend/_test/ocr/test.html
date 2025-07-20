@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR API Test - CabrioRide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .test-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            background: #e3f2fd;
+            border-color: #764ba2;
+        }
+
+        .file-input:focus + .file-input-label {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .json-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-result-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1em;
+            line-height: 1.6;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .result-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .result-title-main {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .result-details {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .result-action {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status {
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 6px;
+        }
+
+        .info-text {
+            color: #424242;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 5px;
+                border-radius: 8px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 OCR API Test</h1>
+            <p>Тестирование распознавания номеров автомобилей</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <div class="info-title">ℹ️ Информация о тесте</div>
+                <div class="info-text">
+                    <strong>OCR API:</strong> POST /app/backend/api/ocr/recognize.php<br>
+                    <strong>Check API:</strong> POST /app/backend/api/ocr/check.php<br>
+                    <strong>Параметр:</strong> image (файл изображения)<br>
+                    <strong>Формат:</strong> multipart/form-data<br>
+                    <strong>API:</strong> platerecognizer.com
+                </div>
+            </div>
+
+            <div class="test-section">
+                <div class="section-title">📤 Отправка запроса</div>
+                
+                <form id="ocrForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Выберите изображение автомобиля:</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="imageInput" name="image" class="file-input" accept="image/*" required>
+                            <label for="imageInput" class="file-input-label">
+                                📁 Выберите файл изображения (JPG, PNG)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="preview-container">
+                        <img id="imagePreview" class="image-preview" alt="Предварительный просмотр">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn">
+                        🔍 Распознать номер
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-container" id="resultsContainer" style="display: none;">
+                <div class="section-title">📥 Результаты</div>
+                
+                <div id="statusBox" class="status"></div>
+
+                <div class="result-box">
+                    <div class="result-title">📋 Детали запроса</div>
+                    <div id="requestDetails" class="json-display"></div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">🔍 Результат распознавания</div>
+                    <div id="ocrResult" class="json-display"></div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">📊 Проверка в базе</div>
+                    <div id="checkResult" class="json-display"></div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">🎯 Результат для пользователя</div>
+                    <div id="userResult" class="user-result-display"></div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">📄 Полный ответ API</div>
+                    <div id="responseDetails" class="json-display"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('ocrForm');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const statusBox = document.getElementById('statusBox');
+        const requestDetails = document.getElementById('requestDetails');
+        const ocrResult = document.getElementById('ocrResult');
+        const checkResult = document.getElementById('checkResult');
+        const userResult = document.getElementById('userResult');
+        const responseDetails = document.getElementById('responseDetails');
+
+        // Предварительный просмотр изображения
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Обработка отправки формы
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const file = imageInput.files[0];
+            
+            if (!file) {
+                showStatus('error', '❌ Пожалуйста, выберите файл изображения');
+                return;
+            }
+
+            formData.append('image', file);
+
+            // Показываем статус загрузки
+            showStatus('loading', '<span class="loading-spinner"></span>Обработка изображения...');
+            submitBtn.disabled = true;
+            resultsContainer.style.display = 'block';
+
+            // Подготавливаем данные для отображения
+            const requestInfo = {
+                method: 'POST',
+                url: '/app/backend/api/ocr/recognize.php',
+                contentType: 'multipart/form-data',
+                file: {
+                    name: file.name,
+                    size: formatBytes(file.size),
+                    type: file.type
+                }
+            };
+
+            requestDetails.textContent = JSON.stringify(requestInfo, null, 2);
+
+            try {
+                const response = await fetch('/app/backend/api/ocr/recognize.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const responseText = await response.text();
+                let responseData;
+
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (parseError) {
+                    responseData = {
+                        error: 'Ошибка парсинга JSON',
+                        rawResponse: responseText
+                    };
+                }
+
+                // Отображаем полный ответ
+                responseDetails.textContent = JSON.stringify(responseData, null, 2);
+
+                // Обрабатываем результат распознавания
+                if (response.ok && responseData.success && responseData.results && responseData.results.length > 0) {
+                    const recognizedPlate = responseData.results[0].plate;
+                    ocrResult.textContent = JSON.stringify({
+                        recognized: true,
+                        plate: recognizedPlate,
+                        confidence: responseData.results[0].score,
+                        allResults: responseData.results
+                    }, null, 2);
+
+                    // Проверяем номер в базе
+                    await checkPlateInDatabase(recognizedPlate);
+                    showStatus('success', `✅ Распознан номер: ${recognizedPlate}`);
+                } else {
+                    ocrResult.textContent = JSON.stringify({
+                        recognized: false,
+                        error: responseData.error || 'Не удалось распознать номер'
+                    }, null, 2);
+                    checkResult.textContent = JSON.stringify({
+                        checked: false,
+                        reason: 'Номер не распознан'
+                    }, null, 2);
+                    showStatus('error', '❌ Ошибка при распознавании номера');
+                }
+
+            } catch (error) {
+                responseDetails.textContent = JSON.stringify({
+                    error: 'Ошибка сети',
+                    message: error.message
+                }, null, 2);
+                showStatus('error', '❌ Ошибка сети: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showStatus(type, message) {
+            statusBox.className = `status ${type}`;
+            statusBox.innerHTML = message;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Функция отображения результата для пользователя
+        function displayUserResult(checkData) {
+            if (checkData.success && checkData.found) {
+                // Автомобиль найден
+                userResult.innerHTML = `
+                    <div class="result-icon">✅</div>
+                    <div class="result-title-main">Автомобиль найден!</div>
+                    <div class="result-details">
+                        <strong>Номер:</strong> ${checkData.plate}<br>
+                        <strong>Статус:</strong> ${checkData.status}<br>
+                        <strong>В базе клуба:</strong> Да
+                    </div>
+                    <div class="result-action">
+                        💳 Можно оставить визитку
+                    </div>
+                `;
+            } else if (checkData.success && !checkData.found) {
+                // Автомобиль не найден
+                userResult.innerHTML = `
+                    <div class="result-icon">🔍</div>
+                    <div class="result-title-main">Автомобиль не найден</div>
+                    <div class="result-details">
+                        <strong>Номер:</strong> ${checkData.plate}<br>
+                        <strong>В базе клуба:</strong> Нет
+                    </div>
+                    <div class="result-action">
+                        📝 Можно добавить в базу
+                    </div>
+                `;
+            } else {
+                // Ошибка
+                userResult.innerHTML = `
+                    <div class="result-icon">❌</div>
+                    <div class="result-title-main">Ошибка проверки</div>
+                    <div class="result-details">
+                        ${checkData.error || 'Неизвестная ошибка'}
+                    </div>
+                `;
+            }
+        }
+
+        // Функция проверки номера в базе данных
+        async function checkPlateInDatabase(plate) {
+            try {
+                const formData = new FormData();
+                formData.append('plate', plate);
+
+                const response = await fetch('/app/backend/api/ocr/check.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const responseText = await response.text();
+                let checkData;
+
+                try {
+                    checkData = JSON.parse(responseText);
+                } catch (parseError) {
+                    checkData = {
+                        error: 'Ошибка парсинга JSON',
+                        rawResponse: responseText
+                    };
+                }
+
+                checkResult.textContent = JSON.stringify(checkData, null, 2);
+
+                // Отображаем результат для пользователя
+                displayUserResult(checkData);
+
+            } catch (error) {
+                checkResult.textContent = JSON.stringify({
+                    error: 'Ошибка сети при проверке в БД',
+                    message: error.message
+                }, null, 2);
+                
+                userResult.innerHTML = `
+                    <div class="result-icon">❌</div>
+                    <div class="result-title-main">Ошибка проверки</div>
+                    <div class="result-details">
+                        Не удалось проверить номер в базе данных
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,25 @@
+# Конфигурация cloudflared для CabrioRide
+# Файл: cloudflared.yml
+
+# Настройки туннеля
+tunnel: cabrioride-tunnel
+credentials-file: .cloudflared/credentials.json
+
+# Настройки логирования
+loglevel: info
+logfile: cloudflared.log
+
+# Настройки производительности
+protocol: http2
+originRequest:
+  connectTimeout: 30s
+  readTimeout: 30s
+  writeTimeout: 30s
+
+# Настройки туннеля
+ingress:
+  - hostname: cabrioride.trycloudflare.com
+    service: http://localhost:80
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404 
