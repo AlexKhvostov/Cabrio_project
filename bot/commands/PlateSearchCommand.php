@@ -99,7 +99,7 @@ class PlateSearchCommand {
                     'role' => 'guest'
                 ],
                 'data' => [
-                    'plate_number' => $plate_number
+                    'plate' => $plate_number // Используем правильное название поля
                 ]
             ];
             

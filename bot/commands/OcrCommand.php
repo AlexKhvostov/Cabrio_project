@@ -189,8 +189,8 @@ class OcrCommand {
                 $result = json_decode($response, true);
                 if ($result && isset($result['success'])) {
                     // Если распознавание успешно, проверяем номер в БД
-                    if ($result['success'] && isset($result['result']['data']['plate_number'])) {
-                        $plate_number = $result['result']['data']['plate_number'];
+                    if ($result['success'] && isset($result['result']['data']['plate'])) {
+                        $plate_number = $result['result']['data']['plate'];
                         return $this->checkPlateInDatabase($plate_number, $user);
                     }
                     return $result;
@@ -229,7 +229,7 @@ class OcrCommand {
                     'role' => 'guest'
                 ],
                 'data' => [
-                    'plate_number' => $plate_number
+                    'plate' => $plate_number // Используем правильное название поля
                 ]
             ];
             
@@ -281,7 +281,7 @@ class OcrCommand {
         }
         
         // Проверяем успешность OCR
-        if (!isset($result['result']['data']['plate_number'])) {
+        if (!isset($result['result']['data']['plate'])) {
             $this->botService->sendMessage($chat_id,
                 "❌ Не удалось распознать номер на фото.\n\n" .
                 "💡 Советы для лучшего распознавания:\n" .
@@ -294,7 +294,7 @@ class OcrCommand {
         }
         
         // Номер распознан успешно
-        $plate = $result['result']['data']['plate_number'];
+        $plate = $result['result']['data']['plate'];
         
         // Формируем структурированный ответ
         $text = "Распознан номер\n";
@@ -326,12 +326,12 @@ class OcrCommand {
         }
         
         // Проверяем успешность OCR
-        if (!isset($result['result']['data']['plate_number'])) {
+        if (!isset($result['result']['data']['plate'])) {
             return; // В групповом чате не показываем ошибки распознавания
         }
         
         // Номер распознан успешно
-        $plate = $result['result']['data']['plate_number'];
+        $plate = $result['result']['data']['plate'];
         
         // Формируем краткий ответ для группового чата
         $text = "🔍 " . $plate;
@@ -357,7 +357,7 @@ class OcrCommand {
         }
         
         // Проверяем успешность OCR
-        if (!isset($result['result']['data']['plate_number'])) {
+        if (!isset($result['result']['data']['plate'])) {
             $this->botService->sendMessage($chat_id,
                 "❌ Не удалось распознать номер на фото.\n\n" .
                 "💡 Советы для лучшего распознавания:\n" .
@@ -370,7 +370,7 @@ class OcrCommand {
         }
         
         // Номер распознан успешно
-        $plate = $result['result']['data']['plate_number'];
+        $plate = $result['result']['data']['plate'];
         
         // Формируем структурированный ответ
         $text = "🔍 Результат распознавания:\n\n";
