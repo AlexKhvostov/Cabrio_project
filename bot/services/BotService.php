@@ -76,7 +76,7 @@ class BotService {
             'resize' => $resize
         ]);
         
-        $keyboard = [
+            $keyboard = [
             'keyboard' => $buttons,
             'resize_keyboard' => $resize,
             'one_time_keyboard' => false
@@ -103,15 +103,15 @@ class BotService {
             'buttons' => $buttons
         ]);
         
-        $inline_keyboard = [
-            'inline_keyboard' => $buttons
-        ];
-        
+            $inline_keyboard = [
+                'inline_keyboard' => $buttons
+            ];
+            
         $result = $this->makeRequest('sendMessage', [
-            'chat_id' => $chat_id,
-            'text' => $text,
-            'parse_mode' => 'HTML',
-            'reply_markup' => json_encode($inline_keyboard)
+                'chat_id' => $chat_id,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+                'reply_markup' => json_encode($inline_keyboard)
         ]);
         
         writeToLog("BotService: Inline keyboard sent successfully");
@@ -129,20 +129,20 @@ class BotService {
             'web_app_url' => $webAppUrl
         ]);
         
-        $inline_keyboard = [
-            'inline_keyboard' => [[
-                [
-                    'text' => $buttonText,
-                    'web_app' => ['url' => $webAppUrl]
-                ]
-            ]]
-        ];
-        
+            $inline_keyboard = [
+                'inline_keyboard' => [[
+                    [
+                        'text' => $buttonText,
+                        'web_app' => ['url' => $webAppUrl]
+                    ]
+                ]]
+            ];
+            
         $result = $this->makeRequest('sendMessage', [
-            'chat_id' => $chat_id,
-            'text' => $text,
-            'parse_mode' => 'HTML',
-            'reply_markup' => json_encode($inline_keyboard)
+                'chat_id' => $chat_id,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+                'reply_markup' => json_encode($inline_keyboard)
         ]);
         
         writeToLog("BotService: WebApp button sent successfully");
@@ -159,16 +159,16 @@ class BotService {
             'caption' => $caption
         ]);
         
-        $data = [
-            'chat_id' => $chat_id,
-            'photo' => $photo
-        ];
-        
-        if (!empty($caption)) {
-            $data['caption'] = $caption;
-            $data['parse_mode'] = 'HTML';
-        }
-        
+            $data = [
+                'chat_id' => $chat_id,
+                'photo' => $photo
+            ];
+            
+            if (!empty($caption)) {
+                $data['caption'] = $caption;
+                $data['parse_mode'] = 'HTML';
+            }
+            
         $result = $this->makeRequest('sendPhoto', $data);
         
         writeToLog("BotService: Photo sent successfully");
