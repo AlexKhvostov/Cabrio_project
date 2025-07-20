@@ -10,6 +10,7 @@ require_once __DIR__ . '/../commands/StartCommand.php';
 require_once __DIR__ . '/../commands/HelpCommand.php';
 require_once __DIR__ . '/../commands/TestCommand.php';
 require_once __DIR__ . '/../commands/OcrCommand.php';
+require_once __DIR__ . '/../commands/PlateSearchCommand.php';
 require_once __DIR__ . '/../utils/Logger.php';
 
 class MessageHandler {
@@ -63,6 +64,11 @@ class MessageHandler {
                         $cmd->execute($message);
                         break;
                         
+                    case '/search':
+                        $cmd = new PlateSearchCommand($botService);
+                        $cmd->execute($message);
+                        break;
+                        
                     default:
                         $botService->sendMessage(
                             $message['chat']['id'],
@@ -86,6 +92,18 @@ class MessageHandler {
                 $cmd = new OcrCommand($botService);
                 $cmd->execute($message);
                 return;
+            }
+            
+            // Если это текстовый поиск номера (не команда)
+            if (isset($message['text']) && $message['chat']['type'] === 'private') {
+                $text = trim($message['text']);
+                
+                // Проверяем, что это похоже на номер (содержит буквы и цифры)
+                if (preg_match('/[а-яёa-z0-9]{4,}/ui', $text)) {
+                    $cmd = new PlateSearchCommand($botService);
+                    $cmd->execute($message);
+                    return;
+                }
             }
             
             // Если это новые участники в группе

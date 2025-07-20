@@ -259,7 +259,7 @@ class BotService {
      * Проверяет роль пользователя через API
      * 
      * @param int $user_id ID пользователя в Telegram
-     * @return string Роль пользователя (пока всегда 'external' через заглушку в backend)
+     * @return string Роль пользователя
      */
     public function checkUserRole($user_id) {
         writeToLog("BotService: Checking user role via API", [
@@ -267,20 +267,28 @@ class BotService {
         ]);
         
         try {
-            $api_url = getConfig('app_url') . '/api/users/check-role.php';
+            $api_url = getApiUrl() . '/backend/api/users/profile.php';
             
-            $data = [
-                'telegram_id' => $user_id
+            // Формируем запрос согласно новому API стандарту
+            $request_data = [
+                'auth' => [
+                    'user_id' => $user_id,
+                    'role' => 'guest' // Временно используем guest для проверки
+                ],
+                'data' => [
+                    'telegram_id' => $user_id
+                ]
             ];
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $api_url);
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request_data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json'
             ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -293,8 +301,16 @@ class BotService {
             
             if ($http_code === 200) {
                 $result = json_decode($response, true);
-                if (isset($result['role'])) {
-                    return $result['role'];
+                if ($result && isset($result['success']) && $result['success']) {
+                    // Пользователь найден, возвращаем его роль
+                    if (isset($result['result']['data']['role'])) {
+                        return $result['result']['data']['role'];
+                    }
+                } else if ($result && isset($result['success']) && !$result['success']) {
+                    // Пользователь не найден, возвращаем external
+                    if (isset($result['error']['code']) && $result['error']['code'] === 404) {
+                        return 'external';
+                    }
                 }
             }
             
