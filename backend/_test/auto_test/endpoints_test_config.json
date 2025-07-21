@@ -1,0 +1,542 @@
+[
+    {
+        "url": "/api/auth/telegram",
+        "tests": [
+            {
+                "type": "1. Успех 1",
+                "request": { "auth": {}, "data": { "initData": "valid_telegram_data" } },
+                "expect": { "success": true, "result.message": "OK" }
+            },
+            {
+                "type": "2. Успех 2",
+                "request": { "auth": {}, "data": { "initData": "another_valid_data" } },
+                "expect": { "success": true }
+            },
+            {
+                "type": "3. Ошибка: дубликат",
+                "request": { "auth": {}, "data": { "initData": "valid_telegram_data" } },
+                "expect": { "success": false, "error.code": 422 }
+            },
+            {
+                "type": "4. Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "5. Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "initData": "valid_telegram_data" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "6. Ошибка: невалидные данные",
+                "request": { "auth": {}, "data": { "initData": 12345 } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": { "auth": {}, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "8. Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/auth/check",
+        "tests": [
+            {
+                "type": "1. Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": true, "result.auth.user_id": 1 }
+            },
+            {
+                "type": "2. Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "admin" }, "data": {} },
+                "expect": { "success": true, "result.auth.user_id": 2 }
+            },
+            {
+                "type": "3. Ошибка: несуществующий пользователь",
+                "request": { "auth": { "user_id": 999999, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "4. Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "5. Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": {} },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "6. Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": "notanumber", "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": { "auth": {}, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "8. Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/auth/logout",
+        "tests": [
+            {
+                "type": "1. Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": true, "result.message": "OK" }
+            },
+            {
+                "type": "2. Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "admin" }, "data": {} },
+                "expect": { "success": true }
+            },
+            {
+                "type": "3. Ошибка: несуществующий пользователь",
+                "request": { "auth": { "user_id": 999999, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "4. Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "5. Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": {} },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "6. Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": "notanumber", "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": { "auth": {}, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "8. Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/users/profile",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "user_id": 1 } },
+                "expect": { "success": true, "result.user_id": 1 }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "user_id": 2 } },
+                "expect": { "success": true, "result.user_id": 2 }
+            },
+            {
+                "type": "Успех с ошибкой (несуществующий)",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "user_id": 999999 } },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "user_id": 1 } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "user_id": "notanumber" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/users/update",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "user_id": 1, "first_name": "New", "last_name": "Name" } },
+                "expect": { "success": true, "result.user_id": 1 }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "user_id": 2, "first_name": "Ivan", "last_name": "Ivanov" } },
+                "expect": { "success": true, "result.user_id": 2 }
+            },
+            {
+                "type": "Успех с ошибкой (несуществующий)",
+                "request": { "auth": { "user_id": 999999, "role": "member" }, "data": { "user_id": 999999, "first_name": "Ghost", "last_name": "User" } },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "user_id": 1, "first_name": "New", "last_name": "Name" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "user_id": 1, "first_name": "", "last_name": "" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/users/add",
+        "tests": [
+            {
+                "type": "1. Успех 1",
+                "request": { "auth": {}, "data": { "telegram_id": 123456, "username": "testuser", "first_name": "Test", "last_name": "User" } },
+                "expect": { "success": true }
+            },
+            {
+                "type": "2. Успех 2",
+                "request": { "auth": {}, "data": { "telegram_id": 654321, "username": "anotheruser", "first_name": "Ivan", "last_name": "Ivanov" } },
+                "expect": { "success": true }
+            },
+            {
+                "type": "3. Ошибка: дубликат",
+                "request": { "auth": {}, "data": { "telegram_id": 123456, "username": "testuser", "first_name": "Test", "last_name": "User" } },
+                "expect": { "success": false, "error.code": 422 }
+            },
+            {
+                "type": "4. Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "5. Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "telegram_id": 123456, "username": "testuser", "first_name": "Test", "last_name": "User" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "6. Ошибка: невалидные данные",
+                "request": { "auth": {}, "data": { "telegram_id": "notanumber", "username": "", "first_name": "", "last_name": "" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": { "auth": {}, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "8. Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/cars/add",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "expect": { "success": true, "result.car_id": 1 }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "model": "Mazda", "year": 2021, "color": "blue", "photo": "" } },
+                "expect": { "success": true, "result.car_id": 2 }
+            },
+            {
+                "type": "Успех с ошибкой (дубликат)",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "expect": { "success": false, "error.code": 422 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!", "model": "", "year": "notayear", "color": "", "photo": "" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "model": "Test" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/cars/check",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC" } },
+                "expect": { "success": true, "result.reg_number": "A123BC" }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE" } },
+                "expect": { "success": true, "result.reg_number": "B456DE" }
+            },
+            {
+                "type": "Успех с ошибкой (несуществующий)",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "ZZZZZZ" } },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/ocr/recognize",
+        "tests": [
+            {
+                "type": "Успех 1 (валидное фото)",
+                "request": { "ocr_file": "valid1.jpg" },
+                "expect": { "success": true, "result.plate": "A123BC" }
+            },
+            {
+                "type": "Успех 2 (валидное фото)",
+                "request": { "ocr_file": "valid2.jpg" },
+                "expect": { "success": true, "result.plate": "B456DE" }
+            },
+            {
+                "type": "Успех с ошибкой (не найден)",
+                "request": { "ocr_file": "notfound.jpg" },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "image": "base64string" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные (битое изображение)",
+                "request": { "ocr_file": "broken.jpg" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/ocr/check",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "plate": "A123BC" } },
+                "expect": { "success": true, "result.plate": "A123BC" }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "plate": "B456DE" } },
+                "expect": { "success": true, "result.plate": "B456DE" }
+            },
+            {
+                "type": "Успех с ошибкой (не найден)",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "plate": "ZZZZZZ" } },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "plate": "A123BC" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "plate": "!!!" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/ocr/process",
+        "tests": [
+            {
+                "type": "Успех 1 (валидное фото)",
+                "request": { "ocr_file": "valid1.jpg" },
+                "expect": { "success": true, "result.plate": "A123BC" }
+            },
+            {
+                "type": "Успех 2 (валидное фото)",
+                "request": { "ocr_file": "valid2.jpg" },
+                "expect": { "success": true, "result.plate": "B456DE" }
+            },
+            {
+                "type": "Успех с ошибкой (не найден)",
+                "request": { "ocr_file": "notfound.jpg" },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "image": "base64string" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные (битое изображение)",
+                "request": { "ocr_file": "broken.jpg" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/api/business-cards/add",
+        "tests": [
+            {
+                "type": "Успех 1",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "expect": { "success": true, "result.business_card_id": 1 }
+            },
+            {
+                "type": "Успех 2",
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "location": "Test2", "notes": "Test2", "photo": "" } },
+                "expect": { "success": true, "result.business_card_id": 2 }
+            },
+            {
+                "type": "Успех с ошибкой (дубликат)",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "expect": { "success": false, "error.code": 422 }
+            },
+            {
+                "type": "Ошибка: неправильный запрос",
+                "request": { "foo": "bar" },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "Ошибка: невалидные данные",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!", "location": "", "notes": "", "photo": "" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: нет обязательного поля",
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "location": "Test" } },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    }
+] 

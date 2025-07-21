@@ -1,25 +1,15 @@
-# Конфигурация cloudflared для CabrioRide
-# Файл: cloudflared.yml
-
-# Настройки туннеля
-tunnel: cabrioride-tunnel
-credentials-file: .cloudflared/credentials.json
-
-# Настройки логирования
-loglevel: info
-logfile: cloudflared.log
-
-# Настройки производительности
-protocol: http2
-originRequest:
-  connectTimeout: 30s
-  readTimeout: 30s
-  writeTimeout: 30s
-
-# Настройки туннеля
-ingress:
-  - hostname: cabrioride.trycloudflare.com
-    service: http://localhost:80
-    originRequest:
-      noTLSVerify: true
-  - service: http_status:404 
+# ===============================
+# Быстрый запуск временного туннеля (Quick Tunnel)
+#
+# 1. Откройте PowerShell и перейдите в папку с cloudflared:
+#    Set-Location C:\cloudflared
+#
+# 2. Запустите временный туннель командой:
+#    .\cloudflared.exe tunnel --url http://localhost:80
+#
+# 3. В консоли появится временный публичный адрес вида:
+#    https://random-string.trycloudflare.com
+#    (он будет проксировать на http://localhost:80)
+#
+# ⚠️ Этот способ не требует регистрации и конфиг-файла, но адрес будет каждый раз новый!
+# =============================== 
