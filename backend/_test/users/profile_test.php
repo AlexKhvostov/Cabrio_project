@@ -166,6 +166,11 @@
                             <input type="number" name="target_user_id" value="1" placeholder="Оставьте пустым для своего профиля">
                             <div class="optional">ID пользователя для просмотра профиля (пусто = свой профиль)</div>
                         </div>
+                        <div class="form-group">
+                            <label>Telegram ID <span class="optional">(альтернатива User ID)</span></label>
+                            <input type="number" name="telegram_id" placeholder="Можно указать только telegram_id">
+                            <div class="optional">Если указан, поиск будет по telegram_id</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -203,6 +208,11 @@
             const targetUserId = formData.get('target_user_id');
             if (targetUserId && targetUserId.trim() !== '') {
                 request.data.user_id = parseInt(targetUserId);
+            }
+            // Добавляем telegram_id если указан
+            const telegramId = formData.get('telegram_id');
+            if (telegramId && telegramId.trim() !== '') {
+                request.data.telegram_id = parseInt(telegramId);
             }
             
             return request;

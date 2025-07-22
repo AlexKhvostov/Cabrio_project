@@ -21,6 +21,7 @@
     <div style="margin-bottom:0.5em;">Скопируйте и выполните команду для обновления webhook на текущий домен:</div>
     <input type="text" id="webhook-cmd" style="width:100%; font-family:monospace; font-size:1em;" readonly>
     <button onclick="copyWebhookCmd()">Скопировать</button>
+    <button id="set-webhook-btn" style="margin-left:10px;">Установить webhook</button>
     <div id="webhook-error" class="error"></div>
   </div>
   <h2>Список таблиц:</h2>
@@ -33,7 +34,9 @@
       const origin = window.location.origin;
       // Получаем путь до каталога проекта (например, /app)
       const path = window.location.pathname;
-      const base = path.split('/_test')[0];
+      // Корректно вычисляем base для любой подпапки
+      const base = path.split('/_upd_token')[0]; // если страница лежит в /app/_upd_token
+      // Если структура изменится, скорректируйте split
       const url = encodeURIComponent(origin + base + '/bot/webhook.php');
       const cmd = `curl "https://api.telegram.org/bot${token}/setWebhook?url=${url}"`;
       document.getElementById('webhook-cmd').value = cmd;
@@ -59,6 +62,34 @@
       input.setSelectionRange(0, 99999);
       document.execCommand('copy');
     }
+
+    // Кнопка для установки webhook прямо из браузера
+    document.getElementById('set-webhook-btn').onclick = async function() {
+      const cmdInput = document.getElementById('webhook-cmd');
+      const urlMatch = cmdInput.value.match(/setWebhook\?url=([^\"]+)/);
+      const tokenMatch = cmdInput.value.match(/bot([\w:-]+)\/setWebhook/);
+      const errorDiv = document.getElementById('webhook-error');
+      errorDiv.textContent = '';
+      if (!urlMatch || !tokenMatch) {
+        errorDiv.textContent = 'Ошибка: не удалось извлечь URL или токен.';
+        return;
+      }
+      const url = decodeURIComponent(urlMatch[1]);
+      const token = tokenMatch[1];
+      const apiUrl = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(url)}`;
+      errorDiv.textContent = '⏳ Устанавливаем webhook...';
+      try {
+        const resp = await fetch(apiUrl);
+        const data = await resp.json();
+        if (data.ok) {
+          errorDiv.textContent = '✅ Webhook успешно установлен!';
+        } else {
+          errorDiv.textContent = '❌ Ошибка: ' + (data.description || 'Не удалось установить webhook');
+        }
+      } catch (e) {
+        errorDiv.textContent = '❌ Ошибка сети: ' + e.message;
+      }
+    };
 
     // Получить список таблиц
     fetch('testUtils.php?action=tables')

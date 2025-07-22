@@ -192,8 +192,7 @@ class OcrRecognizeEndpoint extends ApiHandler {
         // Берём первый результат
         $firstResult = $results[0];
         $plate = $firstResult['plate'] ?? null;
-        $confidence = $firstResult['confidence'] ?? 0;
-        
+        $confidence = $firstResult['score'] ?? 0;
         return [
             'plate' => $plate,
             'confidence' => $confidence,

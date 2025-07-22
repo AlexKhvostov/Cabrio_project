@@ -470,6 +470,37 @@ class BotService {
     }
     
     /**
+     * Универсальный вызов backend API (POST JSON)
+     * @param string $endpoint относительный путь (например, /backend/api/users/add.php)
+     * @param array $payload ассоциативный массив данных
+     * @return array|null
+     */
+    public function callBackendApi($endpoint, $payload) {
+        $api_url = getApiUrl() . $endpoint;
+        writeToLog("BotService: callBackendApi", [
+            'url' => $api_url,
+            'payload' => $payload
+        ]);
+        $ch = curl_init($api_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        writeToLog("BotService: callBackendApi response", [
+            'http_code' => $http_code,
+            'response' => $response
+        ]);
+        if ($response) {
+            return json_decode($response, true);
+        }
+        return null;
+    }
+    
+    /**
      * Делает запрос к Telegram API
      */
     private function makeRequest($method, $data = []) {

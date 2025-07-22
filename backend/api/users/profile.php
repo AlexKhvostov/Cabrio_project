@@ -71,16 +71,26 @@ class UserProfileEndpoint extends ApiHandler {
         if ($accessResult !== true) {
             return $accessResult;
         }
-        
-        // Получаем user_id для просмотра профиля
+        // Получаем user_id или telegram_id для просмотра профиля
         $targetUserId = $this->getData('user_id');
+        $telegramId = $this->getData('telegram_id');
         $authUserId = $this->getAuth('user_id');
-        
+        // Если не указан user_id, но есть telegram_id — ищем по нему
+        if (empty($targetUserId) && !empty($telegramId)) {
+            $db = $this->getDb();
+            $stmt = $db->prepare('SELECT id FROM users WHERE telegram_id = ?');
+            $stmt->execute([$telegramId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row && !empty($row['id'])) {
+                $targetUserId = $row['id'];
+            } else {
+                return $this->error('Пользователь не найден', 404, 'NOT_FOUND');
+            }
+        }
         // Если user_id не указан, показываем свой профиль
         if (empty($targetUserId)) {
             $targetUserId = $authUserId;
         }
-        
         // Проверяем что user_id указан
         if (empty($targetUserId)) {
             return $this->error('User ID обязателен', 400, 'VALIDATION_ERROR', [
@@ -88,10 +98,8 @@ class UserProfileEndpoint extends ApiHandler {
                 'rule' => 'required'
             ]);
         }
-        
         try {
             $db = $this->getDb();
-            
             // Получаем информацию о пользователе
             $user = $this->getUserInfo($db, $targetUserId);
             if (!$user) {

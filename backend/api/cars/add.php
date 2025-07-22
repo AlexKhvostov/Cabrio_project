@@ -57,6 +57,7 @@ class AddCarEndpoint extends ApiHandler {
         $year = $this->getData('year');
         $color = $this->getData('color', '');
         $showRegNumber = $this->getData('show_reg_number', true);
+        $statusCode = $this->getData('status_code');
         
         $userId = $this->getAuth('user_id');
         
@@ -74,6 +75,25 @@ class AddCarEndpoint extends ApiHandler {
             
             // Сохраняем фото
             $photoUrl = $this->savePhoto($photo, $userId);
+
+            // Определяем статус авто
+            $statusId = null;
+            if (!empty($statusCode)) {
+                // Если передан status_code — ищем id статуса по коду
+                $statusStmt = $db->prepare('SELECT id FROM ref_statuses WHERE code = ? AND entity_type = ?');
+                $statusStmt->execute([$statusCode, 'car']);
+                $statusRow = $statusStmt->fetch(PDO::FETCH_ASSOC);
+                if ($statusRow) {
+                    $statusId = $statusRow['id'];
+                }
+            }
+            if (empty($statusId)) {
+                // По умолчанию — статус active
+                $statusStmt = $db->prepare('SELECT id FROM ref_statuses WHERE code = ? AND entity_type = ?');
+                $statusStmt->execute(['active', 'car']);
+                $statusRow = $statusStmt->fetch(PDO::FETCH_ASSOC);
+                $statusId = $statusRow ? $statusRow['id'] : null;
+            }
             
             // Создаём запись в БД
             $sql = "INSERT INTO cars (
@@ -90,7 +110,7 @@ class AddCarEndpoint extends ApiHandler {
                 $showRegNumber ? 1 : 0,
                 $userId,
                 $userId,
-                1 // active
+                $statusId
             ]);
             
             $carId = $db->lastInsertId();

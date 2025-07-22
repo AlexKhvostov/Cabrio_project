@@ -41,6 +41,7 @@
             <h2>📇 Визитки</h2>
             <ul>
                 <li><a href="business-cards/add_test.php">Создание визитки</a> <span class="desc">Визитка + авто</span></li>
+                <li><a href="business-cards/auto_add_test.php">Автоматическое добавление визитки</a> <span class="desc">Оркестратор: авто/визитка по номеру</span></li>
             </ul>
         </div>
         <div class="section">

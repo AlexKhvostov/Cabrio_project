@@ -11,6 +11,7 @@
  */
 
 require_once __DIR__ . '/../../utils/ApiHandler.php';
+require_once __DIR__ . '/../../config/config.php';
 
 class TelegramAuthEndpoint extends ApiHandler {
     protected function validateAuth() {

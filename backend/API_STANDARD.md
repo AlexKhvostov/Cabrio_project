@@ -269,3 +269,57 @@ fetch('/api/endpoint', {
 4. **Временные метки**: timestamp для логирования
 5. **Единообразие**: Все endpoints используют один формат
 6. **Простота**: Только необходимая логика, без усложнений 
+
+## 🧩 Оркестраторы (Orchestrator Endpoints)
+
+### Что такое оркестратор?
+- Оркестратор — это endpoint, который агрегирует несколько действий/endpoint-ов в одну бизнес-операцию.
+- Пример: создание визитки с одновременным созданием машины, если её нет (add_full.php); объединённый OCR (process.php).
+
+### Как реализовать оркестратор:
+- Класс-наследник ApiHandler, как и обычный endpoint.
+- Внутри process() вызываются другие endpoint-ы через HTTP (curl) с передачей auth/data.
+- Все внутренние вызовы логируются (payload, ответ).
+- Ответ оркестратора агрегирует результаты всех внутренних вызовов.
+- Ошибки внутренних endpoint-ов корректно обрабатываются и возвращаются в едином формате.
+
+### Пример (визиточный оркестратор):
+```php
+// ...
+$carResult = $this->callInternalEndpoint('/backend/api/cars/add.php', [...]);
+if (!$carResult['success']) { ... }
+$cardResult = $this->callInternalEndpoint('/backend/api/business-cards/add_to_car.php', [...]);
+if (!$cardResult['success']) { ... }
+return $this->success([
+  'car_created' => $carCreated,
+  'car_result' => $carResult,
+  'business_card' => $cardResult['result']['data'] ?? null
+]);
+```
+
+### Пример (OCR оркестратор):
+```php
+$recognizeResult = $this->callInternalEndpoint('/backend/api/ocr/recognize.php', [...]);
+if (!$recognizeResult['success']) { ... }
+$checkResult = $this->callInternalEndpoint('/backend/api/ocr/check.php', [...]);
+return $this->success([
+  'ocr' => $recognizeResult,
+  'check' => $checkResult
+]);
+```
+
+### Требования к оркестраторам:
+- Всегда отдельная тестовая страница (пример: backend/_test/ocr/process.html)
+- Подробный комментарий в начале файла (что агрегирует, какие endpoint-ы вызывает)
+- Логирование всех внутренних вызовов (payload, ответ)
+- Корректная обработка ошибок (если внутренний endpoint не отвечает — возвращать ошибку с пояснением)
+- В ответе — агрегированные данные всех шагов
+
+### Чек-лист для оркестратора:
+- [ ] Подключён config.php, Database.php, ApiHandler.php
+- [ ] Наследование от ApiHandler
+- [ ] Вызовы внутренних endpoint-ов только через HTTP (curl)
+- [ ] Логирование всех внутренних вызовов
+- [ ] Корректная обработка ошибок
+- [ ] Актуальная тестовая страница
+- [ ] Документация и структура соответствуют стандарту 

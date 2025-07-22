@@ -324,24 +324,20 @@ class OcrCommand {
         if (!$result['success']) {
             return; // В групповом чате не показываем ошибки
         }
-        
         // Проверяем успешность OCR
         if (!isset($result['result']['data']['plate'])) {
             return; // В групповом чате не показываем ошибки распознавания
         }
-        
-        // Номер распознан успешно
-        $plate = $result['result']['data']['plate'];
-        
-        // Формируем краткий ответ для группового чата
-        $text = "🔍 " . $plate;
-        
+        $plate = strtoupper($result['result']['data']['plate']);
+        // Формируем информативный ответ для группового чата
+        $text = "Распознан номер\n";
+        $text .= "🚗 " . $plate . "\n";
         if (isset($result['result']['data']['found']) && $result['result']['data']['found']) {
-            $text .= " ✅ В базе";
+            $text .= "✅ В базе клуба\n";
+            $text .= "📋 Статус: " . ($result['result']['data']['status'] ?? 'Активный');
         } else {
-            $text .= " ❌ Не найден";
+            $text .= "❌ Не найден в базе клуба";
         }
-        
         $this->botService->sendMessage($chat_id, $text);
     }
     
@@ -370,7 +366,7 @@ class OcrCommand {
         }
         
         // Номер распознан успешно
-        $plate = $result['result']['data']['plate'];
+        $plate = strtoupper($result['result']['data']['plate']);
         
         // Формируем структурированный ответ
         $text = "🔍 Результат распознавания:\n\n";
