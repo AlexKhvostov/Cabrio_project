@@ -12,6 +12,7 @@ require_once __DIR__ . '/../commands/TestCommand.php';
 require_once __DIR__ . '/../commands/OcrCommand.php';
 require_once __DIR__ . '/../commands/PlateSearchCommand.php';
 require_once __DIR__ . '/../utils/Logger.php';
+require_once __DIR__ . '/../commands/LeaveBusinessCardCommand.php';
 
 class MessageHandler {
     /** @var BotService */
@@ -125,6 +126,17 @@ class MessageHandler {
                     $message['chat']['id'],
                     "🔍 Для поиска авто отправьте фото номера или используйте команду /search"
                 );
+                return;
+            }
+            
+            // Если это фото с текстом "!" в групповом чате — оставить визитку
+            if (isset($message['photo']) && (
+                (isset($message['text']) && trim($message['text']) === '!') ||
+                (isset($message['caption']) && trim($message['caption']) === '!')
+            )) {
+                // TODO: вызвать команду LeaveBusinessCardCommand (реализовать отдельно)
+                $cmd = new LeaveBusinessCardCommand($botService);
+                $cmd->execute($message);
                 return;
             }
             
@@ -316,50 +328,20 @@ class MessageHandler {
      * Обрабатывает присоединение пользователя к группе
      */
     private function handleUserJoined($botService, $chat_id, $user) {
-        try {
-            writeToLog("MessageHandler: User joined", [
-                'user_id' => $user['id'],
-                'username' => $user['username'] ?? 'Нет username'
-            ]);
-            
-            $username = $user['username'] ? "@" . $user['username'] : $user['first_name'];
-            
-            $welcomeText = "👋 Привет, $username!\n\n";
-            $welcomeText .= "🎉 Добро пожаловать в клуб CabrioRide!\n\n";
-            $welcomeText .= "💬 Расскажи пару слов о себе и переходи в бот для регистрации:\n";
-            $welcomeText .= "👉 @CabrioControl_bot";
-            
-            $botService->sendMessage($chat_id, $welcomeText);
-            
-            writeToLog("MessageHandler: Welcome message sent");
-            
-        } catch (Exception $e) {
-            writeToLog("Error handling user joined: " . $e->getMessage());
-        }
+        // Делегируем обработку отдельному классу
+        require_once __DIR__ . '/events/UserJoinedHandler.php';
+        $handler = new UserJoinedHandler($botService);
+        // Пока joinType определяем как unknown, можно доработать по событиям
+        $handler->handle($chat_id, $user, 'unknown');
     }
-    
     /**
      * Обрабатывает выход пользователя из группы
      */
     private function handleUserLeft($botService, $chat_id, $user) {
-        try {
-            writeToLog("MessageHandler: User left", [
-                'user_id' => $user['id'],
-                'username' => $user['username'] ?? 'Нет username'
-            ]);
-            
-            $username = $user['username'] ? "@" . $user['username'] : $user['first_name'];
-            
-            $farewellText = "😔 $username покинул клуб CabrioRide.\n\n";
-            $farewellText .= "Будем скучать! Надеемся увидеться снова! 👋";
-            
-            $botService->sendMessage($chat_id, $farewellText);
-            
-            writeToLog("MessageHandler: Farewell message sent");
-            
-        } catch (Exception $e) {
-            writeToLog("Error handling user left: " . $e->getMessage());
-        }
+        require_once __DIR__ . '/events/UserLeftHandler.php';
+        $handler = new UserLeftHandler($botService);
+        // Пока leaveType определяем как unknown, можно доработать по событиям
+        $handler->handle($chat_id, $user, 'unknown');
     }
     
     /**
@@ -369,40 +351,24 @@ class MessageHandler {
         try {
             $chat_id = $message['chat']['id'];
             $newMembers = $message['new_chat_members'];
-            
             writeToLog("MessageHandler: New chat members", [
                 'chat_id' => $chat_id,
                 'members_count' => count($newMembers)
             ]);
-            
             // Проверяем, что это основная группа клуба
             $mainChatId = getConfig('main_chat_id');
             if ((int)$chat_id != (int)$mainChatId) {
                 writeToLog("MessageHandler: Not main chat, ignoring new members");
                 return;
             }
-            
             foreach ($newMembers as $member) {
                 // Пропускаем ботов
                 if ($member['is_bot']) {
                     continue;
                 }
-                
-                $username = $member['username'] ? "@" . $member['username'] : $member['first_name'];
-                
-                $welcomeText = "👋 Привет, $username!\n\n";
-                $welcomeText .= "🎉 Добро пожаловать в клуб CabrioRide!\n\n";
-                $welcomeText .= "💬 Расскажи пару слов о себе и переходи в бот для регистрации:\n";
-                $welcomeText .= "👉 @CabrioControl_bot";
-                
-                $botService->sendMessage($chat_id, $welcomeText);
-                
-                writeToLog("MessageHandler: Welcome message sent for", [
-                    'user_id' => $member['id'],
-                    'username' => $username
-                ]);
+                // Вместо отправки приветствия вызываем handleUserJoined
+                $this->handleUserJoined($botService, $chat_id, $member);
             }
-            
         } catch (Exception $e) {
             writeToLog("Error handling new chat members: " . $e->getMessage());
         }
@@ -412,42 +378,8 @@ class MessageHandler {
      * Обрабатывает участника, покинувшего группу
      */
     private function handleLeftChatMember($botService, $message) {
-        try {
-            $chat_id = $message['chat']['id'];
-            $leftMember = $message['left_chat_member'];
-            
-            writeToLog("MessageHandler: Left chat member", [
-                'chat_id' => $chat_id,
-                'user_id' => $leftMember['id'],
-                'username' => $leftMember['username'] ?? 'Нет username'
-            ]);
-            
-            // Проверяем, что это основная группа клуба
-            $mainChatId = getConfig('main_chat_id');
-            if ((int)$chat_id != (int)$mainChatId) {
-                writeToLog("MessageHandler: Not main chat, ignoring left member");
-                return;
-            }
-            
-            // Пропускаем ботов
-            if ($leftMember['is_bot']) {
-                return;
-            }
-            
-            $username = $leftMember['username'] ? "@" . $leftMember['username'] : $leftMember['first_name'];
-            
-            $farewellText = "😔 $username покинул клуб CabrioRide.\n\n";
-            $farewellText .= "Будем скучать! Надеемся увидеться снова! 👋";
-            
-            $botService->sendMessage($chat_id, $farewellText);
-            
-            writeToLog("MessageHandler: Farewell message sent for", [
-                'user_id' => $leftMember['id'],
-                'username' => $username
-            ]);
-            
-        } catch (Exception $e) {
-            writeToLog("Error handling left chat member: " . $e->getMessage());
-        }
+        $chat_id = $message['chat']['id'];
+        $leftMember = $message['left_chat_member'];
+        $this->handleUserLeft($botService, $chat_id, $leftMember);
     }
 } 

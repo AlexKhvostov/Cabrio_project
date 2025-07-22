@@ -29,7 +29,7 @@ class Database {
             $password = $_ENV['DB_PASSWORD'] ?? '';
 
             // Логируем параметры подключения
-            error_log('PDO_CONNECT: host=' . $host . ' port=' . $port . ' dbname=' . $dbname . ' user=' . $user . ' password=' . $password);
+            error_log('PDO_CONNECT: host=' . $host . ' port=' . $port . ' dbname=' . $dbname . ' user=' . $user . ' password=***');
 
             $dsn = sprintf(
                 "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
