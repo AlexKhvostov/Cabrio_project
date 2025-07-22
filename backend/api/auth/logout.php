@@ -4,7 +4,7 @@
  * Деактивирует текущую сессию
  */
 
-require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../utils/Database.php';
 require_once __DIR__ . '/../../middleware/SessionMiddleware.php';
 
 class LogoutEndpoint {
@@ -24,22 +24,16 @@ class LogoutEndpoint {
             // Используем middleware для проверки сессии
             $middleware = new SessionMiddleware($this->db, $this->config);
             $result = $middleware->handle($request);
-            
-            if ($result) {
-                // Middleware вернул ошибку
-                return $result;
+            if ($result && isset($result['error'])) {
+                return json_encode($result); // Возвращаем ошибку как JSON
             }
-            
-            // Получаем сессию из контекста
-            $session = $request->getSession();
-            
+            // Получаем сессию из middleware
+            $session = $middleware->getSession();
             // Деактивируем сессию
             $this->invalidateSession($session['id']);
-            
             return $this->success([
                 'message' => 'Successfully logged out'
             ]);
-            
         } catch (Exception $e) {
             return $this->serverError('Internal server error');
         }
@@ -82,16 +76,12 @@ class LogoutEndpoint {
 
 // Обработка запроса
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $config = require __DIR__ . '/../../config/config.php';
-    $db = new PDO(
-        "mysql:host={$config['database']['host']};dbname={$config['database']['name']};charset=utf8mb4",
-        $config['database']['user'],
-        $config['database']['password']
-    );
-    
+    // $config = require __DIR__ . '/../../config/config.php';
+    $db = Database::getInstance()->getConnection();
+    $config = [];
+    $input = json_decode(file_get_contents('php://input'), true);
     $endpoint = new LogoutEndpoint($db, $config);
-    $response = $endpoint->handle($_REQUEST);
-    
+    $response = $endpoint->handle($input);
     header('Content-Type: application/json');
     echo $response;
 } else {

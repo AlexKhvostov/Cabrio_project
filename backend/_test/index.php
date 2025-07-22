@@ -25,9 +25,12 @@
             <h2>👥 Пользователи</h2>
             <ul>
                 <li><a href="users/add_test.php">Добавление пользователя</a> <span class="desc">Создание/обновление</span></li>
+                <li><a href="auth/telegram_test.php">Авторизация через Telegram</a> <span class="desc">Telegram WebApp</span></li>
                 <li><a href="users/profile_test.php">Чтение профиля</a> <span class="desc">Инфо и авто</span></li>
                 <li><a href="users/update_test.php">Обновление профиля</a> <span class="desc">Данные и фото</span></li>
                 <li><a href="users/set_role_test.php">Смена роли пользователя</a> <span class="desc">Модерация/автоматизация</span></li>
+                <li><a href="auth/check_test.php">Проверка авторизации</a> <span class="desc">Проверка токена/роли</span></li>
+                <li><a href="auth/logout_test.php">Выход (logout)</a> <span class="desc">Выход, деактивация сессии</span></li>
                 <li><a href="users/profile_example.php">Пример профиля</a></li>
             </ul>
             <h2>🚗 Автомобили</h2>
@@ -51,6 +54,11 @@
             <ul>
                 <li><a href="test_db.php">Тест БД</a></li>
                 <li><a href="test_business_cards_table.php">Таблица визиток</a></li>
+                <li><a href="../_upd_token/index.html">Просмотр/обновление Telegram-хеша</a> <span class="desc">Telegram hash</span></li>
+            </ul>
+            <h2>🤖 Автотесты</h2>
+            <ul>
+                <li><a href="auto_test/auto_test.php">Автотест всех эндпоинтов</a> <span class="desc">Пакетная проверка API</span></li>
             </ul>
             <h2>📚 Документация</h2>
             <ul>

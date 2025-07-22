@@ -1,10 +1,9 @@
 <?php
 /**
- * Основной конфигурационный файл
- * Загружает параметры из .env и предоставляет доступ к ним
+ * Конфиг только для параметров Telegram-бота
  */
 
-// Загружаем .env
+// Загружаем .env (если не загружен)
 $env_path = __DIR__ . '/../../.env';
 if (file_exists($env_path)) {
     $lines = file($env_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -17,17 +16,8 @@ if (file_exists($env_path)) {
 }
 
 return [
-    'DB_HOST' => $_ENV['DB_HOST'] ?? '',
-    'DB_PORT' => $_ENV['DB_PORT'] ?? '3306',
-    'DB_NAME' => $_ENV['DB_NAME'] ?? '',
-    'DB_USER' => $_ENV['DB_USER'] ?? '',
-    'DB_PASSWORD' => $_ENV['DB_PASSWORD'] ?? '',
-    'database' => [
-        'host' => $_ENV['DB_HOST'] ?? '',
-        'port' => $_ENV['DB_PORT'] ?? '3306',
-        'name' => $_ENV['DB_NAME'] ?? '',
-        'user' => $_ENV['DB_USER'] ?? '',
-        'password' => $_ENV['DB_PASSWORD'] ?? '',
+    'telegram' => [
+        'bot_token' => $_ENV['BOT_TOKEN'] ?? '',
+        'main_chat_id' => $_ENV['MAIN_CHAT_ID'] ?? '',
     ],
-    // ... другие параметры ...
 ]; 

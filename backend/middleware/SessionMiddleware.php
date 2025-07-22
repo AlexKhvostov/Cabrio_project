@@ -7,6 +7,8 @@
 class SessionMiddleware {
     private $db;
     private $config;
+    private $user = null;
+    private $session = null;
     
     public function __construct($db, $config) {
         $this->db = $db;
@@ -17,6 +19,49 @@ class SessionMiddleware {
      * Обработка запроса с проверкой авторизации
      */
     public function handle($request) {
+        // --- [ТЕСТОВЫЙ ТОКЕН ДЛЯ DEBUG] ---
+        $token = null;
+        if (is_array($request)) {
+            if (isset($request['auth']['token'])) {
+                $token = $request['auth']['token'];
+            } elseif (isset($request['token'])) {
+                $token = $request['token'];
+            }
+        } elseif (is_object($request) && method_exists($request, 'getToken')) {
+            $token = $request->getToken();
+        }
+        if (isset($_ENV['DEBUG'], $_ENV['TEST_TOKEN']) && $_ENV['DEBUG'] === 'true' && $token === $_ENV['TEST_TOKEN']) {
+            // Возвращаем тестового пользователя (user_id=1, роль member)
+            $user = [
+                'id' => 1,
+                'telegram_id' => 111111111,
+                'username' => 'testuser',
+                'first_name_tg' => 'Test',
+                'last_name_tg' => 'User',
+                'role_code' => 'member',
+                'role_name' => 'Участник',
+                'telegram_photo_url' => null,
+                'last_telegram_auth' => date('Y-m-d H:i:s')
+            ];
+            $session = [
+                'id' => 0,
+                'user_id' => 1,
+                'session_token' => $token,
+                'expires_at' => date('Y-m-d H:i:s', time() + 3600),
+                'is_active' => 1
+            ];
+            if (is_object($request) && method_exists($request, 'setUser')) {
+                $request->setUser($user);
+            }
+            if (is_object($request) && method_exists($request, 'setSession')) {
+                $request->setSession($session);
+            }
+            // Сохраняем в свойства для геттеров
+            $this->user = $user;
+            $this->session = $session;
+            return null; // авторизация успешна
+        }
+        
         // Получаем токен из заголовка
         $token = $this->extractToken($request);
         
@@ -26,7 +71,7 @@ class SessionMiddleware {
         }
         
         // Получаем сессию из БД
-        $session = $this->getSession($token);
+        $session = $this->findSessionByToken($token);
         if (!$session) {
             return $this->unauthorized('Invalid session token');
         }
@@ -43,7 +88,7 @@ class SessionMiddleware {
         }
         
         // Получаем пользователя
-        $user = $this->getUser($session['user_id']);
+        $user = $this->findUserById($session['user_id']);
         if (!$user) {
             $this->invalidateSession($session['id']);
             return $this->unauthorized('User not found');
@@ -64,6 +109,9 @@ class SessionMiddleware {
         // Сохраняем в контекст запроса
         $request->setUser($user);
         $request->setSession($session);
+        // Сохраняем в свойства для геттеров
+        $this->user = $user;
+        $this->session = $session;
         
         return null; // Продолжаем обработку
     }
@@ -72,23 +120,41 @@ class SessionMiddleware {
      * Извлекает токен из заголовка Authorization
      */
     private function extractToken($request) {
-        $authHeader = $request->getHeader('Authorization');
-        if (!$authHeader) {
-            return null;
+        // 1. Если массив с auth.token
+        if (is_array($request)) {
+            if (isset($request['auth']['token'])) {
+                return $request['auth']['token'];
+            }
+            // Иногда токен могут передавать просто как 'token'
+            if (isset($request['token'])) {
+                return $request['token'];
+            }
         }
-        
-        // Формат: "Bearer TOKEN" или просто "TOKEN"
-        if (strpos($authHeader, 'Bearer ') === 0) {
-            return substr($authHeader, 7);
+        // 2. Если объект с методом getHeader (например, PSR-7 Request)
+        if (is_object($request) && method_exists($request, 'getHeader')) {
+            $authHeader = $request->getHeader('Authorization');
+            if (!$authHeader) {
+                return null;
+            }
+            if (is_array($authHeader)) {
+                $authHeader = $authHeader[0];
+            }
+            if (strpos($authHeader, 'Bearer ') === 0) {
+                return substr($authHeader, 7);
+            }
+            return $authHeader;
         }
-        
-        return $authHeader;
+        // 3. Если объект с публичным свойством token
+        if (is_object($request) && property_exists($request, 'token')) {
+            return $request->token;
+        }
+        return null;
     }
     
     /**
      * Получает сессию из БД
      */
-    private function getSession($token) {
+    private function findSessionByToken($token) {
         $stmt = $this->db->prepare("
             SELECT * FROM sessions 
             WHERE session_token = ? AND is_active = 1
@@ -100,7 +166,7 @@ class SessionMiddleware {
     /**
      * Получает пользователя из БД
      */
-    private function getUser($userId) {
+    private function findUserById($userId) {
         $stmt = $this->db->prepare("
             SELECT u.*, r.code as role_code, r.name as role_name
             FROM users u
@@ -258,5 +324,13 @@ class SessionMiddleware {
             'error' => $message,
             'code' => 403
         ];
+    }
+
+    // --- Геттеры для пользователя и сессии ---
+    public function getUser() {
+        return $this->user;
+    }
+    public function getSession() {
+        return $this->session;
     }
 } 

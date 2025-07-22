@@ -4,7 +4,7 @@
  * Возвращает информацию о пользователе и сессии
  */
 
-require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../utils/Database.php';
 require_once __DIR__ . '/../../middleware/SessionMiddleware.php';
 
 class AuthCheckEndpoint {
@@ -34,7 +34,7 @@ class AuthCheckEndpoint {
                 return $this->error($result['error'], 401);
             }
 
-            // Получаем пользователя из middleware
+            // Получаем пользователя и сессию через публичные методы
             $user = $middleware->getUser();
             $session = $middleware->getSession();
 
@@ -99,12 +99,9 @@ class AuthCheckEndpoint {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $config = require __DIR__ . '/../../config/config.php';
-    $db = new PDO(
-        "mysql:host={$config['database']['host']};dbname={$config['database']['name']};charset=utf8mb4",
-        $config['database']['user'],
-        $config['database']['password']
-    );
+    // $config = require __DIR__ . '/../../config/config.php';
+    $db = Database::getInstance()->getConnection();
+    $config = [];
     $endpoint = new AuthCheckEndpoint($db, $config);
     $endpoint->handle();
 } else {
