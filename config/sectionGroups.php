@@ -127,6 +127,9 @@ class FunctionRoles {
     const BOT_OCR = 'member';
     const BOT_SEARCH = 'member';
 
+    // users
+    const USER_ROLE_SET = 'moderator';
+
     /**
      * Получить массив всех функций с их минимальными ролями
      */
@@ -185,6 +188,9 @@ class FunctionRoles {
             'botTest' => self::BOT_TEST,
             'botOcr' => self::BOT_OCR,
             'botSearch' => self::BOT_SEARCH,
+
+            // users
+            'userRoleSet' => self::USER_ROLE_SET,
         ];
     }
 

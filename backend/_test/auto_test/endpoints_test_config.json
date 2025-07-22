@@ -1,6 +1,6 @@
 [
     {
-        "url": "/api/auth/telegram",
+        "url": "/app/backend/api/auth/telegram.php",
         "tests": [
             {
                 "type": "1. Успех 1",
@@ -45,16 +45,16 @@
         ]
     },
     {
-        "url": "/api/auth/check",
+        "url": "/app/backend/api/auth/check.php",
         "tests": [
             {
                 "type": "1. Успех 1",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": {} },
+                "request": { "auth": { "user_id": 1, "role": "member", "token": "TEST_TOKEN" }, "data": {} },
                 "expect": { "success": true, "result.auth.user_id": 1 }
             },
             {
                 "type": "2. Успех 2",
-                "request": { "auth": { "user_id": 2, "role": "admin" }, "data": {} },
+                "request": { "auth": { "user_id": 2, "role": "admin", "token": "TEST_TOKEN" }, "data": {} },
                 "expect": { "success": true, "result.auth.user_id": 2 }
             },
             {
@@ -90,7 +90,7 @@
         ]
     },
     {
-        "url": "/api/auth/logout",
+        "url": "/app/backend/api/auth/logout.php",
         "tests": [
             {
                 "type": "1. Успех 1",
@@ -135,7 +135,7 @@
         ]
     },
     {
-        "url": "/api/users/profile",
+        "url": "/app/backend/api/users/profile.php",
         "tests": [
             {
                 "type": "Успех 1",
@@ -180,7 +180,7 @@
         ]
     },
     {
-        "url": "/api/users/update",
+        "url": "/app/backend/api/users/update.php",
         "tests": [
             {
                 "type": "Успех 1",
@@ -225,7 +225,7 @@
         ]
     },
     {
-        "url": "/api/users/add",
+        "url": "/app/backend/api/users/add.php",
         "tests": [
             {
                 "type": "1. Успех 1",
@@ -270,52 +270,52 @@
         ]
     },
     {
-        "url": "/api/cars/add",
+        "url": "/app/backend/api/cars/add.php",
         "tests": [
             {
                 "type": "Успех 1",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "eee12341", "model": "Test", "year": 2020, "color": "red", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": true, "result.car_id": 1 }
             },
             {
                 "type": "Успех 2",
-                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "model": "Mazda", "year": 2021, "color": "blue", "photo": "" } },
-                "expect": { "success": true, "result.car_id": 2 }
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "model": "Mazda", "year": 2021, "color": "blue", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
+                "expect": { "type": "DUPLICATE_ERROR" }
             },
             {
-                "type": "Успех с ошибкой (дубликат)",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "type": "3. Ошибка: дубликат",
+                "request": { "auth": {}, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": false, "error.code": 422 }
             },
             {
-                "type": "Ошибка: неправильный запрос",
+                "type": "4. Ошибка: неправильный запрос",
                 "request": { "foo": "bar" },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
-                "type": "Ошибка: ограничение доступа",
-                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC", "model": "Test", "year": 2020, "color": "red", "photo": "" } },
+                "type": "5. Ошибка: ограничение доступа",
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "telegram_id": 123456, "username": "testuser", "first_name": "Test", "last_name": "User" } },
                 "expect": { "success": false, "error.code": 403 }
             },
             {
-                "type": "Ошибка: невалидные данные",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!", "model": "", "year": "notayear", "color": "", "photo": "" } },
+                "type": "6. Ошибка: невалидные данные",
+                "request": { "auth": {}, "data": { "telegram_id": "notanumber", "username": "", "first_name": "", "last_name": "" } },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
-                "type": "Ошибка: нет обязательного поля",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "model": "Test" } },
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": { "auth": {}, "data": {} },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
-                "type": "Ошибка: пустой JSON",
+                "type": "8. Ошибка: пустой JSON",
                 "request": {},
                 "expect": { "success": false, "error.code": 400 }
             }
         ]
     },
     {
-        "url": "/api/cars/check",
+        "url": "/app/backend/api/cars/check.php",
         "tests": [
             {
                 "type": "Успех 1",
@@ -360,21 +360,21 @@
         ]
     },
     {
-        "url": "/api/ocr/recognize",
+        "url": "/app/backend/api/ocr/recognize.php",
         "tests": [
             {
                 "type": "Успех 1 (валидное фото)",
-                "request": { "ocr_file": "valid1.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "valid1.jpg" } },
                 "expect": { "success": true, "result.plate": "A123BC" }
             },
             {
                 "type": "Успех 2 (валидное фото)",
-                "request": { "ocr_file": "valid2.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "valid2.jpg" } },
                 "expect": { "success": true, "result.plate": "B456DE" }
             },
             {
                 "type": "Успех с ошибкой (не найден)",
-                "request": { "ocr_file": "notfound.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "notfound.jpg" } },
                 "expect": { "success": false, "error.code": 404 }
             },
             {
@@ -389,7 +389,7 @@
             },
             {
                 "type": "Ошибка: невалидные данные (битое изображение)",
-                "request": { "ocr_file": "broken.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "broken.jpg" } },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
@@ -405,7 +405,7 @@
         ]
     },
     {
-        "url": "/api/ocr/check",
+        "url": "/app/backend/api/ocr/check.php",
         "tests": [
             {
                 "type": "Успех 1",
@@ -450,21 +450,21 @@
         ]
     },
     {
-        "url": "/api/ocr/process",
+        "url": "/app/backend/api/ocr/process.php",
         "tests": [
             {
                 "type": "Успех 1 (валидное фото)",
-                "request": { "ocr_file": "valid1.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "valid1.jpg" } },
                 "expect": { "success": true, "result.plate": "A123BC" }
             },
             {
                 "type": "Успех 2 (валидное фото)",
-                "request": { "ocr_file": "valid2.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "valid2.jpg" } },
                 "expect": { "success": true, "result.plate": "B456DE" }
             },
             {
                 "type": "Успех с ошибкой (не найден)",
-                "request": { "ocr_file": "notfound.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "notfound.jpg" } },
                 "expect": { "success": false, "error.code": 404 }
             },
             {
@@ -479,7 +479,7 @@
             },
             {
                 "type": "Ошибка: невалидные данные (битое изображение)",
-                "request": { "ocr_file": "broken.jpg" },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "image": "broken.jpg" } },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
@@ -495,21 +495,21 @@
         ]
     },
     {
-        "url": "/api/business-cards/add",
+        "url": "/app/backend/api/business-cards/add.php",
         "tests": [
             {
                 "type": "Успех 1",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": true, "result.business_card_id": 1 }
             },
             {
                 "type": "Успех 2",
-                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "location": "Test2", "notes": "Test2", "photo": "" } },
+                "request": { "auth": { "user_id": 2, "role": "member" }, "data": { "reg_number": "B456DE", "location": "Test2", "notes": "Test2", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": true, "result.business_card_id": 2 }
             },
             {
                 "type": "Успех с ошибкой (дубликат)",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": false, "error.code": 422 }
             },
             {
@@ -519,12 +519,12 @@
             },
             {
                 "type": "Ошибка: ограничение доступа",
-                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "" } },
+                "request": { "auth": { "user_id": 1, "role": "guest" }, "data": { "reg_number": "A123BC", "location": "Test", "notes": "Test", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": false, "error.code": 403 }
             },
             {
                 "type": "Ошибка: невалидные данные",
-                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!", "location": "", "notes": "", "photo": "" } },
+                "request": { "auth": { "user_id": 1, "role": "member" }, "data": { "reg_number": "!!!", "location": "", "notes": "", "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAG7AlUDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp" } },
                 "expect": { "success": false, "error.code": 400 }
             },
             {
@@ -534,6 +534,72 @@
             },
             {
                 "type": "Ошибка: пустой JSON",
+                "request": {},
+                "expect": { "success": false, "error.code": 400 }
+            }
+        ]
+    },
+    {
+        "url": "/app/backend/api/users/set_role.php",
+        "tests": [
+            {
+                "type": "1. Успех 1",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 2, "new_role_code": "member", "reason": "Тестовая смена роли" }
+                },
+                "expect": { "success": true, "result.new_role": "member" }
+            },
+            {
+                "type": "2. Успех 2 (смена на guest)",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 2, "new_role_code": "guest", "reason": "Смена на guest" }
+                },
+                "expect": { "success": true, "result.new_role": "guest" }
+            },
+            {
+                "type": "3. Ошибка: попытка назначить admin",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 2, "new_role_code": "admin", "reason": "Тест" }
+                },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "4. Ошибка: несуществующий user_id",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 999999, "new_role_code": "member", "reason": "Тест" }
+                },
+                "expect": { "success": false, "error.code": 404 }
+            },
+            {
+                "type": "5. Ошибка: ограничение доступа",
+                "request": {
+                    "auth": { "user_id": 3, "role": "member" },
+                    "data": { "user_id": 2, "new_role_code": "member", "reason": "Тест" }
+                },
+                "expect": { "success": false, "error.code": 403 }
+            },
+            {
+                "type": "6. Ошибка: невалидные данные (несуществующая роль)",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 2, "new_role_code": "notarole", "reason": "Тест" }
+                },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "7. Ошибка: нет обязательного поля",
+                "request": {
+                    "auth": { "user_id": 1, "role": "moderator" },
+                    "data": { "user_id": 2, "new_role_code": "member" }
+                },
+                "expect": { "success": false, "error.code": 400 }
+            },
+            {
+                "type": "8. Ошибка: пустой JSON",
                 "request": {},
                 "expect": { "success": false, "error.code": 400 }
             }

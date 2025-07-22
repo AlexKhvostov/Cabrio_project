@@ -27,6 +27,7 @@
                 <li><a href="users/add_test.php">Добавление пользователя</a> <span class="desc">Создание/обновление</span></li>
                 <li><a href="users/profile_test.php">Чтение профиля</a> <span class="desc">Инфо и авто</span></li>
                 <li><a href="users/update_test.php">Обновление профиля</a> <span class="desc">Данные и фото</span></li>
+                <li><a href="users/set_role_test.php">Смена роли пользователя</a> <span class="desc">Модерация/автоматизация</span></li>
                 <li><a href="users/profile_example.php">Пример профиля</a></li>
             </ul>
             <h2>🚗 Автомобили</h2>

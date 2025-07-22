@@ -27,46 +27,46 @@ class TelegramAuthEndpoint extends ApiHandler {
         }
 
         // 2. Проверяем подпись Telegram (КРИТИЧНО!)
-        if (!$this->verifyTelegramSignature($initData)) {
+            if (!$this->verifyTelegramSignature($initData)) {
             return $this->error('Invalid Telegram signature', 400, 'VALIDATION_ERROR');
-        }
-
+            }
+            
         // 3. Парсим данные пользователя
-        $telegramData = $this->parseInitData($initData);
-        if (!$telegramData) {
+            $telegramData = $this->parseInitData($initData);
+            if (!$telegramData) {
             return $this->error('Invalid initData format', 400, 'VALIDATION_ERROR');
-        }
-
+            }
+            
         // 4. Проверяем членство в чате
-        if (!$this->checkChatMembership($telegramData['user']['id'])) {
+            if (!$this->checkChatMembership($telegramData['user']['id'])) {
             return $this->error('User not in club chat', 403, 'ACCESS_DENIED');
-        }
-
+            }
+            
         // 5. Создаём или обновляем пользователя
-        $user = $this->createOrUpdateUser($telegramData);
-        if (!$user) {
+            $user = $this->createOrUpdateUser($telegramData);
+            if (!$user) {
             return $this->error('Failed to create/update user', 500, 'DATABASE_ERROR');
-        }
-
+            }
+            
         // 6. Создаём короткую сессию (30 минут)
-        $session = $this->createShortSession($user['id'], $telegramData);
-        if (!$session) {
+            $session = $this->createShortSession($user['id'], $telegramData);
+            if (!$session) {
             return $this->error('Failed to create session', 500, 'DATABASE_ERROR');
-        }
-
+            }
+            
         // 7. Обновляем время последней авторизации
-        $this->updateLastTelegramAuth($user['id']);
-
+            $this->updateLastTelegramAuth($user['id']);
+            
         // 8. Логируем успешную авторизацию (можно через logRequest, если нужно)
 
         // 9. Возвращаем успешный ответ по стандарту CabrioRide
-        return $this->success([
-            'session_token' => $session['session_token'],
-            'expires_at' => $session['expires_at'],
-            'user' => $this->formatUser($user)
+            return $this->success([
+                'session_token' => $session['session_token'],
+                'expires_at' => $session['expires_at'],
+                'user' => $this->formatUser($user)
         ], 'OK');
     }
-
+    
     // --- Вспомогательные методы (без изменений) ---
     private function verifyTelegramSignature($initData) {
         $config = require __DIR__ . '/../../config/config.php';
@@ -86,7 +86,7 @@ class TelegramAuthEndpoint extends ApiHandler {
         $calculatedHash = bin2hex(hash_hmac('sha256', $dataCheckString, $secretKey, true));
         return hash_equals($calculatedHash, $hash);
     }
-
+    
     private function parseInitData($initData) {
         $data = [];
         parse_str($initData, $data);
@@ -99,7 +99,7 @@ class TelegramAuthEndpoint extends ApiHandler {
             'query_id' => $data['query_id'] ?? null
         ];
     }
-
+    
     private function checkChatMembership($telegramId) {
         $config = require __DIR__ . '/../../config/config.php';
         $botToken = $config['telegram']['bot_token'];
@@ -111,7 +111,7 @@ class TelegramAuthEndpoint extends ApiHandler {
         $status = $response['result']['status'];
         return in_array($status, ['member', 'administrator', 'creator']);
     }
-
+    
     private function createOrUpdateUser($telegramData) {
         $config = require __DIR__ . '/../../config/config.php';
         $db = Database::getInstance()->getConnection();
@@ -144,7 +144,7 @@ class TelegramAuthEndpoint extends ApiHandler {
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
     }
-
+    
     private function createShortSession($userId, $telegramData) {
         $db = Database::getInstance()->getConnection();
         $token = bin2hex(random_bytes(32));
@@ -161,13 +161,13 @@ class TelegramAuthEndpoint extends ApiHandler {
             'expires_at' => $expiresAt
         ];
     }
-
+    
     private function updateLastTelegramAuth($userId) {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("UPDATE users SET last_telegram_auth = NOW() WHERE id = ?");
         $stmt->execute([$userId]);
     }
-
+    
     private function formatUser($user) {
         return [
             'id' => $user['id'],
@@ -179,7 +179,7 @@ class TelegramAuthEndpoint extends ApiHandler {
             'telegram_photo_url' => $user['telegram_photo_url']
         ];
     }
-
+    
     private function makeTelegramRequest($url, $data) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);

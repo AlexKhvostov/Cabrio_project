@@ -170,4 +170,4 @@ class BotConfig {
 }
 
 // Создаем глобальный экземпляр конфигурации бота
-$botConfig = new BotConfig(); 
+return new BotConfig(); 

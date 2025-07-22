@@ -1,86 +1,93 @@
 [
   {
     "name": "Авторизация через Telegram",
-    "url": "/api/auth/telegram",
+    "url": "/app/backend/api/auth/telegram.php",
     "method": "POST",
     "min_role": "all",
     "description": "Авторизация через Telegram WebApp (создание/обновление пользователя и сессии)"
   },
   {
     "name": "Проверка авторизации",
-    "url": "/api/auth/check",
+    "url": "/app/backend/api/auth/check.php",
     "method": "POST",
     "min_role": "all",
     "description": "Проверка текущей авторизации пользователя (валидность сессии, информация о пользователе)"
   },
   {
     "name": "Выход (logout)",
-    "url": "/api/auth/logout",
+    "url": "/app/backend/api/auth/logout.php",
     "method": "POST",
     "min_role": "all",
     "description": "Завершение сессии пользователя (выход из системы)"
   },
   {
     "name": "Получение профиля пользователя",
-    "url": "/api/users/profile",
+    "url": "/app/backend/api/users/profile.php",
     "method": "POST",
     "min_role": "all",
     "description": "Получение профиля пользователя (своего или по user_id)"
   },
   {
     "name": "Добавление пользователя",
-    "url": "/api/users/add",
+    "url": "/app/backend/api/users/add.php",
     "method": "POST",
     "min_role": "all",
     "description": "Добавление нового пользователя (обычно при первой авторизации через Telegram)"
   },
   {
     "name": "Обновление профиля пользователя",
-    "url": "/api/users/update",
+    "url": "/app/backend/api/users/update.php",
     "method": "POST",
     "min_role": "all",
     "description": "Обновление профиля пользователя (имя, фамилия, фото и др.)"
   },
   {
     "name": "Добавление автомобиля",
-    "url": "/api/cars/add",
+    "url": "/app/backend/api/cars/add.php",
     "method": "POST",
     "min_role": "member",
     "description": "Добавление автомобиля (рег. номер, фото, модель, год, цвет и др.)"
   },
   {
     "name": "Проверка автомобиля по номеру",
-    "url": "/api/cars/check",
+    "url": "/app/backend/api/cars/check.php",
     "method": "POST",
     "min_role": "all",
     "description": "Проверка автомобиля по номеру (поиск в базе, статус, id)"
   },
   {
     "name": "Распознавание номера по фото (OCR)",
-    "url": "/api/ocr/recognize",
+    "url": "/app/backend/api/ocr/recognize.php",
     "method": "POST",
     "min_role": "all",
     "description": "Распознавание номера автомобиля по фото (интеграция с внешним сервисом OCR)"
   },
   {
     "name": "Проверка распознанного номера в базе (OCR)",
-    "url": "/api/ocr/check",
+    "url": "/app/backend/api/ocr/check.php",
     "method": "POST",
     "min_role": "all",
     "description": "Проверка распознанного номера в базе клуба (есть ли такой авто, можно ли оставить визитку)"
   },
   {
     "name": "Объединённый OCR (распознать и проверить)",
-    "url": "/api/ocr/process",
+    "url": "/app/backend/api/ocr/process.php",
     "method": "POST",
     "min_role": "all",
     "description": "Объединённый эндпоинт: распознаёт номер и сразу проверяет его в базе"
   },
   {
     "name": "Создание визитки",
-    "url": "/api/business-cards/add",
+    "url": "/app/backend/api/business-cards/add.php",
     "method": "POST",
     "min_role": "member",
     "description": "Создание визитки (оставить визитку на авто, прикрепить фото, указать место и заметки)"
+  },
+  {
+    "name": "Смена роли пользователя",
+    "url": "/app/backend/api/users/set_role.php",
+    "method": "POST",
+    "min_role": "moderator",
+    "description": "Смена роли пользователя (moderator+; логирование в moderation_logs)"
   }
 ] 

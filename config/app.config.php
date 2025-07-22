@@ -129,4 +129,4 @@ class AppConfig {
 }
 
 // Создаем глобальный экземпляр конфигурации
-$appConfig = new AppConfig(); 
+return new AppConfig(); 

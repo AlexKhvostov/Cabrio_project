@@ -6,8 +6,8 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 10px; background: #f5f5f5; }
         h1 { color: #007cba; font-size: 1.2em; margin-bottom: 10px; }
-        table { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; }
-        th, td { border: 1px solid #e0e0e0; padding: 4px 7px; text-align: center; }
+        table { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; table-layout: fixed; }
+        th, td { border: 1px solid #e0e0e0; padding: 4px 7px; text-align: center; min-width: 48px; max-width: 80px; width: 60px; height: 38px; overflow: hidden; }
         th { background: #f0f8ff; font-weight: 600; }
         tr:nth-child(even) { background: #fafbfc; }
         .ok { color: #28a745; font-size: 1.2em; cursor: pointer; }
@@ -15,7 +15,7 @@
         .pending { color: #aaa; }
         .test-type { font-size: 11px; color: #888; }
         .endpoint { font-size: 12px; text-align: left; }
-        .tooltip { display: none; position: absolute; z-index: 10; background: #fff; border: 1px solid #ccc; padding: 7px 10px; font-size: 12px; color: #222; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 400px; word-break: break-all; }
+        .tooltip { display: none; position: absolute; z-index: 10; background: #fff; border: 1px solid #ccc; padding: 7px 10px; font-size: 12px; color: #222; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 400px; min-width: 220px; word-break: break-all; pointer-events: none; }
         .copy-hint { font-size: 10px; color: #aaa; margin-top: 2px; }
         .footer { margin-top: 18px; color: #888; font-size: 12px; }
     </style>
@@ -28,6 +28,7 @@
     OCR: для каждого фото отдельный тест. Все тесты запускаются автоматически.<br>
     <b>Если найдёшь баг — кликни по ячейке и отправь скопированное мне!</b>
 </div>
+<pre id="table-text-view" style="margin-top:24px; background:#f8f8f8; border:1px solid #eee; padding:12px; border-radius:6px; font-size:12px; line-height:1.5; max-width:100vw; overflow-x:auto;"></pre>
 <script>
 // --- Динамическая загрузка эндпоинтов и тестов из JSON ---
 Promise.all([
@@ -110,6 +111,39 @@ function renderTable() {
     });
     html += '</table>';
     document.getElementById('table-wrap').innerHTML = html;
+    renderTextTable(); // Добавляем вызов для текстовой таблицы
+}
+
+function renderTextTable() {
+    if (!window.ENDPOINTS) return;
+    let maxTests = Math.max(...ENDPOINTS.map(e => e.tests.length));
+    let testTypes = [];
+    for (let i = 0; i < maxTests; ++i) {
+        let type = '';
+        for (let ep of ENDPOINTS) {
+            if (ep.tests[i] && ep.tests[i].type) {
+                type = ep.tests[i].type;
+                break;
+            }
+        }
+        testTypes.push(type);
+    }
+    let lines = [];
+    // Заголовок
+    let header = ['Эндпоинт'].concat(testTypes.map(t => t || '')).join(' | ');
+    lines.push(header);
+    lines.push('-'.repeat(header.length));
+    // Строки
+    ENDPOINTS.forEach((ep, epi) => {
+        let row = [ep.name + ' (' + ep.url + ')'];
+        for (let ti = 0; ti < maxTests; ++ti) {
+            let cell = document.getElementById(`cell-${epi}-${ti}`);
+            let val = cell ? cell.textContent.trim() : '';
+            row.push(val);
+        }
+        lines.push(row.join(' | '));
+    });
+    document.getElementById('table-text-view').textContent = lines.join('\n');
 }
 
 function runAllTests() {
@@ -171,6 +205,7 @@ function sendRequest(ep, test, epi, ti, reqData, fileName) {
             let txt = `Эндпоинт: ${ep.name} (${ep.url})\nТип теста: ${test.type}${fileName ? ' ('+fileName+')' : ''}\nОжидание: ${test.expect.success ? 'Успех' : 'Ошибка'}\nОтправлено: ${JSON.stringify(reqData)}\nОтвет: ${JSON.stringify(resp)}`;
             copyToClipboard(txt);
         };
+        renderTextTable(); // Обновляем текстовую таблицу после каждого теста
     })
     .catch(err => {
         cell.className = 'fail';
@@ -179,6 +214,7 @@ function sendRequest(ep, test, epi, ti, reqData, fileName) {
         cell.onmouseenter = e => showTooltip(e, details);
         cell.onmouseleave = hideTooltip;
         cell.onclick = () => copyToClipboard(`Эндпоинт: ${ep.name} (${ep.url})\nТип теста: ${test.type}\nОшибка JS: ${err}`);
+        renderTextTable(); // Обновляем текстовую таблицу даже при ошибке
     });
 }
 

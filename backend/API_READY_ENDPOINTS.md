@@ -21,6 +21,7 @@
 | POST | /api/users/profile | users/profile.php | Получение профиля пользователя (своего или по user_id) |
 | POST | /api/users/add | users/add.php | Добавление нового пользователя (обычно при первой авторизации через Telegram) |
 | POST | /api/users/update | users/update.php | Обновление профиля пользователя (имя, фамилия, фото и др.) |
+| POST | /api/users/set_role | users/set_role.php | Смена роли пользователя (только для moderator+; логирование в moderation_logs) |
 
 ---
 

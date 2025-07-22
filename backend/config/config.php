@@ -16,7 +16,18 @@ if (file_exists($env_path)) {
     }
 }
 
-// Функция для получения значения из конфига
-function getConfig($key, $default = null) {
-    return $_ENV[$key] ?? $default;
-} 
+return [
+    'DB_HOST' => $_ENV['DB_HOST'] ?? '',
+    'DB_PORT' => $_ENV['DB_PORT'] ?? '3306',
+    'DB_NAME' => $_ENV['DB_NAME'] ?? '',
+    'DB_USER' => $_ENV['DB_USER'] ?? '',
+    'DB_PASSWORD' => $_ENV['DB_PASSWORD'] ?? '',
+    'database' => [
+        'host' => $_ENV['DB_HOST'] ?? '',
+        'port' => $_ENV['DB_PORT'] ?? '3306',
+        'name' => $_ENV['DB_NAME'] ?? '',
+        'user' => $_ENV['DB_USER'] ?? '',
+        'password' => $_ENV['DB_PASSWORD'] ?? '',
+    ],
+    // ... другие параметры ...
+]; 
