@@ -32,6 +32,7 @@
 |-------|----------|------|----------|
 | POST | /api/cars/add | cars/add.php | Добавление автомобиля (рег. номер, фото, модель, год, цвет и др.) |
 | POST | /api/cars/check | cars/check.php | Проверка автомобиля по номеру (поиск в базе, статус, id) |
+| POST | /api/cars/update | cars/update.php | Обновление автомобиля (статус, цвет, модель, владелец — только для модератора/админа) |
 
 ---
 
@@ -55,6 +56,7 @@
 | POST | /api/business-cards/add_to_car | business-cards/add_to_car.php | Добавление визитки к существующей машине (по car_id или reg_number) |
 | POST | /api/business-cards/add_full | business-cards/add_full.php | Оркестратор: добавление машины и визитки (если машины нет) |
 | POST | /api/business-cards/auto_add | business-cards/auto_add.php | Оркестратор: автоматическое добавление визитки по номеру (создаёт авто и визитку, если машины нет, или только визитку, если машина есть) |
+| POST | /api/photos/add | photos/add.php | Добавление фото к любой сущности (авто, пользователь, событие и др.), поддержка base64 и url |
 
 ---
 

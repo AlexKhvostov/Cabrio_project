@@ -56,8 +56,9 @@ class AddCarEndpoint extends ApiHandler {
         $model = $this->getData('model', '');
         $year = $this->getData('year');
         $color = $this->getData('color', '');
-        $showRegNumber = $this->getData('show_reg_number', true);
+        $showRegNumber = $this->getData('show_reg_number', false);
         $statusCode = $this->getData('status_code');
+        $noOwner = $this->getData('no_owner', false);
         
         $userId = $this->getAuth('user_id');
         
@@ -102,16 +103,30 @@ class AddCarEndpoint extends ApiHandler {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             
             $stmt = $db->prepare($sql);
-            $stmt->execute([
-                $regNumber,
-                $model,
-                $year,
-                $color,
-                $showRegNumber ? 1 : 0,
-                $userId,
-                $userId,
-                $statusId
-            ]);
+            if ($noOwner) {
+                // Если авто создаётся через визитку — владелец null, но создатель всегда userId
+                $stmt->execute([
+                    $regNumber,
+                    $model,
+                    $year,
+                    $color,
+                    $showRegNumber ? 1 : 0,
+                    $userId, // create_user_id всегда userId
+                    null,     // owner_user_id = null
+                    $statusId
+                ]);
+            } else {
+                $stmt->execute([
+                    $regNumber,
+                    $model,
+                    $year,
+                    $color,
+                    $showRegNumber ? 1 : 0,
+                    $userId,
+                    $userId,
+                    $statusId
+                ]);
+            }
             
             $carId = $db->lastInsertId();
             
@@ -129,10 +144,12 @@ class AddCarEndpoint extends ApiHandler {
                 $userId
             ]);
             
-            // Создаём связь пользователь-авто
-            $linkSql = "INSERT INTO link_user_cars (user_id, car_id, role_id) VALUES (?, ?, ?)";
-            $linkStmt = $db->prepare($linkSql);
-            $linkStmt->execute([$userId, $carId, 1]); // owner role
+            // Создаём связь пользователь-авто только если есть владелец
+            if (!$noOwner) {
+                $linkSql = "INSERT INTO link_user_cars (user_id, car_id, role_id) VALUES (?, ?, ?)";
+                $linkStmt = $db->prepare($linkSql);
+                $linkStmt->execute([$userId, $carId, 1]); // owner role
+            }
             
             // Формируем ответ
             $carData = [

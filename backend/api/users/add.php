@@ -225,7 +225,7 @@ class UserAddEndpoint extends ApiHandler {
         $filePath = $uploadPath . $fileName;
         
         // Перемещаем файл
-        if (move_uploaded_file($tempFile, $filePath)) {
+        if (rename($tempFile, $filePath)) {
             // Сохраняем запись в БД
             $sql = "INSERT INTO photos (entity_type, entity_id, file_name, url, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, NOW())";
             $stmt = $db->prepare($sql);

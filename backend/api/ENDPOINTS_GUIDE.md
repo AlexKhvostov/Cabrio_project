@@ -103,3 +103,75 @@ $endpoint->handle();
 - [Инструкция по ApiHandler](../utils/ApiHandler_README.md)
 - [Инструкция по Database](../utils/Database_README.md)
 - [Инструкция по Logger](../utils/Logger_README.md) 
+
+---
+
+## 🛠️ Как работать с Database.php (PDO)
+
+Для работы с базой данных используйте только Database::getInstance()->getConnection(), который возвращает PDO:
+
+```php
+$pdo = Database::getInstance()->getConnection();
+// Для одной строки
+$stmt = $pdo->prepare('SELECT * FROM cars WHERE id = :car_id');
+$stmt->execute(['car_id' => $carId]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+// Для массива строк
+$stmt = $pdo->prepare('SELECT * FROM cars');
+$stmt->execute();
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Для обновления/вставки
+$stmt = $pdo->prepare('UPDATE cars SET color = :color WHERE id = :car_id');
+$stmt->execute(['color' => $color, 'car_id' => $carId]);
+```
+
+- Не используйте прямой new PDO — только через Database.php
+- Не используйте устаревшие методы типа mysql_query
+- Всегда используйте подготовленные запросы (prepare/execute)
+
+---
+
+## 🧩 Как работать с ApiHandler.php
+
+Все эндпоинты должны наследоваться от ApiHandler:
+
+```php
+require_once __DIR__ . '/../../utils/ApiHandler.php';
+
+class MyEndpoint extends ApiHandler {
+    protected function process() {
+        $this->checkAccess('member');
+        $userId = $this->getAuth('user_id');
+        $value = $this->requireField('some_field');
+        // ...логика...
+        return $this->success(['result' => 'ok']);
+    }
+}
+$endpoint = new MyEndpoint();
+$endpoint->handle();
+```
+
+- Не реализуйте ручную обработку JSON, ошибок, прав — только через методы класса.
+- Для успешного ответа используйте $this->success($data, $message)
+- Для ошибок — $this->error($message, $code, $type, $details)
+- Для проверки прав — $this->checkAccess('role')
+- Для обязательных полей — $this->requireField('field')
+- Для получения auth/data — $this->getAuth('key'), $this->getData('key')
+
+--- 
+
+---
+
+## 🧪 Ручное тестирование эндпоинтов
+
+- Для каждого нового эндпоинта обязательно создаётся отдельная ручная тестовая страница в каталоге `backend/_test/` (или подпапке по сущности).
+- Тестовая страница должна содержать:
+    - Форму для ввода всех необходимых полей запроса
+    - Предпросмотр JSON-запроса
+    - Кнопку отправки и вывод ответа API
+    - Подробные комментарии для не программиста (что тестируется, как пользоваться)
+- После создания теста обязательно добавить ссылку на тестовую страницу в меню `backend/_test/index.php` в соответствующий раздел (например, "🚗 Автомобили", "👤 Пользователи" и т.д.).
+- После успешного ручного тестирования эндпоинта — добавить автотест (если применимо) и обновить документацию.
+- Пример оформления тестовой страницы см. в `backend/_test/photos/add_test.php`, `backend/_test/cars/update_test.php` и других.
+
+--- 

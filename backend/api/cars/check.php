@@ -63,7 +63,7 @@ class CheckCarEndpoint extends ApiHandler {
             $db = $this->getDb();
             
             // Ищем автомобиль в БД (упрощённый запрос)
-            $sql = "SELECT id, reg_number, status_id FROM cars WHERE reg_number = ?";
+            $sql = "SELECT id, reg_number, status_id, owner_user_id FROM cars WHERE reg_number = ?";
             
             $stmt = $db->prepare($sql);
             $stmt->execute([$regNumber]);
@@ -75,7 +75,8 @@ class CheckCarEndpoint extends ApiHandler {
                     'found' => true,
                     'car_id' => $car['id'],
                     'reg_number' => $car['reg_number'],
-                    'status_id' => $car['status_id']
+                    'status_id' => $car['status_id'],
+                    'owner_user_id' => $car['owner_user_id'] ?? null
                 ];
                 
                 return $this->success($result, 'Автомобиль найден');

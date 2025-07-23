@@ -37,8 +37,9 @@ class AddBusinessCardFullEndpoint extends ApiHandler {
                 'data' => [
                     'reg_number' => $regNumber,
                     'photo' => $photo,
-                    'show_reg_number' => $this->getData('show_reg_number', true),
+                    'show_reg_number' => $this->getData('show_reg_number', false),
                     'status_code' => 'business_card',
+                    'no_owner' => true // <--- авто создаётся без владельца!
                     // Можно добавить другие поля машины, если нужно
                 ]
             ]);

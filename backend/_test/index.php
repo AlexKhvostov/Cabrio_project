@@ -37,11 +37,15 @@
             <ul>
                 <li><a href="cars/add_test.php">Добавление авто</a> <span class="desc">Регистрация с фото</span></li>
                 <li><a href="cars/check_test.php">Проверка авто</a> <span class="desc">Поиск по номеру</span></li>
+                <li><a href="cars/view_test.php">Просмотр авто</a> <span class="desc">Информация по car_id/номеру</span></li>
+                <li><a href="cars/update_test.php">Обновление авто</a> <span class="desc">Изменение данных, владельца, статуса</span></li>
+                <li><a href="cars/claim_test.php">Забрать авто без владельца (claim)</a> <span class="desc">Назначить себя владельцем, если owner_user_id = NULL</span></li>
             </ul>
             <h2>📇 Визитки</h2>
             <ul>
                 <li><a href="business-cards/add_test.php">Создание визитки</a> <span class="desc">Визитка + авто</span></li>
                 <li><a href="business-cards/auto_add_test.php">Автоматическое добавление визитки</a> <span class="desc">Оркестратор: авто/визитка по номеру</span></li>
+                <li><a href="../api/business-cards/add_full.php">add_full.php</a> <span class="desc">Оркестратор: добавление визитки и авто (авто без владельца, если не было)</span></li>
             </ul>
         </div>
         <div class="section">
@@ -50,6 +54,10 @@
                 <li><a href="ocr/recognize_test.php">Распознавание номера</a></li>
                 <li><a href="ocr/check_test.php">Проверка номера в БД</a></li>
                 <li><a href="ocr/debug_image_format.php">Отладка изображения</a></li>
+            </ul>
+            <h2>📷 Фото</h2>
+            <ul>
+                <li><a href="photos/add_test.php">Добавление фото</a> <span class="desc">К любой сущности (car, user, event...)</span></li>
             </ul>
             <h2>🛠️ Отладка</h2>
             <ul>

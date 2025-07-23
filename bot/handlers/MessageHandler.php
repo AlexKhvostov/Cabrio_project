@@ -13,6 +13,7 @@ require_once __DIR__ . '/../commands/OcrCommand.php';
 require_once __DIR__ . '/../commands/PlateSearchCommand.php';
 require_once __DIR__ . '/../utils/Logger.php';
 require_once __DIR__ . '/../commands/LeaveBusinessCardCommand.php';
+require_once __DIR__ . '/../commands/AddCarCommand.php';
 
 class MessageHandler {
     /** @var BotService */
@@ -136,6 +137,16 @@ class MessageHandler {
             )) {
                 // TODO: вызвать команду LeaveBusinessCardCommand (реализовать отдельно)
                 $cmd = new LeaveBusinessCardCommand($botService);
+                $cmd->execute($message);
+                return;
+            }
+
+            // Если это фото с подписью '++' в групповом чате — добавить/обновить авто
+            if (isset($message['photo']) && (
+                (isset($message['text']) && trim($message['text']) === '++') ||
+                (isset($message['caption']) && trim($message['caption']) === '++')
+            )) {
+                $cmd = new AddCarCommand($botService);
                 $cmd->execute($message);
                 return;
             }
