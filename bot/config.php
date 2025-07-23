@@ -61,6 +61,13 @@ function getChatInviteLink() {
     return $env['CHAT_INVITE_LINK'] ?? 'https://t.me/+your_chat_invite_link';
 }
 
+// Получить имя бота из .env (BOT_NAME)
+function getBotName() {
+    global $env;
+    // Если в .env не задано, используем дефолтное имя
+    return $env['BOT_NAME'] ?? 'CabrioControl_bot';
+}
+
 // Конфигурация бота
 $config = [
     // Основные параметры бота
