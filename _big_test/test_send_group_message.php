@@ -15,16 +15,16 @@ echo "🔍 Тест отправки сообщения в группу\n\n";
 require_once __DIR__ . '/../bot/config.php';
 
 $botToken = getConfig('bot_token');
-$mainChatId = getConfig('main_chat_id');
+$clubChatId = getConfig('club_chat_id');
 
 echo "📋 Конфигурация:\n";
 echo "Bot Token: " . substr($botToken, 0, 10) . "...\n";
-echo "Main Chat ID: " . $mainChatId . "\n\n";
+echo "Club Chat ID: " . $clubChatId . "\n\n";
 
 // Отправляем тестовое сообщение в группу
 $sendMessageUrl = "https://api.telegram.org/bot{$botToken}/sendMessage";
 $messageData = [
-    'chat_id' => $mainChatId,
+    'chat_id' => $clubChatId,
     'text' => "🧪 Тестовое сообщение от бота\n\nЭто сообщение для проверки работы webhook.\n\nЕсли вы видите это сообщение, значит бот может отправлять сообщения в группу.\n\nПопробуйте отправить фото с '?' для тестирования распознавания номеров."
 ];
 

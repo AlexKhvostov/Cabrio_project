@@ -121,6 +121,7 @@
 | messages_count  | INTEGER            | Количество сообщений в Telegram чате |
 | last_activity   | TIMESTAMP          | Время последней активности пользователя (обновляется при каждом действии) |
 | telegram_photo_url  | VARCHAR(255)       | Ссылка на аватар пользователя из Telegram                                 |
+| telegram_photo_id   | VARCHAR(255)       | file_id аватара Telegram (используется для получения фото через API, не url) |
 | host_user_id    | BIGINT UNSIGNED    | Основной гость                  |
 | referrer_id     | BIGINT UNSIGNED    | Реферер                         |
 
@@ -259,6 +260,7 @@
 | entity_id    | BIGINT UNSIGNED    | ID сущности, к которой привязано фото     |
 | file_name    | VARCHAR(255)       | Имя файла                                 |
 | url          | VARCHAR(255)       | Путь/URL к файлу                          |
+| photo_type   | VARCHAR(32)        | Назначение фото: avatar, cover, gallery и т.д. (опционально) |
 | description  | TEXT               | Описание/подпись (опционально)            |
 | uploaded_at  | TIMESTAMP          | Дата загрузки                             |
 | uploaded_by  | BIGINT UNSIGNED    | Кто загрузил (user_id)                    |

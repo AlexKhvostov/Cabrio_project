@@ -1,63 +1,43 @@
 <?php
-// Прямая загрузка .env только для Database.php
-$env_path = __DIR__ . '/../../.env';
-if (file_exists($env_path)) {
-    $lines = file($env_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
-            list($key, $value) = explode('=', $line, 2);
-            $_ENV[trim($key)] = trim($value);
-        }
-    }
-}
+require_once __DIR__ . '/load_env.php';
 
 /**
- * Класс для работы с базой данных
- * Реализует паттерн Singleton для единого подключения
+ * Database — Singleton для подключения к MySQL через PDO для backend CabrioRide.
+ * Все параметры подключения берутся из .env (используйте getenv/$_ENV).
+ * Используйте Database::getInstance() для получения PDO.
+ *
+ * Пример:
+ * $pdo = Database::getInstance();
+ * $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+ * $stmt->execute([$id]);
+ * $user = $stmt->fetch();
  */
-
 class Database {
     private static $instance = null;
-    private $connection = null;
-    
-    private function __construct() {
-        try {
-            $host = $_ENV['DB_HOST'] ?? '';
-            $port = $_ENV['DB_PORT'] ?? '3306';
-            $dbname = $_ENV['DB_NAME'] ?? '';
-            $user = $_ENV['DB_USER'] ?? '';
-            $password = $_ENV['DB_PASSWORD'] ?? '';
+    private function __construct() {}
+    private function __clone() {}
 
-            // Логируем параметры подключения
-            error_log('PDO_CONNECT: host=' . $host . ' port=' . $port . ' dbname=' . $dbname . ' user=' . $user . ' password=***');
-
-            $dsn = sprintf(
-                "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
-                $host,
-                $port,
-                $dbname
-            );
-            
-            $this->connection = new PDO(
-                $dsn,
-                $user,
-                $password,
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-            );
-        } catch (PDOException $e) {
-            error_log("Database connection error: " . $e->getMessage());
-            throw new Exception('Database connection failed: ' . $e->getMessage());
-        }
-    }
-    
     public static function getInstance() {
         if (self::$instance === null) {
-            self::$instance = new self();
+            $dsn = 'mysql:host=' . (getenv('DB_HOST') ?: 'localhost') .
+                ';port=' . (getenv('DB_PORT') ?: '3306') .
+                ';dbname=' . (getenv('DB_NAME') ?: '') .
+                ';charset=utf8mb4';
+            $user = getenv('DB_USER') ?: '';
+            $pass = getenv('DB_PASSWORD') ?: '';
+            try {
+                self::$instance = new \PDO($dsn, $user, $pass, [
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                ]);
+            } catch (\PDOException $e) {
+                // Логируем ошибку и выбрасываем исключение
+                if (class_exists('Logger')) {
+                    Logger::error('DB connection failed: ' . $e->getMessage());
+                }
+                throw $e;
+            }
         }
         return self::$instance;
-    }
-    
-    public function getConnection() {
-        return $this->connection;
     }
 } 

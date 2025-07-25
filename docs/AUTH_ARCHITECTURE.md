@@ -20,6 +20,21 @@ CabrioRide использует **авторизацию через Telegram Web
 
 ---
 
+## Кратко для разработчиков
+
+- Вся логика авторизации, сессий, ролей и идентификации описана только в этом документе. В других местах — только ссылки сюда.
+- Основной идентификатор пользователя — user_id (автоинкремент в БД), Telegram ID хранится отдельно (users.telegram_id).
+- Авторизация только через Telegram WebApp. Регистрация и вход — только через Telegram.
+- Проверка членства в клубном чате Telegram выполняется ТОЛЬКО при создании сессии (авторизации). Если пользователь не состоит в чате — токен не создаётся, возвращается ошибка.
+- Если токен уже создан — считается, что членство в чате уже проверено. Повторная проверка при каждом запросе НЕ требуется (оптимизация).
+- Все данные о роли пользователя подтягиваются из БД при создании/валидации сессии и хранятся в сессии. Фронтенд не хранит роль/user_id локально, только session_token.
+- Telegram ID как основной user_id не используется — это не даёт архитектурных преимуществ при наличии сессий.
+- Все защищённые endpoint-ы используют SessionMiddleware для проверки токена, роли и прав доступа.
+- Жизненный цикл сессии: создание (при авторизации), валидация (при каждом запросе), истечение (через 30 минут), удаление (logout или cron).
+- Все edge-cases (смена Telegram-аккаунта, выход из чата, бан) описаны ниже.
+
+---
+
 ## 🔄 Процесс авторизации
 
 ### 1. Вход в приложение
@@ -92,6 +107,139 @@ ALTER TABLE users ADD COLUMN last_telegram_auth TIMESTAMP;
 -- first_name_tg VARCHAR(100) (уже есть)
 -- last_name_tg VARCHAR(100) (уже есть)
 ```
+
+---
+
+## 🔧 Backend реализация
+
+### 1. Endpoint авторизации
+```php
+// api/auth/telegram.php
+class TelegramAuthEndpoint {
+    public function handle($request) {
+        $initData = $request->getData();
+        
+        // 1. Проверяем подпись Telegram
+        if (!$this->verifyTelegramSignature($initData)) {
+            return $this->badRequest('Invalid Telegram signature');
+        }
+        
+        // 2. Извлекаем данные пользователя
+        $telegramData = $this->parseInitData($initData);
+        
+        // 3. Проверяем членство в чате
+        if (!$this->checkChatMembership($telegramData['user_id'])) {
+            return $this->forbidden('Not in club chat');
+        }
+        
+        // 4. Получаем или создаём пользователя
+        $user = $this->getOrCreateUser($telegramData);
+        
+        // 5. Создаём короткую сессию (30 минут)
+        $session = $this->createShortSession($user->id, $telegramData);
+        
+        return $this->success([
+            'session_token' => $session->token,
+            'expires_at' => $session->expires_at,
+            'user' => $this->formatUser($user),
+            'session_timeout' => 30 // минут
+        ]);
+    }
+    
+    private function createShortSession($userId, $telegramData) {
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', time() + (30 * 60)); // 30 минут
+        
+        $session = new Session([
+            'user_id' => $userId,
+            'session_token' => $token,
+            'telegram_data' => json_encode($telegramData),
+            'expires_at' => $expiresAt
+        ]);
+        
+        $session->save();
+        return $session;
+    }
+    
+    private function getOrCreateUser($telegramData) {
+        // Ищем пользователя по telegram_id
+        $user = User::where('telegram_id', $telegramData['id'])->first();
+        
+        if (!$user) {
+            // Создаём нового пользователя
+            $user = new User([
+                'telegram_id' => $telegramData['id'],
+                'username' => $telegramData['username'] ?? null,
+                'first_name_tg' => $telegramData['first_name'] ?? null,
+                'last_name_tg' => $telegramData['last_name'] ?? null,
+                'telegram_photo_url' => $telegramData['photo_url'] ?? null,
+                'role_id' => 1, // external по умолчанию
+                'last_telegram_auth' => now()
+            ]);
+            $user->save();
+        } else {
+            // Обновляем данные из Telegram
+            $user->update([
+                'username' => $telegramData['username'] ?? $user->username,
+                'first_name_tg' => $telegramData['first_name'] ?? $user->first_name_tg,
+                'last_name_tg' => $telegramData['last_name'] ?? $user->last_name_tg,
+                'telegram_photo_url' => $telegramData['photo_url'] ?? $user->telegram_photo_url,
+                'last_telegram_auth' => now()
+            ]);
+        }
+        
+        return $user;
+    }
+}
+```
+
+### 2. Middleware для проверки сессии
+```php
+// middleware/SessionMiddleware.php
+class SessionMiddleware {
+    private $sessionTimeout = 30; // минут
+    
+    public function handle($request) {
+        $token = $request->getHeader('Authorization');
+        
+        if (!$token) {
+            return $this->unauthorized('No session token');
+        }
+        
+        // Получаем сессию
+        $session = $this->getSession($token);
+        if (!$session || !$session->is_active) {
+            return $this->unauthorized('Invalid session');
+        }
+        
+        // Проверяем истечение (строго по expires_at)
+        if (time() > strtotime($session->expires_at)) {
+            $this->invalidateSession($session);
+            return $this->unauthorized('Session expired - please return to Telegram');
+        }
+        
+        // Получаем пользователя
+        $user = $this->getUser($session->user_id);
+        
+        // Проверяем членство в чате
+        if (!$this->checkChatMembership($user->telegram_id)) {
+            $this->updateUserRole($user->id, 'external');
+            return $this->forbidden('Not in chat - please return to Telegram');
+        }
+        
+        // Сохраняем в контекст
+        $request->setUser($user);
+        $request->setSession($session);
+    }
+}
+```
+
+#### ВАЖНО:
+- Проверка членства в чате Telegram выполняется только при создании сессии (авторизации). Если пользователь не состоит в чате — session_token не создаётся, возвращается ошибка.
+- При каждом последующем запросе backend валидирует только токен и срок действия сессии. Повторная проверка членства в чате не требуется (оптимизация).
+- Если пользователь покидает чат во время активной сессии — при следующей авторизации ему будет отказано в доступе.
+- Все данные о роли пользователя подтягиваются из БД при создании/валидации сессии и хранятся в сессии.
+- Фронтенд хранит только session_token, все остальные данные (роль, user_id, telegram_id) получает с backend при инициализации приложения или через /auth/check.
 
 ---
 
@@ -441,7 +589,7 @@ private function verifyTelegramSignature($initData) {
 ### 2. Проверка членства в чате
 ```php
 private function checkChatMembership($userId) {
-    $chatId = getConfig('main_chat_id');
+    $chatId = getConfig('club_chat_id');
     $botToken = getConfig('bot_token');
     
     $url = "https://api.telegram.org/bot{$botToken}/getChatMember";
@@ -578,17 +726,14 @@ stateDiagram-v2
 ## 📝 Примечания для разработки
 
 ### Важные моменты:
-1. **Всегда проверяйте подпись Telegram** - критично для безопасности
-2. **Не продлевайте сессии автоматически** - только через Telegram
-3. **Логируйте все попытки авторизации** - для аудита
-4. **Очищайте старые сессии** - для экономии ресурсов
-5. **Проверяйте членство в чате** - при каждом запросе
-
-### Ограничения:
-- Сессии не продлеваются автоматически
-- Нет "запомнить меня" функционала
-- Обязательный возврат в Telegram при истечении
-- Работает только в Telegram WebApp
+1. Всегда проверяйте подпись Telegram — критично для безопасности.
+2. Проверка членства в чате Telegram выполняется только при создании сессии (авторизации). Не делайте повторных проверок при каждом запросе.
+3. Не продлевайте сессии автоматически — только через Telegram.
+4. Логируйте все попытки авторизации — для аудита.
+5. Очищайте старые сессии — для экономии ресурсов.
+6. Все защищённые endpoint-ы должны использовать SessionMiddleware для проверки токена, роли и прав доступа.
+7. Фронтенд не хранит роль/user_id локально, только session_token.
+8. Telegram ID как основной user_id не используется — это не даёт архитектурных преимуществ при наличии сессий.
 
 ---
 

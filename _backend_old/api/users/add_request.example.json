@@ -1,0 +1,16 @@
+{
+  "auth": {
+    "user_id": 123,
+    "role": "member"
+  },
+  "data": {
+    "telegram_requestor_profile": {
+      "telegram_id": 287536885,
+      "username": "lex",
+      "first_name": "Lex",
+      "last_name": "Smith",
+      "telegram_photo_id": "AgACAgIAAxkBAA...",
+      "language_code": "ru"
+    }
+  }
+} 

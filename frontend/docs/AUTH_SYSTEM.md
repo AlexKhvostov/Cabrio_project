@@ -1,9 +1,6 @@
 # 🔐 Система авторизации CabrioRide - Frontend
 
-> 📋 **Документ создан:** 20 июля 2025  
-> 📋 **Статус:** Актуальная версия для разработки  
-> 📋 **Основан на:** docs/AUTH_ARCHITECTURE.md  
-> 📋 **Связанные документы:** docs/AUTH_ARCHITECTURE.md, docs/USER_ROLES.md
+> Вся логика авторизации, сессий, ролей и идентификации описана в [docs/AUTH_ARCHITECTURE.md](../../docs/AUTH_ARCHITECTURE.md). Здесь приведены только frontend-специфика и интеграция.
 
 ---
 

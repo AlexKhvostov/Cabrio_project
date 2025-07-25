@@ -15,11 +15,11 @@ echo "🔍 Тест членства бота в группе\n\n";
 require_once __DIR__ . '/../bot/config.php';
 
 $botToken = getConfig('bot_token');
-$mainChatId = getConfig('main_chat_id');
+$clubChatId = getConfig('club_chat_id');
 
 echo "📋 Конфигурация:\n";
 echo "Bot Token: " . substr($botToken, 0, 10) . "...\n";
-echo "Main Chat ID: " . $mainChatId . "\n\n";
+echo "Club Chat ID: " . $clubChatId . "\n\n";
 
 // Получаем информацию о боте
 $botInfoUrl = "https://api.telegram.org/bot{$botToken}/getMe";
@@ -42,7 +42,7 @@ if ($botData['ok']) {
 // Проверяем членство бота в группе
 $chatMemberUrl = "https://api.telegram.org/bot{$botToken}/getChatMember";
 $chatMemberData = [
-    'chat_id' => $mainChatId,
+    'chat_id' => $clubChatId,
     'user_id' => $bot['id']
 ];
 

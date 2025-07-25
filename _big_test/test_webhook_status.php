@@ -15,11 +15,11 @@ echo "🔍 Тест статуса webhook\n\n";
 require_once __DIR__ . '/../bot/config.php';
 
 $botToken = getConfig('bot_token');
-$mainChatId = getConfig('main_chat_id');
+$clubChatId = getConfig('club_chat_id');
 
 echo "📋 Конфигурация:\n";
 echo "Bot Token: " . substr($botToken, 0, 10) . "...\n";
-echo "Main Chat ID: " . $mainChatId . "\n\n";
+echo "Club Chat ID: " . $clubChatId . "\n\n";
 
 // Проверяем текущий webhook
 $webhookInfoUrl = "https://api.telegram.org/bot{$botToken}/getWebhookInfo";

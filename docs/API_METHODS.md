@@ -1,6 +1,6 @@
 # Документация по REST API CabrioRide
 
-> См. также: [Техническое задание](TECHNICAL_SPECIFICATION.md), [Структура БД](DATABASE_SCHEMA.md), [Роли пользователя](USER_ROLES.md)
+> Вся логика авторизации, сессий, ролей и идентификации описана в [docs/AUTH_ARCHITECTURE.md](AUTH_ARCHITECTURE.md). В этом файле приведены только спецификации методов и структуры данных.
 
 ---
 

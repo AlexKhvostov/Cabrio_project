@@ -1,0 +1,16 @@
+{
+  "success": false,
+  "timestamp": "2024-07-24T12:00:00Z",
+  "request_id": "req_123457",
+  "auth": {"user_id": 123, "role": "member"},
+  "result": null,
+  "error": {
+    "code": 400,
+    "type": "VALIDATION_ERROR",
+    "message": "telegram_requestor_profile.telegram_id обязателен",
+    "details": {
+      "field": "telegram_requestor_profile.telegram_id",
+      "rule": "required"
+    }
+  }
+} 

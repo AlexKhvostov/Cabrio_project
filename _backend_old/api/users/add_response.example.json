@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "timestamp": "2024-07-24T12:00:00Z",
+  "request_id": "req_123456",
+  "auth": {"user_id": 123, "role": "member"},
+  "result": {
+    "message": "Пользователь создан",
+    "data": {
+      "user_id": 456,
+      "telegram_id": 287536885,
+      "role": "guest",
+      "created": true
+    }
+  },
+  "error": null
+} 
