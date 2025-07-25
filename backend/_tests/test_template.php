@@ -14,20 +14,20 @@ if (file_exists($env_path)) {
 
 // Конфигурация теста - ИЗМЕНИТЕ ЭТИ ПАРАМЕТРЫ ДЛЯ НОВОГО ТЕСТА
 $test_config = [
-    'id' => 'users_list',                    // ID теста (без _test.php)
-    'name' => 'Список пользователей',        // Отображаемое название
-    'description' => 'Получение списка пользователей с ролями и фото', // Описание что тестирует
-    'endpoint' => '/api/users',              // API endpoint
-    'method' => 'GET',                       // HTTP метод
-    'icon' => '👤',                         // Иконка для отображения
-    'data_name' => 'пользователей'          // Название данных (записей, пользователей, автомобилей и т.д.)
+    'id' => 'test_name',                    // ID теста (без _test.php)
+    'name' => 'Название теста',             // Отображаемое название
+    'description' => 'Описание теста',      // Описание что тестирует
+    'endpoint' => '/api/endpoint',          // API endpoint
+    'method' => 'GET',                      // HTTP метод
+    'icon' => '🔧',                         // Иконка для отображения
+    'data_name' => 'записей'               // Название данных (записей, пользователей, автомобилей и т.д.)
 ];
 
 ?><!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тест: Получение списка событий (GET /api/events)</title>
+    <title>Тест: <?php echo $test_config['name']; ?> (<?php echo $test_config['method']; ?> <?php echo $test_config['endpoint']; ?>)</title>
     <style>
         body { font-family: sans-serif; margin: 2em; }
         pre { background: #f5f5f5; padding: 1em; border-radius: 4px; }
@@ -42,6 +42,14 @@ $test_config = [
         .back-link { margin-bottom: 20px; }
         .back-link a { color: #007bff; text-decoration: none; }
         .back-link a:hover { text-decoration: underline; }
+        .config-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -49,20 +57,29 @@ $test_config = [
         <a href="index.php">← Назад к списку тестов</a>
     </div>
     
-    <h2>📅 Тест получения списка событий</h2>
+    <h2><?php echo $test_config['icon']; ?> Тест: <?php echo $test_config['name']; ?></h2>
+    
+    <!-- Информация о конфигурации теста -->
+    <div class="config-info">
+        <strong>Конфигурация теста:</strong><br>
+        Endpoint: <?php echo $test_config['method']; ?> <?php echo $test_config['endpoint']; ?><br>
+        Описание: <?php echo $test_config['description']; ?>
+    </div>
+    
     <button onclick="runTest()">▶️ Запустить тест</button>
     <div id="result"></div>
     
     <script>
         const BACKEND_API_URL = <?php echo json_encode($BACKEND_API_URL); ?>;
-        const url = BACKEND_API_URL + '/routes/api.php?route=/api/events';
+        const url = BACKEND_API_URL + '/routes/api.php?route=<?php echo $test_config['endpoint']; ?>';
+        const testConfig = <?php echo json_encode($test_config); ?>;
         
         async function runTest() {
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = '<div class="info">🔄 Выполняется тест...</div>';
             
             try {
-                const response = await fetch(url, { method: 'GET' });
+                const response = await fetch(url, { method: '<?php echo $test_config['method']; ?>' });
                 const text = await response.text();
                 let json;
                 try { 
@@ -73,11 +90,11 @@ $test_config = [
                 
                 let html = '<div class="test-result ' + (json && json.success ? 'success' : 'error') + '">';
                 html += '<h3>' + (json && json.success ? '✅ Тест пройден!' : '❌ Тест не пройден!') + '</h3>';
-                html += '<div><strong>Запрос:</strong> GET ' + url + '</div>';
+                html += '<div><strong>Запрос:</strong> <?php echo $test_config['method']; ?> ' + url + '</div>';
                 html += '<div><strong>Статус:</strong> ' + response.status + '</div>';
                 
                 if (json && json.success && json.data) {
-                    html += '<div><strong>Найдено событий:</strong> ' + json.data.length + '</div>';
+                    html += '<div><strong>Найдено <?php echo $test_config['data_name']; ?>:</strong> ' + json.data.length + '</div>';
                     
                     if (json.data.length > 0) {
                         html += '<h4>📋 Пример данных:</h4>';

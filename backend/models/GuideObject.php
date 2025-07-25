@@ -24,6 +24,7 @@
  *   $obj = GuideObject::findById(1);
  *   $newObj = GuideObject::create([...]);
  */
+require_once __DIR__ . '/../utils/Database.php';
 class GuideObject {
     public $id;
     public $guide_object_type_id;
@@ -76,5 +77,73 @@ class GuideObject {
      */
     public function delete() {
         // ... реализация удаления из БД
+    }
+
+    /**
+     * Получить список гид-объектов с раскрытыми объектами type, kind, author и photo
+     */
+    public static function getAll()
+    {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query(
+            'SELECT go.*, 
+                    got.id as guide_object_type_id, got.code as guide_object_type_code, got.name as guide_object_type_name,
+                    gok.id as guide_object_kind_id, gok.code as guide_object_kind_code, gok.name as guide_object_kind_name,
+                    u.id as add_user_id, u.first_name_app as author_first_name, u.last_name_app as author_last_name,
+                    s.id as status_id, s.code as status_code, s.name as status_name,
+                    p.id as photo_id, p.url as photo_url, p.description as photo_description
+             FROM guide_objects go
+             LEFT JOIN ref_guide_object_types got ON go.guide_object_type_id = got.id
+             LEFT JOIN ref_guide_object_kinds gok ON go.guide_object_kind_id = gok.id
+             LEFT JOIN users u ON go.add_user_id = u.id
+             LEFT JOIN ref_statuses s ON go.status_id = s.id
+             LEFT JOIN photos p ON p.id = (
+                 SELECT id FROM photos 
+                 WHERE entity_type = "guide_object" AND entity_id = go.id 
+                 ORDER BY id DESC LIMIT 1
+             )'
+        );
+        $rows = $stmt->fetchAll();
+        $guideObjects = [];
+        foreach ($rows as $row) {
+            $guideObject = $row;
+            $guideObject['guide_object_type'] = [
+                'id' => $row['guide_object_type_id'],
+                'code' => $row['guide_object_type_code'],
+                'name' => $row['guide_object_type_name'],
+            ];
+            unset($guideObject['guide_object_type_id'], $guideObject['guide_object_type_code'], $guideObject['guide_object_type_name']);
+
+            $guideObject['guide_object_kind'] = [
+                'id' => $row['guide_object_kind_id'],
+                'code' => $row['guide_object_kind_code'],
+                'name' => $row['guide_object_kind_name'],
+            ];
+            unset($guideObject['guide_object_kind_id'], $guideObject['guide_object_kind_code'], $guideObject['guide_object_kind_name']);
+
+            $guideObject['author'] = $row['add_user_id'] ? [
+                'id' => $row['add_user_id'],
+                'first_name' => $row['author_first_name'],
+                'last_name' => $row['author_last_name'],
+            ] : null;
+            unset($guideObject['add_user_id'], $guideObject['author_first_name'], $guideObject['author_last_name']);
+
+            $guideObject['status'] = [
+                'id' => $row['status_id'],
+                'code' => $row['status_code'],
+                'name' => $row['status_name'],
+            ];
+            unset($guideObject['status_id'], $guideObject['status_code'], $guideObject['status_name']);
+
+            $guideObject['photo'] = $row['photo_id'] ? [
+                'id' => $row['photo_id'],
+                'url' => $row['photo_url'],
+                'description' => $row['photo_description'],
+            ] : null;
+            unset($guideObject['photo_id'], $guideObject['photo_url'], $guideObject['photo_description']);
+
+            $guideObjects[] = $guideObject;
+        }
+        return $guideObjects;
     }
 } 

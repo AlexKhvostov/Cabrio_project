@@ -24,6 +24,30 @@ try {
         require_once __DIR__ . '/../controllers/UserController.php';
         (new UserController())->create();
     }
+    // Маршруты для автомобилей
+    elseif ($route === '/api/cars' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->getList();
+    } elseif ($route === '/api/cars' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->create();
+    }
+    // Маршруты для событий
+    elseif ($route === '/api/events' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->getList();
+    } elseif ($route === '/api/events' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->create();
+    }
+    // Маршруты для гид-объектов
+    elseif ($route === '/api/guide-objects' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/GuideObjectController.php';
+        (new GuideObjectController())->getList();
+    } elseif ($route === '/api/guide-objects' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/GuideObjectController.php';
+        (new GuideObjectController())->create();
+    }
     // ...добавляйте остальные маршруты по аналогии
 
     else {

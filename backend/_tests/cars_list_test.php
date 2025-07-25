@@ -11,23 +11,11 @@ if (file_exists($env_path)) {
         }
     }
 }
-
-// Конфигурация теста - ИЗМЕНИТЕ ЭТИ ПАРАМЕТРЫ ДЛЯ НОВОГО ТЕСТА
-$test_config = [
-    'id' => 'users_list',                    // ID теста (без _test.php)
-    'name' => 'Список пользователей',        // Отображаемое название
-    'description' => 'Получение списка пользователей с ролями и фото', // Описание что тестирует
-    'endpoint' => '/api/users',              // API endpoint
-    'method' => 'GET',                       // HTTP метод
-    'icon' => '👤',                         // Иконка для отображения
-    'data_name' => 'пользователей'          // Название данных (записей, пользователей, автомобилей и т.д.)
-];
-
 ?><!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тест: Получение списка событий (GET /api/events)</title>
+    <title>Тест: Получение списка автомобилей (GET /api/cars)</title>
     <style>
         body { font-family: sans-serif; margin: 2em; }
         pre { background: #f5f5f5; padding: 1em; border-radius: 4px; }
@@ -39,23 +27,20 @@ $test_config = [
         .error { background: #f8d7da; border: 1px solid #f5c6cb; }
         button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0056b3; }
-        .back-link { margin-bottom: 20px; }
-        .back-link a { color: #007bff; text-decoration: none; }
-        .back-link a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="back-link">
-        <a href="index.php">← Назад к списку тестов</a>
+    <div style="margin-bottom: 20px;">
+        <a href="index.php" style="color: #007bff; text-decoration: none;">← Назад к списку тестов</a>
     </div>
     
-    <h2>📅 Тест получения списка событий</h2>
+    <h2>🚗 Тест получения списка автомобилей</h2>
     <button onclick="runTest()">▶️ Запустить тест</button>
     <div id="result"></div>
     
     <script>
         const BACKEND_API_URL = <?php echo json_encode($BACKEND_API_URL); ?>;
-        const url = BACKEND_API_URL + '/routes/api.php?route=/api/events';
+        const url = BACKEND_API_URL + '/routes/api.php?route=/api/cars';
         
         async function runTest() {
             const resultDiv = document.getElementById('result');
@@ -77,7 +62,7 @@ $test_config = [
                 html += '<div><strong>Статус:</strong> ' + response.status + '</div>';
                 
                 if (json && json.success && json.data) {
-                    html += '<div><strong>Найдено событий:</strong> ' + json.data.length + '</div>';
+                    html += '<div><strong>Найдено автомобилей:</strong> ' + json.data.length + '</div>';
                     
                     if (json.data.length > 0) {
                         html += '<h4>📋 Пример данных:</h4>';

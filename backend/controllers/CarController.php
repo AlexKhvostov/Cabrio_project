@@ -20,6 +20,65 @@
  *   - delete($id) — удалить авто
  *   - transferOwnership($car_id, $new_user_id) — передать авто другому пользователю
  */
-class CarController {
-    // ... методы будут реализованы по мере необходимости
+require_once __DIR__ . '/BaseController.php';
+require_once __DIR__ . '/../models/Car.php';
+
+class CarController extends BaseController
+{
+    /**
+     * Получить список автомобилей (реализация через модель Car)
+     */
+    public function getList()
+    {
+        try {
+            $cars = Car::getAll();
+            $this->json(['success' => true, 'data' => $cars]);
+        } catch (Throwable $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'DB_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Получить автомобиль по id
+     */
+    public function getById($id)
+    {
+        try {
+            $car = Car::findById($id);
+            if (!$car) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NOT_FOUND',
+                        'message' => 'Автомобиль не найден'
+                    ]
+                ], 404);
+                return;
+            }
+            $this->json(['success' => true, 'data' => $car]);
+        } catch (Throwable $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'DB_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Создать новый автомобиль
+     */
+    public function create()
+    {
+        // Пример: создать автомобиль (заглушка)
+        $this->json(['success' => true, 'data' => ['id' => 1, 'model' => 'BMW Z4', 'color' => 'red']], 201);
+    }
 } 

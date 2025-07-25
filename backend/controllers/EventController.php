@@ -21,6 +21,33 @@
  *   - join($event_id, $user_id) — зарегистрировать пользователя
  *   - leave($event_id, $user_id) — выйти из события
  */
-class EventController {
-    // ... методы будут реализованы по мере необходимости
+require_once __DIR__ . '/BaseController.php';
+require_once __DIR__ . '/../models/Event.php';
+
+class EventController extends BaseController
+{
+    /**
+     * Получить список событий (реализация через модель Event)
+     */
+    public function getList()
+    {
+        try {
+            $events = Event::getAll();
+            $this->json(['success' => true, 'data' => $events]);
+        } catch (Throwable $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'DB_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    public function create()
+    {
+        // Пример: создать событие (заглушка)
+        $this->json(['success' => true, 'data' => ['id' => 1, 'title' => 'Новое событие']], 201);
+    }
 } 

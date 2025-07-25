@@ -22,6 +22,8 @@
  *   $car = Car::findById(1);
  *   $newCar = Car::create([...]);
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class Car {
     public $id;
     public $car_brand_id;
@@ -70,5 +72,68 @@ class Car {
      */
     public function delete() {
         // ... реализация удаления из БД
+    }
+
+    /**
+     * Получить список автомобилей с раскрытыми объектами brand, owner, status и photo
+     */
+    public static function getAll()
+    {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query(
+            'SELECT c.*, 
+                    cb.id as brand_id, cb.brand as brand_name,
+                    u.id as owner_id, u.first_name_app as owner_first_name, u.last_name_app as owner_last_name,
+                    s.id as status_id, s.code as status_code, s.name as status_name,
+                    p.id as photo_id, p.url as photo_url, p.description as photo_description
+             FROM cars c
+             LEFT JOIN ref_car_brands cb ON c.car_brand_id = cb.id
+             LEFT JOIN users u ON c.owner_user_id = u.id
+             LEFT JOIN ref_statuses s ON c.status_id = s.id
+             LEFT JOIN photos p ON p.id = (
+                 SELECT id FROM photos 
+                 WHERE entity_type = "car" AND entity_id = c.id 
+                 ORDER BY id DESC LIMIT 1
+             )'
+        );
+        $rows = $stmt->fetchAll();
+        $cars = [];
+        foreach ($rows as $row) {
+            $car = $row;
+            
+            // Формируем объект brand
+            $car['brand'] = [
+                'id' => $row['brand_id'],
+                'name' => $row['brand_name'],
+            ];
+            unset($car['brand_id'], $car['brand_name']);
+
+            // Формируем объект owner
+            $car['owner'] = $row['owner_id'] ? [
+                'id' => $row['owner_id'],
+                'first_name' => $row['owner_first_name'],
+                'last_name' => $row['owner_last_name'],
+            ] : null;
+            unset($car['owner_id'], $car['owner_first_name'], $car['owner_last_name']);
+
+            // Формируем объект status
+            $car['status'] = [
+                'id' => $row['status_id'],
+                'code' => $row['status_code'],
+                'name' => $row['status_name'],
+            ];
+            unset($car['status_id'], $car['status_code'], $car['status_name']);
+
+            // Формируем объект photo
+            $car['photo'] = $row['photo_id'] ? [
+                'id' => $row['photo_id'],
+                'url' => $row['photo_url'],
+                'description' => $row['photo_description'],
+            ] : null;
+            unset($car['photo_id'], $car['photo_url'], $car['photo_description']);
+
+            $cars[] = $car;
+        }
+        return $cars;
     }
 } 

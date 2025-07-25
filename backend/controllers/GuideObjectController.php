@@ -20,6 +20,33 @@
  *   - delete($id) — удалить гид-объект
  *   - approve($id) — одобрить гид-объект (модерация)
  */
-class GuideObjectController {
-    // ... методы будут реализованы по мере необходимости
+require_once __DIR__ . '/BaseController.php';
+require_once __DIR__ . '/../models/GuideObject.php';
+
+class GuideObjectController extends BaseController
+{
+    /**
+     * Получить список гид-объектов (реализация через модель GuideObject)
+     */
+    public function getList()
+    {
+        try {
+            $guideObjects = GuideObject::getAll();
+            $this->json(['success' => true, 'data' => $guideObjects]);
+        } catch (Throwable $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'DB_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    public function create()
+    {
+        // Пример: создать гид-объект (заглушка)
+        $this->json(['success' => true, 'data' => ['id' => 1, 'name' => 'Новый гид-объект']], 201);
+    }
 } 
