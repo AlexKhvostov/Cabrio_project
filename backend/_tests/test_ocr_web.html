@@ -169,7 +169,7 @@
             
             try {
                 // Отправляем запрос
-                const response = await fetch('../actions/helpers/RecognizeCarNumberFromPhotoAction.php', {
+                const response = await fetch('test_ocr_api.php', {
                     method: 'POST',
                     body: formData
                 });

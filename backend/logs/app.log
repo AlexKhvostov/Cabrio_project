@@ -494,3 +494,30 @@
 2025-08-02T02:25:48+02:00 [INFO] Photo created: ID=248, entity_type=business_card, entity_id=308
 2025-08-02T02:25:48+02:00 [INFO] Business card dropped: plate_number=2132ci7, user_id=563, action=card_created
 2025-08-02T02:25:48+02:00 [INFO] Business card left: plate_number=2132ci7, user_id=563, action=card_created
+2025-08-02T03:10:51+02:00 [INFO] User created: ID=607, telegram_id=1754097051147
+2025-08-02T03:10:51+02:00 [INFO] User check by telegram_id: 1754097051147, found: yes
+2025-08-02T03:10:52+02:00 [INFO] User updated: ID=607
+2025-08-02T03:10:52+02:00 [INFO] User role updated: ID=607, role_id=2
+2025-08-02T03:10:52+02:00 [INFO] Car created: ID=433, model=BMW Z4
+2025-08-02T03:10:53+02:00 [INFO] Car check by plate_number: TEST1754097052521, found: yes
+2025-08-02T03:10:53+02:00 [INFO] Status updated: entity_type=car, entity_id=433, status_id=2
+2025-08-02T03:10:53+02:00 [INFO] Car owner updated: car_id=433, user_id=607
+2025-08-02T03:10:54+02:00 [INFO] Business card created: ID=310, car_id=433, user_id=607
+2025-08-02T03:10:54+02:00 [INFO] Photo created: ID=250, entity_type=car, entity_id=433
+2025-08-02T03:16:10+02:00 [INFO] OCR API request started...
+2025-08-02T03:16:11+02:00 [INFO] OCR API response: {"processing_time":24.902,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"0116_8JVQk_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-02T01:16:10.726916Z","image_width":543,"image_height":405}...
+2025-08-02T03:16:11+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T03:16:11+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T03:16:11+02:00 [INFO] Car check by plate_number: 9588mi1, found: yes
+2025-08-02T03:16:11+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_251.jpg
+2025-08-02T03:16:12+02:00 [INFO] Photo created: ID=251, entity_type=car, entity_id=1
+2025-08-02T03:16:12+02:00 [INFO] Car search completed: plate_number=9588mi1, action=found
+2025-08-02T03:16:12+02:00 [INFO] Car check in club completed: plate_number=9588mi1, user_id=563, action=found
+2025-08-02T03:23:03+02:00 [INFO] OCR API request started...
+2025-08-02T03:23:04+02:00 [INFO] OCR API response: {"processing_time":23.372,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"0123_A0hO3_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-02T01:23:03.270609Z","image_width":543,"image_height":405}...
+2025-08-02T03:23:04+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T03:23:04+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T03:23:20+02:00 [INFO] OCR API request started...
+2025-08-02T03:23:21+02:00 [INFO] OCR API response: {"processing_time":23.686,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"0123_9ONVd_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-02T01:23:20.350568Z","image_width":543,"image_height":405}...
+2025-08-02T03:23:21+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T03:23:21+02:00 [INFO] Plate number recognized successfully: 9588mi1
