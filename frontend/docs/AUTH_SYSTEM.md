@@ -528,7 +528,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Дополнительные геттеры
   const userRole = computed(() => user.value?.role || 'external')
   const hasRole = (requiredRole: string) => {
-    const roles = ['external', 'guest', 'new', 'registered', 'member', 'moderator', 'admin']
+    const roles = ['external', 'guest', 'user', 'member', 'moderator', 'admin']
     const userLevel = roles.indexOf(userRole.value)
     const requiredLevel = roles.indexOf(requiredRole)
     return userLevel >= requiredLevel
@@ -538,7 +538,7 @@ export const useAuthStore = defineStore('auth', () => {
   const canAccess = (functionName: string) => {
     const functionRoles = {
       'view_cars': 'member',
-      'add_car': 'registered',
+      'add_car': 'user',
       'edit_car': 'member',
       'view_events': 'member',
       'create_event': 'member',
@@ -622,7 +622,7 @@ export interface TelegramInitData {
   hash: string
 }
 
-export type UserRole = 'external' | 'guest' | 'new' | 'registered' | 'member' | 'moderator' | 'admin'
+export type UserRole = 'external' | 'guest' | 'user' | 'member' | 'moderator' | 'admin'
 ```
 
 ---

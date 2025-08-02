@@ -20,6 +20,8 @@
  *   $photo = Photo::findById(1);
  *   $newPhoto = Photo::create([...]);
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class Photo {
     public $id;
     public $entity_type;
@@ -49,10 +51,82 @@ class Photo {
     }
 
     /**
+     * Получить следующий ID для фото
+     */
+    public static function getNextId() {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT MAX(id) as max_id FROM photos');
+        $stmt->execute();
+        $result = $stmt->fetch();
+        return ($result['max_id'] ?? 0) + 1;
+    }
+
+    /**
      * Создать новое фото
      */
     public static function create($data) {
-        // ... реализация вставки в БД
+        $pdo = Database::getInstance();
+        
+        // Подготовка данных для вставки
+        $fields = ['entity_type', 'entity_id', 'file_name', 'url', 'photo_type', 'description', 'uploaded_by'];
+        $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+        $fieldNames = implode(', ', $fields);
+        
+        $stmt = $pdo->prepare("INSERT INTO photos ($fieldNames, uploaded_at) VALUES ($placeholders, NOW())");
+        
+        $values = [
+            $data['entity_type'],
+            $data['entity_id'],
+            $data['file_name'],
+            $data['url'],
+            $data['photo_type'] ?? null,
+            $data['description'] ?? null,
+            $data['uploaded_by'] ?? null
+        ];
+        
+        $stmt->execute($values);
+        return $pdo->lastInsertId();
+    }
+
+    /**
+     * Преобразовать объект фото в массив
+     */
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'entity_type' => $this->entity_type,
+            'entity_id' => $this->entity_id,
+            'file_name' => $this->file_name,
+            'url' => $this->url,
+            'photo_type' => $this->photo_type,
+            'description' => $this->description,
+            'uploaded_at' => $this->uploaded_at,
+            'uploaded_by' => $this->uploaded_by
+        ];
+    }
+
+    /**
+     * Обновить фото
+     */
+    public static function update($id, $data) {
+        $pdo = Database::getInstance();
+        
+        // Подготовка данных для обновления
+        $fields = [];
+        $values = [];
+        
+        foreach ($data as $field => $value) {
+            $fields[] = "$field = ?";
+            $values[] = $value;
+        }
+        
+        $values[] = $id; // для WHERE id = ?
+        
+        $fieldUpdates = implode(', ', $fields);
+        $stmt = $pdo->prepare("UPDATE photos SET $fieldUpdates WHERE id = ?");
+        
+        $stmt->execute($values);
+        return $stmt->rowCount() > 0;
     }
 
     /**

@@ -9,13 +9,12 @@
  *   - BusinessCard (модель)
  *   - Car (модель)
  *   - User (модель)
- *   - AddBusinessCardAction (action)
  *   - AuthHelper, ResponseHelper
  *
  * Основные методы:
  *   - getList() — получить список визиток
  *   - getById($id) — получить визитку по id
- *   - create($data) — добавить визитку (использует AddBusinessCardAction)
+ *   - create($data) — добавить визитку
  *   - delete($id) — удалить визитку
  */
 class BusinessCardController {

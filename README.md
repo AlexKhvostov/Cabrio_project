@@ -194,7 +194,7 @@ php backend/_tests/index.php
 ## 🔐 Безопасность
 
 - **Telegram авторизация** — вход только через Telegram
-- **Роли и права доступа** — система ролей (external, guest, new, registered, member, moderator, admin)
+- **Роли и права доступа** — система ролей (external, guest, user, member, moderator, admin)
 - **Валидация данных** — проверка всех входных данных
 - **SQL Injection защита** — использование подготовленных запросов
 - **XSS защита** — экранирование вывода

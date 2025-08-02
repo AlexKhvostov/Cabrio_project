@@ -374,8 +374,8 @@ class AccessControl {
     private static $roles = [
         'external' => 0,
         'guest' => 1,
-        'new' => 2,
-        'registered' => 3,
+        'user' => 2,
+        'user' => 3,
         'member' => 4,
         'moderator' => 5,
         'admin' => 6

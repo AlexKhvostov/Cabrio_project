@@ -1,0 +1,496 @@
+2025-08-01T21:42:23+02:00 [INFO] OCR API request data length: 69319 bytes
+2025-08-01T21:42:53+02:00 [INFO] OCR API request data length: 51506 bytes
+2025-08-01T21:43:33+02:00 [INFO] OCR API request started...
+2025-08-01T21:43:45+02:00 [INFO] OCR API request started...
+2025-08-01T21:43:46+02:00 [INFO] OCR API response: {"processing_time":28.641,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"1943_6a61Y_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T19:43:45.470520Z","image_width":543,"image_height":405}...
+2025-08-01T21:43:46+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-01T21:43:46+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-01T21:45:35+02:00 [INFO] OCR API request started...
+2025-08-01T21:45:36+02:00 [INFO] OCR API response: {"processing_time":23.833,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"1945_64ZQg_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T19:45:35.374024Z","image_width":543,"image_height":405}...
+2025-08-01T21:45:36+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-01T21:45:36+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-01T21:47:36+02:00 [INFO] OCR API request started...
+2025-08-01T21:47:37+02:00 [INFO] OCR API response: {"processing_time":79.098,"results":[{"box":{"xmin":532,"ymin":293,"xmax":697,"ymax":340},"plate":"sgt1909","region":{"code":"de","score":0.877},"score":1.0,"candidates":[{"score":1.0,"plate":"sgt1909"},{"score":0.864,"plate":"sgt19o9"},{"score":0.864,"plate":"sgti909"},{"score":0.728,"plate":"sgti9o9"}],"dscore":0.926,"vehicle":{"score":0.732,"type":"Sedan","box":{"xmin":58,"ymin":22,"xmax":809,"ymax":388}}}],"filename":"1947_0lccw_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01...
+2025-08-01T21:47:37+02:00 [INFO] Plate number recognized: sgt1909
+2025-08-01T21:47:37+02:00 [INFO] Plate number recognized successfully: sgt1909
+2025-08-01T21:55:22+02:00 [INFO] OCR API request started...
+2025-08-01T21:55:22+02:00 [INFO] OCR API response: {"processing_time":50.576,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"1955_aYpaB_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T19:55:22.208598Z","image_width":543,"image_height":405}...
+2025-08-01T21:55:22+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-01T21:55:22+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-01T21:56:46+02:00 [INFO] OCR API request started...
+2025-08-01T21:56:47+02:00 [INFO] OCR API response: {"processing_time":22.272,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"1956_ynzyN_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T19:56:46.513975Z","image_width":543,"image_height":405}...
+2025-08-01T21:56:47+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-01T21:56:47+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-01T21:56:55+02:00 [INFO] OCR API request started...
+2025-08-01T21:56:56+02:00 [INFO] OCR API response: {"processing_time":55.638,"results":[{"box":{"xmin":532,"ymin":293,"xmax":697,"ymax":340},"plate":"sgt1909","region":{"code":"de","score":0.877},"score":1.0,"candidates":[{"score":1.0,"plate":"sgt1909"},{"score":0.864,"plate":"sgt19o9"},{"score":0.864,"plate":"sgti909"},{"score":0.728,"plate":"sgti9o9"}],"dscore":0.926,"vehicle":{"score":0.732,"type":"Sedan","box":{"xmin":58,"ymin":22,"xmax":809,"ymax":388}}}],"filename":"1956_xtdMA_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01...
+2025-08-01T21:56:56+02:00 [INFO] Plate number recognized: sgt1909
+2025-08-01T21:56:56+02:00 [INFO] Plate number recognized successfully: sgt1909
+2025-08-01T22:56:40+02:00 [INFO] User check by telegram_id: 1754081799, found: no
+2025-08-01T22:57:19+02:00 [INFO] User created: ID=573, telegram_id=1754081839
+2025-08-01T22:57:19+02:00 [INFO] User check by telegram_id: 1754081839, found: yes
+2025-08-01T22:57:20+02:00 [INFO] User updated: ID=573
+2025-08-01T22:57:20+02:00 [INFO] User role updated: ID=573, role_id=2
+2025-08-01T23:03:25+02:00 [INFO] User created: ID=575, telegram_id=1754082205
+2025-08-01T23:03:25+02:00 [INFO] User check by telegram_id: 1754082205, found: yes
+2025-08-01T23:03:25+02:00 [INFO] User updated: ID=575
+2025-08-01T23:03:25+02:00 [INFO] User role updated: ID=575, role_id=2
+2025-08-01T23:08:57+02:00 [INFO] Car created: ID=382, model=Z4
+2025-08-01T23:10:11+02:00 [INFO] Car created: ID=383, model=Z4
+2025-08-01T23:10:11+02:00 [INFO] Car check by plate_number: TEST1754082611, found: yes
+2025-08-01T23:10:11+02:00 [INFO] Status updated: entity_type=car, entity_id=383, status_id=2
+2025-08-01T23:10:12+02:00 [INFO] Car owner updated: car_id=383, user_id=563
+2025-08-01T23:12:27+02:00 [INFO] Business card created: ID=284, car_id=382, user_id=563
+2025-08-01T23:12:27+02:00 [INFO] Photo created: ID=219, entity_type=car, entity_id=382
+2025-08-01T23:19:14+02:00 [INFO] User created: ID=578, telegram_id=1754083154
+2025-08-01T23:19:14+02:00 [INFO] User check by telegram_id: 1754083154, found: yes
+2025-08-01T23:19:15+02:00 [INFO] User updated: ID=578
+2025-08-01T23:19:15+02:00 [INFO] User role updated: ID=578, role_id=2
+2025-08-01T23:27:45+02:00 [INFO] Car created: ID=386, model=Z4
+2025-08-01T23:27:45+02:00 [INFO] Car check by plate_number: TEST1754083665, found: yes
+2025-08-01T23:27:45+02:00 [INFO] Status updated: entity_type=car, entity_id=386, status_id=2
+2025-08-01T23:27:46+02:00 [INFO] Car owner updated: car_id=386, user_id=563
+2025-08-01T23:34:53+02:00 [INFO] User created: ID=582, telegram_id=1754084093
+2025-08-01T23:34:53+02:00 [INFO] User check by telegram_id: 1754084093, found: yes
+2025-08-01T23:34:53+02:00 [INFO] User updated: ID=582
+2025-08-01T23:34:53+02:00 [INFO] User role updated: ID=582, role_id=2
+2025-08-01T23:34:53+02:00 [INFO] Car created: ID=388, model=BMW Z4
+2025-08-01T23:34:53+02:00 [INFO] Car check by plate_number: TEST1754084093, found: yes
+2025-08-01T23:34:53+02:00 [INFO] Status updated: entity_type=car, entity_id=388, status_id=2
+2025-08-01T23:34:54+02:00 [INFO] Car owner updated: car_id=388, user_id=582
+2025-08-01T23:34:54+02:00 [INFO] Business card created: ID=287, car_id=388, user_id=582
+2025-08-01T23:34:54+02:00 [INFO] Photo created: ID=222, entity_type=car, entity_id=388
+2025-08-01T23:34:54+02:00 [INFO] User check by telegram_id: 1754084093, found: yes
+2025-08-01T23:34:54+02:00 [INFO] Car check by plate_number: TEST1754084093, found: yes
+2025-08-01T23:39:45+02:00 [INFO] User created: ID=583, telegram_id=1754084384
+2025-08-01T23:39:45+02:00 [INFO] User check by telegram_id: 1754084384, found: yes
+2025-08-01T23:39:45+02:00 [INFO] User role updated: ID=583, role_id=2
+2025-08-01T23:39:45+02:00 [INFO] Car created: ID=389, model=BMW Z4
+2025-08-01T23:39:45+02:00 [INFO] Car check by plate_number: TEST1754084384, found: yes
+2025-08-01T23:39:45+02:00 [INFO] Status updated: entity_type=car, entity_id=389, status_id=2
+2025-08-01T23:39:46+02:00 [INFO] Car owner updated: car_id=389, user_id=583
+2025-08-01T23:39:46+02:00 [INFO] Business card created: ID=288, car_id=389, user_id=583
+2025-08-01T23:39:46+02:00 [INFO] Photo created: ID=223, entity_type=car, entity_id=389
+2025-08-01T23:39:46+02:00 [INFO] User check by telegram_id: 1754084384, found: yes
+2025-08-01T23:39:46+02:00 [INFO] Car check by plate_number: TEST1754084384, found: yes
+2025-08-01T23:45:35+02:00 [INFO] User created: ID=584, telegram_id=1754084735416
+2025-08-01T23:45:38+02:00 [INFO] User check by telegram_id: 1754084735416, found: yes
+2025-08-01T23:45:46+02:00 [INFO] User role updated: ID=584, role_id=2
+2025-08-01T23:45:47+02:00 [INFO] Car created: ID=390, model=BMW Z4
+2025-08-01T23:45:49+02:00 [INFO] Car check by plate_number: TEST1754084747427, found: yes
+2025-08-01T23:45:51+02:00 [INFO] Status updated: entity_type=car, entity_id=390, status_id=2
+2025-08-01T23:45:53+02:00 [INFO] Car owner updated: car_id=390, user_id=584
+2025-08-01T23:45:55+02:00 [INFO] Business card created: ID=289, car_id=390, user_id=584
+2025-08-01T23:45:56+02:00 [INFO] Photo created: ID=224, entity_type=car, entity_id=390
+2025-08-01T23:47:10+02:00 [INFO] User created: ID=585, telegram_id=1754084830124
+2025-08-01T23:47:11+02:00 [INFO] User check by telegram_id: 1754084830124, found: yes
+2025-08-01T23:47:13+02:00 [INFO] User updated: ID=585
+2025-08-01T23:47:14+02:00 [INFO] User role updated: ID=585, role_id=2
+2025-08-01T23:47:16+02:00 [INFO] Car created: ID=391, model=BMW Z4
+2025-08-01T23:47:17+02:00 [INFO] Car check by plate_number: TEST1754084836098, found: yes
+2025-08-01T23:47:19+02:00 [INFO] Status updated: entity_type=car, entity_id=391, status_id=2
+2025-08-01T23:47:20+02:00 [INFO] Car owner updated: car_id=391, user_id=585
+2025-08-01T23:47:22+02:00 [INFO] Business card created: ID=290, car_id=391, user_id=585
+2025-08-01T23:47:23+02:00 [INFO] Photo created: ID=225, entity_type=car, entity_id=391
+2025-08-01T23:48:24+02:00 [INFO] User created: ID=586, telegram_id=1754084904589
+2025-08-01T23:48:26+02:00 [INFO] User check by telegram_id: 1754084904589, found: yes
+2025-08-01T23:48:36+02:00 [INFO] User updated: ID=586
+2025-08-01T23:48:49+02:00 [INFO] User role updated: ID=586, role_id=2
+2025-08-01T23:48:57+02:00 [INFO] Car created: ID=392, model=BMW Z4
+2025-08-01T23:50:59+02:00 [INFO] User created: ID=587, telegram_id=1754085059605
+2025-08-01T23:51:10+02:00 [INFO] User check by telegram_id: 1754085059605, found: yes
+2025-08-01T23:51:18+02:00 [INFO] User updated: ID=587
+2025-08-01T23:51:23+02:00 [INFO] User role updated: ID=587, role_id=2
+2025-08-01T23:54:23+02:00 [INFO] User created: ID=588, telegram_id=1754085263
+2025-08-01T23:54:23+02:00 [INFO] User check by telegram_id: 1754085263, found: yes
+2025-08-01T23:54:23+02:00 [INFO] User role updated: ID=588, role_id=2
+2025-08-01T23:54:23+02:00 [INFO] Car created: ID=393, model=BMW Z4
+2025-08-01T23:54:24+02:00 [INFO] Car check by plate_number: TEST1754085263, found: yes
+2025-08-01T23:54:24+02:00 [INFO] Status updated: entity_type=car, entity_id=393, status_id=2
+2025-08-01T23:54:24+02:00 [INFO] Car owner updated: car_id=393, user_id=588
+2025-08-01T23:54:24+02:00 [INFO] Business card created: ID=291, car_id=393, user_id=588
+2025-08-01T23:54:24+02:00 [INFO] Photo created: ID=226, entity_type=car, entity_id=393
+2025-08-01T23:54:24+02:00 [INFO] User check by telegram_id: 1754085263, found: yes
+2025-08-01T23:54:24+02:00 [INFO] Car check by plate_number: TEST1754085263, found: yes
+2025-08-01T23:58:01+02:00 [INFO] User created: ID=589, telegram_id=1754085481
+2025-08-01T23:58:01+02:00 [INFO] User check by telegram_id: 1754085481, found: yes
+2025-08-01T23:58:01+02:00 [INFO] User role updated: ID=589, role_id=2
+2025-08-01T23:58:01+02:00 [INFO] Car created: ID=394, model=BMW Z4
+2025-08-01T23:58:01+02:00 [INFO] Car check by plate_number: TEST1754085481, found: yes
+2025-08-01T23:58:01+02:00 [INFO] Status updated: entity_type=car, entity_id=394, status_id=2
+2025-08-01T23:58:02+02:00 [INFO] Car owner updated: car_id=394, user_id=589
+2025-08-01T23:58:02+02:00 [INFO] Business card created: ID=292, car_id=394, user_id=589
+2025-08-01T23:58:02+02:00 [INFO] Photo created: ID=227, entity_type=car, entity_id=394
+2025-08-01T23:58:02+02:00 [INFO] User check by telegram_id: 1754085481, found: yes
+2025-08-01T23:58:02+02:00 [INFO] Car check by plate_number: TEST1754085481, found: yes
+2025-08-01T23:59:02+02:00 [INFO] User created: ID=590, telegram_id=1754085542282
+2025-08-01T23:59:03+02:00 [INFO] User check by telegram_id: 1754085542282, found: yes
+2025-08-01T23:59:05+02:00 [INFO] User updated: ID=590
+2025-08-01T23:59:07+02:00 [INFO] User role updated: ID=590, role_id=2
+2025-08-01T23:59:09+02:00 [INFO] Car created: ID=395, model=BMW Z4
+2025-08-01T23:59:10+02:00 [INFO] Car check by plate_number: TEST1754085549006, found: yes
+2025-08-01T23:59:12+02:00 [INFO] Status updated: entity_type=car, entity_id=395, status_id=2
+2025-08-01T23:59:14+02:00 [INFO] Car owner updated: car_id=395, user_id=590
+2025-08-01T23:59:15+02:00 [INFO] Business card created: ID=293, car_id=395, user_id=590
+2025-08-01T23:59:17+02:00 [INFO] Photo created: ID=228, entity_type=car, entity_id=395
+2025-08-02T00:00:14+02:00 [INFO] User created: ID=591, telegram_id=1754085614600
+2025-08-02T00:00:21+02:00 [INFO] User check by telegram_id: 1754085614600, found: yes
+2025-08-02T00:00:24+02:00 [INFO] User updated: ID=591
+2025-08-02T00:00:33+02:00 [INFO] User role updated: ID=591, role_id=2
+2025-08-02T00:00:40+02:00 [INFO] Car created: ID=396, model=BMW Z4
+2025-08-02T00:01:05+02:00 [INFO] Car check by plate_number: TEST1754085640541, found: yes
+2025-08-02T00:01:07+02:00 [INFO] Status updated: entity_type=car, entity_id=396, status_id=2
+2025-08-02T00:01:22+02:00 [INFO] Car owner updated: car_id=396, user_id=591
+2025-08-02T00:01:35+02:00 [INFO] Business card created: ID=294, car_id=396, user_id=591
+2025-08-02T00:01:59+02:00 [INFO] Photo created: ID=229, entity_type=car, entity_id=396
+2025-08-02T00:06:51+02:00 [INFO] User created: ID=592, telegram_id=1754086011
+2025-08-02T00:06:51+02:00 [INFO] User check by telegram_id: 1754086011, found: yes
+2025-08-02T00:06:51+02:00 [INFO] User role updated: ID=592, role_id=2
+2025-08-02T00:06:51+02:00 [INFO] Car created: ID=397, model=BMW Z4
+2025-08-02T00:06:51+02:00 [INFO] Car check by plate_number: TEST1754086011, found: yes
+2025-08-02T00:06:52+02:00 [INFO] Status updated: entity_type=car, entity_id=397, status_id=2
+2025-08-02T00:06:52+02:00 [INFO] Car owner updated: car_id=397, user_id=592
+2025-08-02T00:06:52+02:00 [INFO] Business card created: ID=295, car_id=397, user_id=592
+2025-08-02T00:06:52+02:00 [INFO] Photo created: ID=230, entity_type=car, entity_id=397
+2025-08-02T00:06:52+02:00 [INFO] User check by telegram_id: 1754086011, found: yes
+2025-08-02T00:06:52+02:00 [INFO] Car check by plate_number: TEST1754086011, found: yes
+2025-08-02T00:12:05+02:00 [INFO] User created: ID=593, telegram_id=1754086324
+2025-08-02T00:12:05+02:00 [INFO] User check by telegram_id: 1754086324, found: yes
+2025-08-02T00:12:05+02:00 [INFO] User role updated: ID=593, role_id=2
+2025-08-02T00:12:05+02:00 [INFO] Car created: ID=398, model=BMW Z4
+2025-08-02T00:12:05+02:00 [INFO] Car check by plate_number: TEST1754086324, found: yes
+2025-08-02T00:12:05+02:00 [INFO] Status updated: entity_type=car, entity_id=398, status_id=2
+2025-08-02T00:12:05+02:00 [INFO] Car owner updated: car_id=398, user_id=593
+2025-08-02T00:12:05+02:00 [INFO] Business card created: ID=296, car_id=398, user_id=593
+2025-08-02T00:12:06+02:00 [INFO] User check by telegram_id: 1754086324, found: yes
+2025-08-02T00:12:06+02:00 [INFO] Car check by plate_number: TEST1754086324, found: yes
+2025-08-02T00:12:19+02:00 [INFO] User created: ID=594, telegram_id=1754086339
+2025-08-02T00:12:19+02:00 [INFO] User check by telegram_id: 1754086339, found: yes
+2025-08-02T00:12:20+02:00 [INFO] User role updated: ID=594, role_id=2
+2025-08-02T00:12:20+02:00 [INFO] Car created: ID=399, model=BMW Z4
+2025-08-02T00:12:20+02:00 [INFO] Car check by plate_number: TEST1754086339, found: yes
+2025-08-02T00:12:20+02:00 [INFO] Status updated: entity_type=car, entity_id=399, status_id=2
+2025-08-02T00:12:20+02:00 [INFO] Car owner updated: car_id=399, user_id=594
+2025-08-02T00:12:20+02:00 [INFO] Business card created: ID=297, car_id=399, user_id=594
+2025-08-02T00:12:20+02:00 [INFO] Photo created: ID=232, entity_type=car, entity_id=399
+2025-08-02T00:12:20+02:00 [INFO] User check by telegram_id: 1754086339, found: yes
+2025-08-02T00:12:21+02:00 [INFO] Car check by plate_number: TEST1754086339, found: yes
+2025-08-02T00:16:08+02:00 [INFO] User created: ID=595, telegram_id=1754086567834
+2025-08-02T00:16:09+02:00 [INFO] User check by telegram_id: 1754086567834, found: yes
+2025-08-02T00:16:11+02:00 [INFO] User updated: ID=595
+2025-08-02T00:16:14+02:00 [INFO] User role updated: ID=595, role_id=2
+2025-08-02T00:16:16+02:00 [INFO] Car created: ID=400, model=BMW Z4
+2025-08-02T00:16:17+02:00 [INFO] Car check by plate_number: TEST1754086576315, found: yes
+2025-08-02T00:16:19+02:00 [INFO] Status updated: entity_type=car, entity_id=400, status_id=2
+2025-08-02T00:16:20+02:00 [INFO] Car owner updated: car_id=400, user_id=595
+2025-08-02T00:16:22+02:00 [INFO] Business card created: ID=298, car_id=400, user_id=595
+2025-08-02T00:16:29+02:00 [INFO] Photo created: ID=233, entity_type=car, entity_id=400
+2025-08-02T00:25:32+02:00 [INFO] User created: ID=596, telegram_id=1754087132
+2025-08-02T00:25:32+02:00 [INFO] User check by telegram_id: 1754087132, found: yes
+2025-08-02T00:25:32+02:00 [INFO] User role updated: ID=596, role_id=2
+2025-08-02T00:25:32+02:00 [INFO] Car created: ID=401, model=BMW Z4
+2025-08-02T00:25:32+02:00 [INFO] Car check by plate_number: TEST1754087132, found: yes
+2025-08-02T00:25:33+02:00 [INFO] Status updated: entity_type=car, entity_id=401, status_id=2
+2025-08-02T00:25:33+02:00 [INFO] Car owner updated: car_id=401, user_id=596
+2025-08-02T00:25:33+02:00 [INFO] Business card created: ID=299, car_id=401, user_id=596
+2025-08-02T00:25:33+02:00 [INFO] Photo created: ID=234, entity_type=car, entity_id=401
+2025-08-02T00:25:33+02:00 [INFO] User check by telegram_id: 1754087132, found: yes
+2025-08-02T00:25:33+02:00 [INFO] Car check by plate_number: TEST1754087132, found: yes
+2025-08-02T00:28:22+02:00 [INFO] User created: ID=597, telegram_id=1754087302243
+2025-08-02T00:28:37+02:00 [INFO] User check by telegram_id: 1754087302243, found: yes
+2025-08-02T00:28:38+02:00 [INFO] User updated: ID=597
+2025-08-02T00:28:40+02:00 [INFO] User role updated: ID=597, role_id=2
+2025-08-02T00:28:49+02:00 [INFO] Car created: ID=402, model=BMW Z4
+2025-08-02T00:29:00+02:00 [INFO] Car check by plate_number: TEST1754087329581, found: yes
+2025-08-02T00:29:02+02:00 [INFO] Status updated: entity_type=car, entity_id=402, status_id=2
+2025-08-02T00:29:14+02:00 [INFO] Car owner updated: car_id=402, user_id=597
+2025-08-02T00:29:23+02:00 [INFO] Business card created: ID=300, car_id=402, user_id=597
+2025-08-02T00:29:35+02:00 [INFO] Photo created: ID=235, entity_type=car, entity_id=402
+2025-08-02T00:47:23+02:00 [INFO] User check by telegram_id: 1754088443, found: no
+2025-08-02T00:47:55+02:00 [INFO] User check by telegram_id: 1754088475, found: no
+2025-08-02T00:47:56+02:00 [INFO] User created: ID=598, telegram_id=1754088475
+2025-08-02T00:47:56+02:00 [INFO] User sync completed: telegram_id=1754088475, action=created
+2025-08-02T00:47:56+02:00 [INFO] User check by telegram_id: 1754088475, found: yes
+2025-08-02T00:47:56+02:00 [INFO] User check by telegram_id: 1754088475, found: yes
+2025-08-02T00:47:56+02:00 [INFO] User check by telegram_id: 1754088476, found: no
+2025-08-02T00:47:56+02:00 [INFO] User created: ID=599, telegram_id=1754088476
+2025-08-02T00:48:40+02:00 [INFO] User check by telegram_id: 1754088519, found: no
+2025-08-02T00:48:40+02:00 [INFO] User created: ID=600, telegram_id=1754088519
+2025-08-02T00:48:40+02:00 [INFO] User sync completed: telegram_id=1754088519, action=created
+2025-08-02T00:48:40+02:00 [INFO] User check by telegram_id: 1754088519, found: yes
+2025-08-02T00:48:40+02:00 [INFO] User check by telegram_id: 1754088519, found: yes
+2025-08-02T00:48:40+02:00 [INFO] User check by telegram_id: 1754088520, found: no
+2025-08-02T00:48:40+02:00 [INFO] User created: ID=601, telegram_id=1754088520
+2025-08-02T00:48:40+02:00 [INFO] User sync completed: telegram_id=1754088520, action=created
+2025-08-02T00:49:04+02:00 [INFO] User check by telegram_id: 1754088544, found: no
+2025-08-02T00:49:04+02:00 [INFO] User created: ID=602, telegram_id=1754088544
+2025-08-02T00:49:04+02:00 [INFO] User sync completed: telegram_id=1754088544, action=created
+2025-08-02T00:49:04+02:00 [INFO] User check by telegram_id: 1754088544, found: yes
+2025-08-02T00:49:04+02:00 [INFO] User updated: ID=602
+2025-08-02T00:49:04+02:00 [INFO] User sync completed: telegram_id=1754088544, action=updated
+2025-08-02T00:49:04+02:00 [INFO] User check by telegram_id: 1754088544, found: yes
+2025-08-02T00:49:04+02:00 [INFO] User updated: ID=602
+2025-08-02T00:49:04+02:00 [INFO] User sync completed: telegram_id=1754088544, action=updated
+2025-08-02T00:49:04+02:00 [INFO] User check by telegram_id: 1754088545, found: no
+2025-08-02T00:49:04+02:00 [INFO] User created: ID=603, telegram_id=1754088545
+2025-08-02T00:49:04+02:00 [INFO] User sync completed: telegram_id=1754088545, action=created
+2025-08-02T00:52:41+02:00 [INFO] Car check by plate_number: TEST1754088761, found: no
+2025-08-02T00:52:41+02:00 [INFO] Car created: ID=403, model=BMW Z4
+2025-08-02T00:52:41+02:00 [INFO] Car search completed: plate_number=TEST1754088761, action=created
+2025-08-02T00:52:41+02:00 [INFO] Car check by plate_number: TEST1754088761, found: yes
+2025-08-02T00:52:41+02:00 [INFO] Car search completed: plate_number=TEST1754088761, action=found
+2025-08-02T00:52:41+02:00 [INFO] Car check by plate_number: NEW1754088761, found: no
+2025-08-02T00:52:41+02:00 [INFO] Car created: ID=404, model=Audi A4
+2025-08-02T00:52:41+02:00 [INFO] Car search completed: plate_number=NEW1754088761, action=created
+2025-08-02T00:52:41+02:00 [INFO] Car check by plate_number: PHOTO1754088761, found: no
+2025-08-02T00:52:42+02:00 [INFO] Car created: ID=405, model=Mercedes C-Class
+2025-08-02T00:52:42+02:00 [INFO] Car search completed: plate_number=PHOTO1754088761, action=created
+2025-08-02T00:54:04+02:00 [INFO] Car check by plate_number: ADD1754088843, found: no
+2025-08-02T00:54:04+02:00 [INFO] Car created: ID=406, model=BMW X5
+2025-08-02T00:54:04+02:00 [INFO] Car added to user: plate_number=ADD1754088843, user_id=563, action=created
+2025-08-02T00:54:04+02:00 [INFO] Car check by plate_number: ADD1754088843, found: yes
+2025-08-02T00:54:04+02:00 [INFO] Car check by plate_number: NOOWNER1754088844, found: no
+2025-08-02T00:54:04+02:00 [INFO] Car created: ID=407, model=Audi Q7
+2025-08-02T00:54:04+02:00 [INFO] Car search completed: plate_number=NOOWNER1754088844, action=created
+2025-08-02T00:54:04+02:00 [INFO] Car check by plate_number: NOOWNER1754088844, found: yes
+2025-08-02T00:54:04+02:00 [INFO] Car owner updated: car_id=407, user_id=563
+2025-08-02T00:54:04+02:00 [INFO] Car added to user: plate_number=NOOWNER1754088844, user_id=563, action=assigned
+2025-08-02T00:54:04+02:00 [INFO] Car check by plate_number: PHOTO1754088844, found: no
+2025-08-02T00:54:04+02:00 [INFO] Car created: ID=408, model=Mercedes G-Class
+2025-08-02T00:54:04+02:00 [INFO] Car added to user: plate_number=PHOTO1754088844, user_id=563, action=created
+2025-08-02T00:55:35+02:00 [INFO] Car check by plate_number: CARD1754088935, found: no
+2025-08-02T00:55:35+02:00 [INFO] Car created: ID=409, model=BMW M3
+2025-08-02T00:55:35+02:00 [INFO] Business card created: ID=301, car_id=409, user_id=563
+2025-08-02T00:55:35+02:00 [INFO] Business card dropped: plate_number=CARD1754088935, user_id=563, action=car_and_card_created
+2025-08-02T00:55:35+02:00 [INFO] Car check by plate_number: CARD1754088935, found: yes
+2025-08-02T00:55:36+02:00 [INFO] Car check by plate_number: PHOTO1754088936, found: no
+2025-08-02T00:55:36+02:00 [INFO] Car created: ID=410, model=Audi RS6
+2025-08-02T00:55:36+02:00 [INFO] Business card created: ID=302, car_id=410, user_id=563
+2025-08-02T00:55:36+02:00 [INFO] Business card dropped: plate_number=PHOTO1754088936, user_id=563, action=car_and_card_created
+2025-08-02T00:55:36+02:00 [INFO] Car check by plate_number: MINIMAL1754088936, found: no
+2025-08-02T00:55:36+02:00 [INFO] Car created: ID=411, model=
+2025-08-02T00:55:36+02:00 [INFO] Business card created: ID=303, car_id=411, user_id=563
+2025-08-02T00:55:36+02:00 [INFO] Business card dropped: plate_number=MINIMAL1754088936, user_id=563, action=car_and_card_created
+2025-08-02T01:01:41+02:00 [INFO] User check by telegram_id: 287536885, found: no
+2025-08-02T01:01:41+02:00 [INFO] User created: ID=604, telegram_id=287536885
+2025-08-02T01:01:41+02:00 [INFO] User sync completed: telegram_id=287536885, action=created
+2025-08-02T01:01:53+02:00 [INFO] User check by telegram_id: 287536885, found: yes
+2025-08-02T01:01:54+02:00 [INFO] User updated: ID=604
+2025-08-02T01:01:54+02:00 [INFO] User sync completed: telegram_id=287536885, action=updated
+2025-08-02T01:02:07+02:00 [INFO] User check by telegram_id: 287536885, found: yes
+2025-08-02T01:02:07+02:00 [INFO] User updated: ID=604
+2025-08-02T01:02:07+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/user/user_604_236.jpg
+2025-08-02T01:02:08+02:00 [INFO] Photo created: ID=236, entity_type=user, entity_id=604
+2025-08-02T01:02:08+02:00 [INFO] User sync completed: telegram_id=287536885, action=updated
+2025-08-02T01:03:11+02:00 [INFO] Car check by plate_number: 9588MI1, found: yes
+2025-08-02T01:03:12+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_237.jpg
+2025-08-02T01:03:12+02:00 [INFO] Photo created: ID=237, entity_type=car, entity_id=1
+2025-08-02T01:03:12+02:00 [INFO] Car search completed: plate_number=9588MI1, action=found
+2025-08-02T01:03:25+02:00 [INFO] Car check by plate_number: SEARCH123, found: no
+2025-08-02T01:03:25+02:00 [INFO] Car created: ID=412, model=
+2025-08-02T01:03:25+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_412_238.jpg
+2025-08-02T01:03:25+02:00 [INFO] Photo created: ID=238, entity_type=car, entity_id=412
+2025-08-02T01:03:25+02:00 [INFO] Car search completed: plate_number=SEARCH123, action=created
+2025-08-02T01:03:27+02:00 [INFO] Car check by plate_number: NEW1754089407745, found: no
+2025-08-02T01:03:28+02:00 [INFO] Car created: ID=413, model=
+2025-08-02T01:03:28+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_413_239.jpg
+2025-08-02T01:03:28+02:00 [INFO] Photo created: ID=239, entity_type=car, entity_id=413
+2025-08-02T01:03:28+02:00 [INFO] Car search completed: plate_number=NEW1754089407745, action=created
+2025-08-02T01:04:14+02:00 [INFO] Car check by plate_number: NOOWNER1754089454325, found: no
+2025-08-02T01:04:14+02:00 [INFO] Car created: ID=414, model=Audi Q7
+2025-08-02T01:04:14+02:00 [INFO] Car search completed: plate_number=NOOWNER1754089454325, action=created
+2025-08-02T01:04:25+02:00 [INFO] Car check by plate_number: 9588MI1, found: yes
+2025-08-02T01:04:25+02:00 [INFO] Car owner updated: car_id=1, user_id=604
+2025-08-02T01:04:25+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_240.jpg
+2025-08-02T01:04:25+02:00 [INFO] Photo created: ID=240, entity_type=car, entity_id=1
+2025-08-02T01:04:25+02:00 [INFO] Car added to user: plate_number=9588MI1, user_id=604, action=assigned
+2025-08-02T01:04:48+02:00 [INFO] Car check by plate_number: 9588MI1, found: yes
+2025-08-02T01:04:48+02:00 [INFO] Business card created: ID=304, car_id=1, user_id=604
+2025-08-02T01:04:48+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_241.jpg
+2025-08-02T01:04:49+02:00 [INFO] Photo created: ID=241, entity_type=car, entity_id=1
+2025-08-02T01:04:49+02:00 [INFO] Business card dropped: plate_number=9588MI1, user_id=604, action=card_created
+2025-08-02T01:08:41+02:00 [INFO] Car check by plate_number: TEST1754089721, found: no
+2025-08-02T01:08:41+02:00 [INFO] Car created: ID=415, model=BMW Z4
+2025-08-02T01:08:41+02:00 [INFO] Car search completed: plate_number=TEST1754089721, action=created
+2025-08-02T01:08:41+02:00 [INFO] Car check by plate_number: TEST1754089721, found: yes
+2025-08-02T01:08:41+02:00 [INFO] Car search completed: plate_number=TEST1754089721, action=found
+2025-08-02T01:08:41+02:00 [INFO] Car check by plate_number: NEW1754089721, found: no
+2025-08-02T01:08:42+02:00 [INFO] Car created: ID=416, model=Audi A4
+2025-08-02T01:08:42+02:00 [INFO] Car search completed: plate_number=NEW1754089721, action=created
+2025-08-02T01:08:42+02:00 [INFO] Car check by plate_number: PHOTO1754089722, found: no
+2025-08-02T01:08:42+02:00 [INFO] Car created: ID=417, model=Mercedes C-Class
+2025-08-02T01:08:42+02:00 [INFO] Car search completed: plate_number=PHOTO1754089722, action=created
+2025-08-02T01:10:38+02:00 [INFO] User check by telegram_id: 1754089835965, found: no
+2025-08-02T01:10:38+02:00 [INFO] User created: ID=605, telegram_id=1754089835965
+2025-08-02T01:10:38+02:00 [INFO] User sync completed: telegram_id=1754089835965, action=created
+2025-08-02T01:10:53+02:00 [INFO] Car check by plate_number: SEARCH1754089835965, found: no
+2025-08-02T01:10:53+02:00 [INFO] Car created: ID=418, model=BMW Z4
+2025-08-02T01:10:53+02:00 [INFO] Car search completed: plate_number=SEARCH1754089835965, action=created
+2025-08-02T01:11:14+02:00 [INFO] Car check by plate_number: SEARCH1754089835965, found: yes
+2025-08-02T01:11:14+02:00 [INFO] Car search completed: plate_number=SEARCH1754089835965, action=found
+2025-08-02T01:11:18+02:00 [INFO] Car check by plate_number: NEW1754089878711, found: no
+2025-08-02T01:11:18+02:00 [INFO] Car created: ID=419, model=BMW Z4
+2025-08-02T01:11:18+02:00 [INFO] Car search completed: plate_number=NEW1754089878711, action=created
+2025-08-02T01:11:21+02:00 [INFO] Car check by plate_number: NEW1754089878711, found: yes
+2025-08-02T01:11:21+02:00 [INFO] Car search completed: plate_number=NEW1754089878711, action=found
+2025-08-02T01:11:23+02:00 [INFO] Car check by plate_number: NEW1754089878711, found: yes
+2025-08-02T01:11:23+02:00 [INFO] Car search completed: plate_number=NEW1754089878711, action=found
+2025-08-02T01:11:25+02:00 [INFO] Car check by plate_number: NEW1754089885757, found: no
+2025-08-02T01:11:26+02:00 [INFO] Car created: ID=420, model=BMW Z4
+2025-08-02T01:11:26+02:00 [INFO] Car search completed: plate_number=NEW1754089885757, action=created
+2025-08-02T01:11:27+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: no
+2025-08-02T01:11:27+02:00 [INFO] Car created: ID=421, model=BMW Z4
+2025-08-02T01:11:27+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=created
+2025-08-02T01:11:29+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: yes
+2025-08-02T01:11:29+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=found
+2025-08-02T01:11:30+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: yes
+2025-08-02T01:11:30+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=found
+2025-08-02T01:11:31+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: yes
+2025-08-02T01:11:31+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=found
+2025-08-02T01:11:34+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: yes
+2025-08-02T01:11:34+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=found
+2025-08-02T01:11:35+02:00 [INFO] Car check by plate_number: NEW1754089887632, found: yes
+2025-08-02T01:11:35+02:00 [INFO] Car search completed: plate_number=NEW1754089887632, action=found
+2025-08-02T01:11:40+02:00 [INFO] Car check by plate_number: NEW175408988744, found: no
+2025-08-02T01:11:40+02:00 [INFO] Car created: ID=422, model=BMW Z4
+2025-08-02T01:11:41+02:00 [INFO] Car search completed: plate_number=NEW175408988744, action=created
+2025-08-02T01:11:42+02:00 [INFO] Car check by plate_number: NEW175408988744, found: yes
+2025-08-02T01:11:42+02:00 [INFO] Car search completed: plate_number=NEW175408988744, action=found
+2025-08-02T01:11:43+02:00 [INFO] Car check by plate_number: NEW175408988744, found: yes
+2025-08-02T01:11:43+02:00 [INFO] Car search completed: plate_number=NEW175408988744, action=found
+2025-08-02T01:12:06+02:00 [INFO] Car check by plate_number: 9588mi1, found: yes
+2025-08-02T01:12:06+02:00 [INFO] Car search completed: plate_number=9588mi1, action=found
+2025-08-02T01:12:17+02:00 [INFO] Car check by plate_number: 9588mi1, found: yes
+2025-08-02T01:12:17+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_242.jpg
+2025-08-02T01:12:17+02:00 [INFO] Car search completed: plate_number=9588mi1, action=found
+2025-08-02T01:12:30+02:00 [INFO] Car check by plate_number: 9588mi2, found: no
+2025-08-02T01:12:54+02:00 [INFO] Car check by plate_number: ADD1754089835965, found: no
+2025-08-02T01:12:54+02:00 [INFO] Car created: ID=424, model=BMW X5
+2025-08-02T01:12:54+02:00 [INFO] Car added to user: plate_number=ADD1754089835965, user_id=563, action=created
+2025-08-02T01:12:56+02:00 [INFO] Car check by plate_number: CARD1754089835965, found: no
+2025-08-02T01:12:56+02:00 [INFO] Car created: ID=425, model=BMW M3
+2025-08-02T01:12:56+02:00 [INFO] Business card created: ID=305, car_id=425, user_id=563
+2025-08-02T01:12:56+02:00 [INFO] Business card dropped: plate_number=CARD1754089835965, user_id=563, action=car_and_card_created
+2025-08-02T01:14:47+02:00 [INFO] Car check by plate_number: 9588mi3, found: no
+2025-08-02T01:14:47+02:00 [INFO] Car created: ID=426, model=BMW Z4
+2025-08-02T01:14:47+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_426_242.jpg
+2025-08-02T01:14:47+02:00 [INFO] Photo created: ID=242, entity_type=car, entity_id=426
+2025-08-02T01:14:47+02:00 [INFO] Car search completed: plate_number=9588mi3, action=created
+2025-08-02T01:16:19+02:00 [INFO] Car check by plate_number: NOOWNER1754090178987, found: no
+2025-08-02T01:16:19+02:00 [INFO] Car created: ID=427, model=Audi Q7
+2025-08-02T01:16:19+02:00 [INFO] Car search completed: plate_number=NOOWNER1754090178987, action=created
+2025-08-02T01:16:19+02:00 [INFO] Car check by plate_number: NOOWNER1754090178987, found: yes
+2025-08-02T01:16:19+02:00 [INFO] Car owner updated: car_id=427, user_id=563
+2025-08-02T01:16:19+02:00 [INFO] Car added to user: plate_number=NOOWNER1754090178987, user_id=563, action=assigned
+2025-08-02T01:16:24+02:00 [INFO] Car check by plate_number: NOOWNER1754090178987, found: yes
+2025-08-02T01:16:30+02:00 [INFO] Car check by plate_number: NOOWNER1754090178987, found: yes
+2025-08-02T01:16:38+02:00 [INFO] Car check by plate_number: NOOWNER1733, found: no
+2025-08-02T01:16:38+02:00 [INFO] Car created: ID=428, model=BMW X5
+2025-08-02T01:16:38+02:00 [INFO] Car added to user: plate_number=NOOWNER1733, user_id=563, action=created
+2025-08-02T01:36:18+02:00 [INFO] OCR API request started...
+2025-08-02T01:36:19+02:00 [INFO] OCR API response: {"processing_time":27.306,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2336_JQ3TL_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:36:18.861452Z","image_width":543,"image_height":405}...
+2025-08-02T01:36:19+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:36:19+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:36:55+02:00 [INFO] OCR API request started...
+2025-08-02T01:36:56+02:00 [INFO] OCR API response: {"processing_time":52.388,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2336_SrJAT_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:36:55.226935Z","image_width":543,"image_height":405}...
+2025-08-02T01:36:56+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:36:56+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:37:52+02:00 [INFO] OCR API request started...
+2025-08-02T01:37:52+02:00 [INFO] OCR API response: {"processing_time":40.092,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2337_pe1QJ_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:37:51.998442Z","image_width":543,"image_height":405}...
+2025-08-02T01:37:52+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:37:52+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:38:28+02:00 [INFO] OCR API request started...
+2025-08-02T01:38:29+02:00 [INFO] OCR API response: {"processing_time":22.734,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2338_ZbNCa_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:38:28.638509Z","image_width":543,"image_height":405}...
+2025-08-02T01:38:29+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:38:29+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:43:18+02:00 [INFO] OCR API request started...
+2025-08-02T01:43:20+02:00 [INFO] OCR API response: {"processing_time":66.807,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2343_9YEP4_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:43:19.450421Z","image_width":543,"image_height":405}...
+2025-08-02T01:43:20+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:43:20+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:43:48+02:00 [INFO] OCR API request started...
+2025-08-02T01:43:49+02:00 [INFO] OCR API response: {"processing_time":28.345,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2343_8owvm_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:43:48.775852Z","image_width":543,"image_height":405}...
+2025-08-02T01:43:49+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:43:49+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:46:54+02:00 [INFO] OCR API request started...
+2025-08-02T01:46:55+02:00 [INFO] OCR API response: {"processing_time":22.276,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2346_2jLb4_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:46:54.803031Z","image_width":543,"image_height":405}...
+2025-08-02T01:46:55+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:46:55+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:47:08+02:00 [INFO] OCR API request started...
+2025-08-02T01:47:09+02:00 [INFO] OCR API response: {"processing_time":103.523,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2347_Weg3e_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:47:08.172439Z","image_width":543,"image_height":405}...
+2025-08-02T01:47:09+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:47:09+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:47:54+02:00 [INFO] OCR API request started...
+2025-08-02T01:47:55+02:00 [INFO] OCR API response: {"processing_time":38.058,"results":[],"filename":"2347_bxpb0_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:47:54.125216Z","image_width":1125,"image_height":534}...
+2025-08-02T01:50:18+02:00 [INFO] OCR API request started...
+2025-08-02T01:50:19+02:00 [INFO] OCR API response: {"processing_time":27.29,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2350_1sqVl_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:50:18.432251Z","image_width":543,"image_height":405}...
+2025-08-02T01:50:19+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:50:19+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:52:19+02:00 [INFO] OCR API request started...
+2025-08-02T01:52:19+02:00 [INFO] OCR API response: {"processing_time":72.952,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2352_kdcLf_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:52:19.066705Z","image_width":543,"image_height":405}...
+2025-08-02T01:52:19+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:52:19+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T01:53:10+02:00 [INFO] Car check by plate_number: SEARCH1754092385198, found: no
+2025-08-02T01:53:10+02:00 [INFO] Car created: ID=429, model=BMW Z4
+2025-08-02T01:53:10+02:00 [INFO] Car search completed: plate_number=SEARCH1754092385198, action=created
+2025-08-02T01:56:50+02:00 [INFO] OCR API request started...
+2025-08-02T01:56:51+02:00 [INFO] OCR API response: {"processing_time":26.382,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"2356_j1bRb_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-01T23:56:50.298361Z","image_width":543,"image_height":405}...
+2025-08-02T01:56:51+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T01:56:51+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T02:00:32+02:00 [INFO] OCR API request started...
+2025-08-02T02:00:33+02:00 [INFO] OCR API response: {"processing_time":26.544,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"0000_bTpRZ_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-02T00:00:32.368613Z","image_width":543,"image_height":405}...
+2025-08-02T02:00:33+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T02:00:33+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T02:00:33+02:00 [INFO] Car check by plate_number: 9588mi1, found: yes
+2025-08-02T02:00:33+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_243.jpg
+2025-08-02T02:00:33+02:00 [INFO] Photo created: ID=243, entity_type=car, entity_id=1
+2025-08-02T02:00:33+02:00 [INFO] Car search completed: plate_number=9588mi1, action=found
+2025-08-02T02:00:33+02:00 [INFO] Car check in club completed: plate_number=9588mi1, user_id=563, action=found
+2025-08-02T02:01:33+02:00 [INFO] OCR API request started...
+2025-08-02T02:01:34+02:00 [INFO] OCR API response: {"processing_time":32.074,"results":[{"box":{"xmin":367,"ymin":255,"xmax":459,"ymax":282},"plate":"9588mi1","region":{"code":"by","score":0.851},"score":1.0,"candidates":[{"score":1.0,"plate":"9588mi1"}],"dscore":0.897,"vehicle":{"score":0.951,"type":"Sedan","box":{"xmin":36,"ymin":84,"xmax":508,"ymax":346}}}],"filename":"0001_Lqo5d_image.jpg","version":1,"camera_id":null,"timestamp":"2025-08-02T00:01:33.664207Z","image_width":543,"image_height":405}...
+2025-08-02T02:01:34+02:00 [INFO] Plate number recognized: 9588mi1
+2025-08-02T02:01:34+02:00 [INFO] Plate number recognized successfully: 9588mi1
+2025-08-02T02:01:34+02:00 [INFO] Car check by plate_number: 9588mi1, found: yes
+2025-08-02T02:01:34+02:00 [INFO] Business card created: ID=306, car_id=1, user_id=563
+2025-08-02T02:01:34+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_1_244.jpg
+2025-08-02T02:01:35+02:00 [INFO] Photo created: ID=244, entity_type=car, entity_id=1
+2025-08-02T02:01:35+02:00 [INFO] Business card dropped: plate_number=9588mi1, user_id=563, action=card_created
+2025-08-02T02:01:35+02:00 [INFO] Business card left: plate_number=9588mi1, user_id=563, action=card_created
+2025-08-02T02:10:20+02:00 [INFO] OCR API request started...
+2025-08-02T02:10:21+02:00 [INFO] OCR API response: {"processing_time":69.42,"results":[{"box":{"xmin":722,"ymin":448,"xmax":789,"ymax":463},"plate":"2132ci7","region":{"code":"by","score":0.901},"score":1.0,"candidates":[{"score":1.0,"plate":"2132ci7"}],"dscore":0.99,"vehicle":{"score":0.791,"type":"Sedan","box":{"xmin":683,"ymin":355,"xmax":941,"ymax":538}}},{"box":{"xmin":242,"ymin":734,"xmax":370,"ymax":788},"plate":"0070mx7","region":{"code":"by","score":0.884},"score":1.0,"candidates":[{"score":1.0,"plate":"0070mx7"}],"dscore":0.901,"vehicl...
+2025-08-02T02:10:21+02:00 [INFO] Plate number recognized: 2132ci7
+2025-08-02T02:10:21+02:00 [INFO] Plate number recognized successfully: 2132ci7
+2025-08-02T02:10:21+02:00 [INFO] Car check by plate_number: 2132ci7, found: no
+2025-08-02T02:10:21+02:00 [INFO] Car created: ID=430, model=
+2025-08-02T02:10:22+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_430_245.jpg
+2025-08-02T02:10:22+02:00 [INFO] Photo created: ID=245, entity_type=car, entity_id=430
+2025-08-02T02:10:22+02:00 [INFO] Car search completed: plate_number=2132ci7, action=created
+2025-08-02T02:10:22+02:00 [INFO] Car check in club completed: plate_number=2132ci7, user_id=563, action=created
+2025-08-02T02:10:43+02:00 [INFO] OCR API request started...
+2025-08-02T02:10:44+02:00 [INFO] OCR API response: {"processing_time":60.084,"results":[{"box":{"xmin":722,"ymin":448,"xmax":789,"ymax":463},"plate":"2132ci7","region":{"code":"by","score":0.901},"score":1.0,"candidates":[{"score":1.0,"plate":"2132ci7"}],"dscore":0.99,"vehicle":{"score":0.791,"type":"Sedan","box":{"xmin":683,"ymin":355,"xmax":941,"ymax":538}}},{"box":{"xmin":242,"ymin":734,"xmax":370,"ymax":788},"plate":"0070mx7","region":{"code":"by","score":0.884},"score":1.0,"candidates":[{"score":1.0,"plate":"0070mx7"}],"dscore":0.901,"vehic...
+2025-08-02T02:10:44+02:00 [INFO] Plate number recognized: 2132ci7
+2025-08-02T02:10:44+02:00 [INFO] Plate number recognized successfully: 2132ci7
+2025-08-02T02:10:44+02:00 [INFO] Car check by plate_number: 2132ci7, found: yes
+2025-08-02T02:10:44+02:00 [INFO] Business card created: ID=307, car_id=430, user_id=563
+2025-08-02T02:10:45+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/business_card/business_card_307_246.jpg
+2025-08-02T02:10:45+02:00 [INFO] Photo created: ID=246, entity_type=business_card, entity_id=307
+2025-08-02T02:10:45+02:00 [INFO] Business card dropped: plate_number=2132ci7, user_id=563, action=card_created
+2025-08-02T02:10:45+02:00 [INFO] Business card left: plate_number=2132ci7, user_id=563, action=card_created
+2025-08-02T02:24:52+02:00 [INFO] OCR API request started...
+2025-08-02T02:24:55+02:00 [INFO] OCR API response: {"processing_time":62.486,"results":[{"box":{"xmin":722,"ymin":448,"xmax":789,"ymax":463},"plate":"2132ci7","region":{"code":"by","score":0.901},"score":1.0,"candidates":[{"score":1.0,"plate":"2132ci7"}],"dscore":0.99,"vehicle":{"score":0.791,"type":"Sedan","box":{"xmin":683,"ymin":355,"xmax":941,"ymax":538}}},{"box":{"xmin":242,"ymin":734,"xmax":370,"ymax":788},"plate":"0070mx7","region":{"code":"by","score":0.884},"score":1.0,"candidates":[{"score":1.0,"plate":"0070mx7"}],"dscore":0.901,"vehic...
+2025-08-02T02:24:55+02:00 [INFO] Plate number recognized: 2132ci7
+2025-08-02T02:24:55+02:00 [INFO] Plate number recognized successfully: 2132ci7
+2025-08-02T02:24:55+02:00 [INFO] Car check by plate_number: 2132ci7, found: no
+2025-08-02T02:24:55+02:00 [INFO] Car created: ID=431, model=
+2025-08-02T02:24:55+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/car/car_431_247.jpg
+2025-08-02T02:24:56+02:00 [INFO] Photo created: ID=247, entity_type=car, entity_id=431
+2025-08-02T02:24:56+02:00 [INFO] Car search completed: plate_number=2132ci7, action=created
+2025-08-02T02:24:56+02:00 [INFO] Car check in club completed: plate_number=2132ci7, user_id=563, action=created
+2025-08-02T02:25:46+02:00 [INFO] OCR API request started...
+2025-08-02T02:25:48+02:00 [INFO] OCR API response: {"processing_time":53.403,"results":[{"box":{"xmin":722,"ymin":448,"xmax":789,"ymax":463},"plate":"2132ci7","region":{"code":"by","score":0.901},"score":1.0,"candidates":[{"score":1.0,"plate":"2132ci7"}],"dscore":0.99,"vehicle":{"score":0.791,"type":"Sedan","box":{"xmin":683,"ymin":355,"xmax":941,"ymax":538}}},{"box":{"xmin":242,"ymin":734,"xmax":370,"ymax":788},"plate":"0070mx7","region":{"code":"by","score":0.884},"score":1.0,"candidates":[{"score":1.0,"plate":"0070mx7"}],"dscore":0.901,"vehic...
+2025-08-02T02:25:48+02:00 [INFO] Plate number recognized: 2132ci7
+2025-08-02T02:25:48+02:00 [INFO] Plate number recognized successfully: 2132ci7
+2025-08-02T02:25:48+02:00 [INFO] Car check by plate_number: 2132ci7, found: yes
+2025-08-02T02:25:48+02:00 [INFO] Business card created: ID=308, car_id=431, user_id=563
+2025-08-02T02:25:48+02:00 [INFO] Photo saved: C:\xampp\htdocs\app\backend\actions\helpers/../../../uploads/business_card/business_card_308_248.jpg
+2025-08-02T02:25:48+02:00 [INFO] Photo created: ID=248, entity_type=business_card, entity_id=308
+2025-08-02T02:25:48+02:00 [INFO] Business card dropped: plate_number=2132ci7, user_id=563, action=card_created
+2025-08-02T02:25:48+02:00 [INFO] Business card left: plate_number=2132ci7, user_id=563, action=card_created

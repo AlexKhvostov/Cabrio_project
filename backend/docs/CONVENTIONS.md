@@ -267,20 +267,22 @@ Authorization: Bearer <token>
 ### Где хранятся загружаемые файлы
 - Все загружаемые файлы (фото и др.) хранятся в папке `uploads/` в КОРНЕ проекта.
 - Внутри `uploads/` — вложенные папки по типу сущности:
-  - `uploads/users/avatars/` — аватары пользователей
-  - `uploads/users/gallery/` — дополнительные фото пользователей
-  - `uploads/cars/` — фото автомобилей
-  - `uploads/guide_objects/` — фото гид-объектов
-  - `uploads/events/` — фото событий
+  - `uploads/user/avatars/` — аватары пользователей
+  - `uploads/user/gallery/` — дополнительные фото пользователей
+  - `uploads/car/` — фото автомобилей
+  - `uploads/guide_object/` — фото гид-объектов
+  - `uploads/event/` — фото событий
+  - `uploads/business_card/` — фото визиток
   - (при необходимости — другие папки для новых сущностей)
 ```
 uploads/
-├── users/             # Файлы участников
+├── user/               # Файлы участников
 │   ├── avatars/        # Аватарки
 │   └── gallery/        # Фотографии
-├── cars/               # Файлы автомобилей
-├── guide_objects/      # Файлы гид-объектов
-└── events/             # Файлы мероприятий
+├── car/                # Файлы автомобилей
+├── guide_object/       # Файлы гид-объектов
+├── event/              # Файлы мероприятий
+└── business_card/      # Файлы визиток
 ```
 
 ### Шаблон имени файла
@@ -291,16 +293,17 @@ uploads/
   - `ext` — расширение файла (jpg, png и т.д.)
 
 **Примеры:**
-- Аватар пользователя: `users/avatars/user_1_12.jpg`
-- Фото авто: `cars/car_7_45.png`
-- Фото события: `events/event_3_22.jpg`
-- Фото гид-объекта: `guide_objects/guide_object_5_18.jpg`
-- Фото для отзыва: `reviews/review_10_33.jpg`
+- Аватар пользователя: `user/avatars/user_1_12.jpg`
+- Фото авто: `car/car_7_45.png`
+- Фото события: `event/event_3_22.jpg`
+- Фото гид-объекта: `guide_object/guide_object_5_18.jpg`
+- Фото визитки: `business_card/business_card_10_25.jpg`
+- Фото для отзыва: `review/review_10_33.jpg`
 
 ### Какой путь хранится в БД
 - В таблице `photos` поле `url` хранит относительный путь к файлу относительно папки `uploads/`.
-- Пример значения поля `url`: `users/avatars/user_1_12.jpg`
-- В API всегда возвращается полный путь: `/uploads/users/avatars/user_1_12.jpg`
+- Пример значения поля `url`: `user/avatars/user_1_12.jpg`
+- В API всегда возвращается полный путь: `/uploads/user/avatars/user_1_12.jpg`
 
 ### Назначение фото (photo_type)
 - В таблице `photos` есть поле `photo_type` (varchar, опционально):
@@ -315,17 +318,19 @@ uploads/
 
 ### Примеры для разных сущностей
 - **Пользователь**
-  - Аватар: `users/avatars/user_1_12.jpg`, `photo_type = 'avatar'`
-  - Галерея: `users/gallery/user_1_13.jpg`, `photo_type = 'gallery'`
+  - Аватар: `user/avatars/user_1_12.jpg`, `photo_type = 'avatar'`
+  - Галерея: `user/gallery/user_1_13.jpg`, `photo_type = 'gallery'`
 - **Автомобиль**
-  - Главное фото: `cars/car_7_45.jpg`, `photo_type = 'main'`
-  - Галерея: `cars/car_7_46.jpg`, `photo_type = 'gallery'`
+  - Главное фото: `car/car_7_45.jpg`, `photo_type = 'main'`
+  - Галерея: `car/car_7_46.jpg`, `photo_type = 'gallery'`
 - **Событие**
-  - Обложка: `events/event_3_22.jpg`, `photo_type = 'cover'`
+  - Обложка: `event/event_3_22.jpg`, `photo_type = 'cover'`
 - **Гид-объект**
-  - Главное фото: `guide_objects/guide_object_5_18.jpg`, `photo_type = 'main'`
+  - Главное фото: `guide_object/guide_object_5_18.jpg`, `photo_type = 'main'`
+- **Визитка**
+  - Фото: `business_card/business_card_10_25.jpg`, `photo_type = 'cover'`
 - **Отзыв**
-  - Фото: `reviews/review_10_33.jpg`, `photo_type = 'main'`
+  - Фото: `review/review_10_33.jpg`, `photo_type = 'main'`
 
 ### Важно
 - Все пути к файлам в БД и API — ОТНОСИТЕЛЬНЫЕ к папке `uploads/`.

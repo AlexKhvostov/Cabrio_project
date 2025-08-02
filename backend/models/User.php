@@ -70,14 +70,70 @@ class User {
      * Создать нового пользователя
      */
     public static function create($data) {
-        // ... реализация вставки в БД
+        $pdo = Database::getInstance();
+        
+        // Подготовка данных для вставки
+        $fields = ['telegram_id', 'username', 'first_name_tg', 'last_name_tg', 'role_id'];
+        $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+        $fieldNames = implode(', ', $fields);
+        
+        $stmt = $pdo->prepare("INSERT INTO users ($fieldNames, created_at, updated_at) VALUES ($placeholders, NOW(), NOW())");
+        
+        $values = [
+            $data['telegram_id'],
+            $data['username'] ?? null,
+            $data['first_name'] ?? null,
+            $data['last_name'] ?? null,
+            $data['role_id'] ?? 1 // guest по умолчанию
+        ];
+        
+        $stmt->execute($values);
+        return $pdo->lastInsertId();
     }
 
     /**
-     * Обновить пользователя
+     * Обновить пользователя (статический метод)
      */
-    public function update($data) {
-        // ... реализация обновления в БД
+    public static function update($data) {
+        $pdo = Database::getInstance();
+        
+        if (!isset($data['id'])) {
+            return false;
+        }
+        
+        $updates = [];
+        $values = [];
+        
+        // Подготавливаем поля для обновления
+        $fields = ['username', 'first_name_tg', 'last_name_tg', 'first_name_app', 'last_name_app', 'email', 'phone', 'city', 'about'];
+        
+        foreach ($fields as $field) {
+            if (isset($data[$field])) {
+                $updates[] = "$field = ?";
+                $values[] = $data[$field];
+            }
+        }
+        
+        if (empty($updates)) {
+            return false; // Нет данных для обновления
+        }
+        
+        $values[] = $data['id']; // ID для WHERE
+        $updates[] = "updated_at = NOW()";
+        
+        $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        
+        return $stmt->execute($values);
+    }
+
+    /**
+     * Обновить роль пользователя
+     */
+    public static function updateRole($userId, $roleId) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('UPDATE users SET role_id = ?, updated_at = NOW() WHERE id = ?');
+        return $stmt->execute([$roleId, $userId]);
     }
 
     /**
@@ -85,6 +141,22 @@ class User {
      */
     public function delete() {
         // ... реализация удаления из БД
+    }
+
+    /**
+     * Преобразовать объект пользователя в массив
+     */
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'telegram_id' => $this->telegram_id,
+            'username' => $this->username,
+            'role_id' => $this->role_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
+        ];
     }
 
     /**

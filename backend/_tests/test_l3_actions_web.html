@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Тест L3 Actions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        .section h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Тест L3 Actions</h1>
+            <p>Тестирование L3 Actions с OCR распознаванием номеров</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <h3>📋 Информация о L3 Actions</h3>
+                <ul>
+                    <li><strong>___CheckCarInClubAction</strong> - Проверка авто в клубе с OCR</li>
+                    <li><strong>___LeaveBusinessCardAction</strong> - Оставление визитки с OCR</li>
+                    <li><strong>___AddCarToGarageAction</strong> - Добавление в гараж с OCR</li>
+                </ul>
+                <p><strong>Примечание:</strong> Все L3 Actions требуют фото автомобиля для OCR распознавания номера.</p>
+            </div>
+
+            <!-- ___CheckCarInClubAction -->
+            <div class="section">
+                <h2>🔍 ___CheckCarInClubAction</h2>
+                <p>Проверка автомобиля в клубе с OCR распознаванием номера</p>
+                
+                <div class="form-group">
+                    <label for="check_user_id">ID пользователя:</label>
+                    <input type="number" id="check_user_id" value="563" placeholder="Введите ID пользователя">
+                </div>
+                
+                <div class="form-group">
+                    <label for="check_photo">Фото автомобиля:</label>
+                    <input type="file" id="check_photo" accept="image/*">
+                </div>
+                
+                <button class="btn" onclick="testCheckCarInClub()">🔍 Проверить авто в клубе</button>
+                
+                <div id="check_result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- ___LeaveBusinessCardAction -->
+            <div class="section">
+                <h2>📇 ___LeaveBusinessCardAction</h2>
+                <p>Оставление визитки с OCR распознаванием номера</p>
+                
+                <div class="form-group">
+                    <label for="card_user_id">ID пользователя:</label>
+                    <input type="number" id="card_user_id" value="563" placeholder="Введите ID пользователя">
+                </div>
+                
+                <div class="form-group">
+                    <label for="card_photo">Фото автомобиля:</label>
+                    <input type="file" id="card_photo" accept="image/*">
+                </div>
+                
+                <button class="btn" onclick="testLeaveBusinessCard()">📇 Оставить визитку</button>
+                
+                <div id="card_result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- ___AddCarToGarageAction -->
+            <div class="section">
+                <h2>🚗 ___AddCarToGarageAction</h2>
+                <p>Добавление автомобиля в гараж с OCR распознаванием номера</p>
+                
+                <div class="form-group">
+                    <label for="garage_user_id">ID пользователя:</label>
+                    <input type="number" id="garage_user_id" value="563" placeholder="Введите ID пользователя">
+                </div>
+                
+                <div class="form-group">
+                    <label for="garage_photo">Фото автомобиля:</label>
+                    <input type="file" id="garage_photo" accept="image/*">
+                </div>
+                
+                <button class="btn" onclick="testAddCarToGarage()">🚗 Добавить в гараж</button>
+                
+                <div id="garage_result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Тест без фото (ожидается ошибка) -->
+            <div class="section">
+                <h2>❌ Тест без фото</h2>
+                <p>Проверка обработки ошибки при отсутствии фото</p>
+                
+                <div class="form-group">
+                    <label for="no_photo_user_id">ID пользователя:</label>
+                    <input type="number" id="no_photo_user_id" value="563" placeholder="Введите ID пользователя">
+                </div>
+                
+                <button class="btn" onclick="testWithoutPhoto()">❌ Тест без фото</button>
+                
+                <div id="no_photo_result" class="result" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'test_l3_actions_api.php';
+        
+        function showResult(elementId, result, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            
+            if (result.success) {
+                element.innerHTML = `✅ УСПЕХ\n\n` +
+                    `🎯 Действие: ${result.data.action}\n` +
+                    `📝 Сообщение: ${result.data.message}\n` +
+                    `🏷️ Номер: ${result.data.plate_number}\n` +
+                    `🔍 OCR Confidence: ${result.data.ocr_confidence || 'не указана'}\n\n` +
+                    `📊 Полные данные:\n${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                element.innerHTML = `❌ ОШИБКА\n\n` +
+                    `💬 Сообщение: ${result.error.message}\n` +
+                    `🔢 Код: ${result.error.code || 'не указан'}\n\n` +
+                    `📊 Полные данные:\n${JSON.stringify(result, null, 2)}`;
+            }
+        }
+        
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'result info';
+            element.innerHTML = `<div class="loading">
+                <div class="spinner"></div>
+                <div>Обработка запроса...</div>
+            </div>`;
+        }
+        
+        async function makeRequest(action, formData) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Ошибка сети: ' + error.message,
+                        code: 'NETWORK_ERROR'
+                    }
+                };
+            }
+        }
+        
+        async function testCheckCarInClub() {
+            const userId = document.getElementById('check_user_id').value;
+            const photoFile = document.getElementById('check_photo').files[0];
+            
+            if (!photoFile) {
+                alert('Пожалуйста, выберите фото автомобиля');
+                return;
+            }
+            
+            showLoading('check_result');
+            
+            const formData = new FormData();
+            formData.append('action', 'check_car_in_club');
+            formData.append('user_id', userId);
+            formData.append('photo', photoFile);
+            
+            const result = await makeRequest('check_car_in_club', formData);
+            showResult('check_result', result, result.success ? 'success' : 'error');
+        }
+        
+        async function testLeaveBusinessCard() {
+            const userId = document.getElementById('card_user_id').value;
+            const photoFile = document.getElementById('card_photo').files[0];
+            
+            if (!photoFile) {
+                alert('Пожалуйста, выберите фото автомобиля');
+                return;
+            }
+            
+            showLoading('card_result');
+            
+            const formData = new FormData();
+            formData.append('action', 'leave_business_card');
+            formData.append('user_id', userId);
+            formData.append('photo', photoFile);
+            
+            const result = await makeRequest('leave_business_card', formData);
+            showResult('card_result', result, result.success ? 'success' : 'error');
+        }
+        
+        async function testAddCarToGarage() {
+            const userId = document.getElementById('garage_user_id').value;
+            const photoFile = document.getElementById('garage_photo').files[0];
+            
+            if (!photoFile) {
+                alert('Пожалуйста, выберите фото автомобиля');
+                return;
+            }
+            
+            showLoading('garage_result');
+            
+            const formData = new FormData();
+            formData.append('action', 'add_car_to_garage');
+            formData.append('user_id', userId);
+            formData.append('photo', photoFile);
+            
+            const result = await makeRequest('add_car_to_garage', formData);
+            showResult('garage_result', result, result.success ? 'success' : 'error');
+        }
+        
+        async function testWithoutPhoto() {
+            const userId = document.getElementById('no_photo_user_id').value;
+            
+            showLoading('no_photo_result');
+            
+            const formData = new FormData();
+            formData.append('action', 'check_car_in_club');
+            formData.append('user_id', userId);
+            // Не добавляем фото - должно вызвать ошибку
+            
+            const result = await makeRequest('check_car_in_club', formData);
+            showResult('no_photo_result', result, result.success ? 'success' : 'error');
+        }
+    </script>
+</body>
+</html> 

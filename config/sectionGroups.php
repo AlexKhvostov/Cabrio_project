@@ -16,7 +16,7 @@
  *
  * Например, если минимальная роль "member":
  *   - member, moderator, admin — имеют доступ
- *   - registered, guest, external, new — не имеют доступа
+ *   - user, guest, external — не имеют доступа
  */
 
 /**
@@ -25,8 +25,7 @@
 class Roles {
     const EXTERNAL = 'external';     // Внешний пользователь, не в чате
     const GUEST = 'guest';           // Гость, только что добавился в чат
-    const NEW = 'new';               // Новый, начал регистрацию
-    const REGISTERED = 'registered'; // Завершил базовую регистрацию
+    const USER = 'user';             // Завершил базовую регистрацию
     const MEMBER = 'member';         // Участник клуба
     const MODERATOR = 'moderator';   // Модератор
     const ADMIN = 'admin';           // Администратор
@@ -38,8 +37,7 @@ class Roles {
         return [
             self::EXTERNAL,
             self::GUEST,
-            self::NEW,
-            self::REGISTERED,
+            self::USER,
             self::MEMBER,
             self::MODERATOR,
             self::ADMIN
@@ -84,13 +82,13 @@ class FunctionRoles {
     const RESTORE_PASSWORD = 'guest';
 
     // profile
-    const PROFILE_VIEW = 'registered';
-    const PROFILE_EDIT = 'registered';
-    const PROFILE_SETTINGS = 'registered';
+    const PROFILE_VIEW = 'user';
+    const PROFILE_EDIT = 'user';
+    const PROFILE_SETTINGS = 'user';
 
     // dashboard
-    const DASHBOARD_VIEW = 'registered';
-    const NOTIFICATIONS_VIEW = 'registered';
+    const DASHBOARD_VIEW = 'user';
+    const NOTIFICATIONS_VIEW = 'user';
 
     // cars
     const CAR_LIST = 'member';

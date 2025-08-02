@@ -7,8 +7,8 @@ flowchart TB
         direction TB
         external["external"]
         guest["guest"]
-        new["new"]
-        registered["registered"]
+        user["user"]
+        user["user"]
         member["member"]
         moderator["moderator"]
         admin["admin"]
@@ -34,37 +34,37 @@ flowchart TB
     %% Доступ к разделам (стрелки от всех ролей, которые имеют доступ)
     external --> landing
     guest --> landing
-    new --> landing
-    registered --> landing
+    user --> landing
+    user --> landing
     member --> landing
     moderator --> landing
     admin --> landing
 
     guest --> auth
-    new --> auth
-    registered --> auth
+    user --> auth
+    user --> auth
     member --> auth
     moderator --> auth
     admin --> auth
 
     guest --> support
-    new --> support
-    registered --> support
+    user --> support
+    user --> support
     member --> support
     moderator --> support
     admin --> support
 
-    registered --> profile
+    user --> profile
     member --> profile
     moderator --> profile
     admin --> profile
 
-    registered --> dashboard
+    user --> dashboard
     member --> dashboard
     moderator --> dashboard
     admin --> dashboard
 
-    registered --> notifications
+    user --> notifications
     member --> notifications
     moderator --> notifications
     admin --> notifications

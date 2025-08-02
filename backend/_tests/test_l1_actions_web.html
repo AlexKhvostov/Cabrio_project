@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Тест L1 Actions - CabrioRide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .test-section h3 {
+            color: #34495e;
+            margin-top: 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .test-item h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .test-item p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .result {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .loading {
+            color: #f39c12;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 8px;
+        }
+        .summary {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary h3 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+        .test-count {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .raw-data {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .raw-data h5 {
+            margin: 0 0 5px 0;
+            color: #495057;
+            font-weight: bold;
+        }
+        .request {
+            color: #0066cc;
+        }
+        .response {
+            color: #28a745;
+        }
+        .error-response {
+            color: #dc3545;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тест L1 Actions - CabrioRide</h1>
+        
+        <div class="controls">
+            <button onclick="runAllTests()">🚀 Запустить все тесты</button>
+            <button onclick="clearResults()">🗑️ Очистить результаты</button>
+            <button onclick="runUserTests()">👤 Тест User Actions</button>
+            <button onclick="runCarTests()">🚗 Тест Car Actions</button>
+            <button onclick="runBusinessCardTests()">📇 Тест Business Card Actions</button>
+            <button onclick="runPhotoTests()">📸 Тест Photo Actions</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 User Actions</h3>
+            <div class="test-item">
+                <h4>1.1 Создание пользователя</h4>
+                <p>Создаем нового пользователя с уникальным Telegram ID</p>
+                <button onclick="testCreateUser()">Тестировать</button>
+                <div id="create-user-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>1.2 Проверка пользователя</h4>
+                <p>Ищем пользователя по Telegram ID</p>
+                <button onclick="testCheckUser()">Тестировать</button>
+                <div id="check-user-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>1.3 Обновление пользователя</h4>
+                <p>Обновляем данные пользователя</p>
+                <button onclick="testUpdateUser()">Тестировать</button>
+                <div id="update-user-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>1.4 Обновление роли</h4>
+                <p>Обновляем роль пользователя</p>
+                <button onclick="testUpdateRole()">Тестировать</button>
+                <div id="update-role-result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚗 Car Actions</h3>
+            <div class="test-item">
+                <h4>2.1 Создание автомобиля</h4>
+                <p>Создаем новый автомобиль с уникальным номером</p>
+                <button onclick="testCreateCar()">Тестировать</button>
+                <div id="create-car-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>2.2 Проверка автомобиля</h4>
+                <p>Ищем автомобиль по номеру</p>
+                <button onclick="testCheckCar()">Тестировать</button>
+                <div id="check-car-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>2.3 Обновление статуса</h4>
+                <p>Обновляем статус автомобиля</p>
+                <button onclick="testUpdateStatus()">Тестировать</button>
+                <div id="update-status-result"></div>
+            </div>
+            <div class="test-item">
+                <h4>2.4 Обновление владельца</h4>
+                <p>Обновляем владельца автомобиля</p>
+                <button onclick="testUpdateOwner()">Тестировать</button>
+                <div id="update-owner-result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📇 Business Card Actions</h3>
+            <div class="test-item">
+                <h4>3.1 Создание визитки</h4>
+                <p>Создаем новую визитку</p>
+                <button onclick="testCreateBusinessCard()">Тестировать</button>
+                <div id="create-business-card-result"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📸 Photo Actions</h3>
+            <div class="test-item">
+                <h4>4.1 Создание фото</h4>
+                <p>Создаем новое фото</p>
+                <button onclick="testCreatePhoto()">Тестировать</button>
+                <div id="create-photo-result"></div>
+            </div>
+        </div>
+
+        <div class="summary" id="summary" style="display: none;">
+            <h3>📊 Итоговый отчет</h3>
+            <div id="summary-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные для хранения результатов тестов
+        let testResults = {
+            createUser: null,
+            checkUser: null,
+            updateUser: null,
+            updateRole: null,
+            createCar: null,
+            checkCar: null,
+            updateStatus: null,
+            updateOwner: null,
+            createBusinessCard: null,
+            createPhoto: null
+        };
+
+        let createdUserId = null;
+        let createdCarId = null;
+        let testTelegramId = null;
+        let testPlateNumber = null;
+
+        // Функция для отображения результата
+        function showResult(elementId, message, type = 'info', rawData = null) {
+            const element = document.getElementById(elementId);
+            let html = `<div class="result ${type}">${message}</div>`;
+            
+            if (rawData) {
+                html += `
+                    <div class="raw-data">
+                        <h5>📤 Запрос:</h5>
+                        <div class="request">${JSON.stringify(rawData.request, null, 2)}</div>
+                        <h5>📥 Ответ:</h5>
+                        <div class="${rawData.success ? 'response' : 'error-response'}">${JSON.stringify(rawData.response, null, 2)}</div>
+                    </div>
+                `;
+            }
+            
+            element.innerHTML = html;
+        }
+
+        // Функция для очистки результатов
+        function clearResults() {
+            const resultElements = document.querySelectorAll('[id$="-result"]');
+            resultElements.forEach(element => {
+                element.innerHTML = '';
+            });
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('progress').style.width = '0%';
+            testResults = {};
+            createdUserId = null;
+            createdCarId = null;
+            testTelegramId = null;
+            testPlateNumber = null;
+        }
+
+        // Функция для выполнения AJAX запроса
+        async function makeRequest(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                return await response.json();
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Функция для обновления прогресса
+        function updateProgress(completed, total) {
+            const progress = (completed / total) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        // ============================================================================
+        // USER ACTIONS
+        // ============================================================================
+
+        async function testCreateUser() {
+            showResult('create-user-result', '⏳ Выполняется...', 'loading');
+            
+            testTelegramId = Date.now();
+            const requestData = {
+                action: 'create_user',
+                data: {
+                    telegram_id: testTelegramId,
+                    username: 'test_user_' + testTelegramId,
+                    first_name: 'Тест',
+                    last_name: 'Пользователь',
+                    role_id: 1
+                }
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                createdUserId = result.data.id;
+                testResults.createUser = true;
+                showResult('create-user-result', `✅ Пользователь создан с ID: ${createdUserId}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.createUser = false;
+                showResult('create-user-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testCheckUser() {
+            if (!testTelegramId) {
+                showResult('check-user-result', '❌ Сначала создайте пользователя', 'error');
+                return;
+            }
+
+            showResult('check-user-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'check_user',
+                telegram_id: testTelegramId
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.checkUser = true;
+                showResult('check-user-result', `✅ Пользователь найден: ${result.data.username}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.checkUser = false;
+                showResult('check-user-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testUpdateUser() {
+            if (!createdUserId) {
+                showResult('update-user-result', '❌ Сначала создайте пользователя', 'error');
+                return;
+            }
+
+            showResult('update-user-result', '⏳ Выполняется...', 'loading');
+            
+                         const requestData = {
+                 action: 'update_user',
+                 user_id: createdUserId,
+                 data: {
+                     username: 'updated_test_user_' + testTelegramId,
+                     first_name: 'Обновленный',
+                     last_name: 'Тест',
+                     city: 'Москва',
+                     email: 'test_' + testTelegramId + '@example.com'
+                 }
+             };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.updateUser = true;
+                showResult('update-user-result', '✅ Пользователь обновлен', 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.updateUser = false;
+                showResult('update-user-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testUpdateRole() {
+            if (!createdUserId) {
+                showResult('update-role-result', '❌ Сначала создайте пользователя', 'error');
+                return;
+            }
+
+            showResult('update-role-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'update_role',
+                user_id: createdUserId,
+                role_id: 2
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.updateRole = true;
+                showResult('update-role-result', '✅ Роль обновлена', 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.updateRole = false;
+                showResult('update-role-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        // ============================================================================
+        // CAR ACTIONS
+        // ============================================================================
+
+        async function testCreateCar() {
+            if (!createdUserId) {
+                showResult('create-car-result', '❌ Сначала создайте пользователя', 'error');
+                return;
+            }
+
+            showResult('create-car-result', '⏳ Выполняется...', 'loading');
+            
+            testPlateNumber = 'TEST' + Date.now();
+                                     const requestData = {
+                action: 'create_car',
+                data: {
+                    create_user_id: createdUserId, // Обязательное поле
+                    model: 'BMW Z4',
+                    color: 'Красный',
+                    year: 2020,
+                    reg_number: testPlateNumber,
+                    owner_user_id: null, // Сначала без владельца
+                    status_id: 1 // noticed - замеченная
+                }
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                createdCarId = result.data.id;
+                testResults.createCar = true;
+                showResult('create-car-result', `✅ Автомобиль создан с ID: ${createdCarId}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.createCar = false;
+                showResult('create-car-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testCheckCar() {
+            if (!testPlateNumber) {
+                showResult('check-car-result', '❌ Сначала создайте автомобиль', 'error');
+                return;
+            }
+
+            showResult('check-car-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'check_car',
+                plate_number: testPlateNumber
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.checkCar = true;
+                showResult('check-car-result', `✅ Автомобиль найден: ${result.data.reg_number}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.checkCar = false;
+                showResult('check-car-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testUpdateStatus() {
+            if (!createdCarId) {
+                showResult('update-status-result', '❌ Сначала создайте автомобиль', 'error');
+                return;
+            }
+
+            showResult('update-status-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'update_status',
+                entity_type: 'car',
+                entity_id: createdCarId,
+                status_id: 2
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.updateStatus = true;
+                showResult('update-status-result', '✅ Статус обновлен', 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.updateStatus = false;
+                showResult('update-status-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        async function testUpdateOwner() {
+            if (!createdCarId || !createdUserId) {
+                showResult('update-owner-result', '❌ Сначала создайте автомобиль и пользователя', 'error');
+                return;
+            }
+
+            showResult('update-owner-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'update_owner',
+                car_id: createdCarId,
+                user_id: createdUserId
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.updateOwner = true;
+                showResult('update-owner-result', '✅ Владелец обновлен', 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.updateOwner = false;
+                showResult('update-owner-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        // ============================================================================
+        // BUSINESS CARD ACTIONS
+        // ============================================================================
+
+        async function testCreateBusinessCard() {
+            if (!createdCarId || !createdUserId) {
+                showResult('create-business-card-result', '❌ Сначала создайте автомобиль и пользователя', 'error');
+                return;
+            }
+
+            showResult('create-business-card-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'create_business_card',
+                data: {
+                    car_id: createdCarId,
+                    user_id: createdUserId,
+                    location: 'Москва, центр',
+                    notes: 'Отличная машина! Привет от участника клуба.'
+                }
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.createBusinessCard = true;
+                showResult('create-business-card-result', `✅ Визитка создана с ID: ${result.data.id}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.createBusinessCard = false;
+                showResult('create-business-card-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        // ============================================================================
+        // PHOTO ACTIONS
+        // ============================================================================
+
+        async function testCreatePhoto() {
+            if (!createdCarId || !createdUserId) {
+                showResult('create-photo-result', '❌ Сначала создайте автомобиль и пользователя', 'error');
+                return;
+            }
+
+            showResult('create-photo-result', '⏳ Выполняется...', 'loading');
+            
+            const requestData = {
+                action: 'create_photo',
+                data: {
+                    entity_type: 'car',
+                    entity_id: createdCarId,
+                    file_name: 'car_' + createdCarId + '_' + Date.now() + '.jpg',
+                    url: '/uploads/cars/car_' + createdCarId + '_' + Date.now() + '.jpg',
+                    photo_type: 'gallery',
+                    description: 'Фото автомобиля для теста',
+                    uploaded_by: createdUserId
+                }
+            };
+
+            const result = await makeRequest('test_l1_actions_api.php', requestData);
+
+            if (result.success) {
+                testResults.createPhoto = true;
+                showResult('create-photo-result', `✅ Фото создано с ID: ${result.data.id}`, 'success', {
+                    request: requestData,
+                    response: result,
+                    success: true
+                });
+            } else {
+                testResults.createPhoto = false;
+                showResult('create-photo-result', `❌ Ошибка: ${result.error}`, 'error', {
+                    request: requestData,
+                    response: result,
+                    success: false
+                });
+            }
+        }
+
+        // ============================================================================
+        // ГРУППОВЫЕ ТЕСТЫ
+        // ============================================================================
+
+        async function runUserTests() {
+            clearResults();
+            updateProgress(0, 4);
+            
+            await testCreateUser();
+            updateProgress(1, 4);
+            
+            await testCheckUser();
+            updateProgress(2, 4);
+            
+            await testUpdateUser();
+            updateProgress(3, 4);
+            
+            await testUpdateRole();
+            updateProgress(4, 4);
+            
+            showSummary();
+        }
+
+        async function runCarTests() {
+            if (!createdUserId) {
+                alert('Сначала создайте пользователя!');
+                return;
+            }
+            
+            updateProgress(0, 4);
+            
+            await testCreateCar();
+            updateProgress(1, 4);
+            
+            await testCheckCar();
+            updateProgress(2, 4);
+            
+            await testUpdateStatus();
+            updateProgress(3, 4);
+            
+            await testUpdateOwner();
+            updateProgress(4, 4);
+            
+            showSummary();
+        }
+
+        async function runBusinessCardTests() {
+            if (!createdCarId || !createdUserId) {
+                alert('Сначала создайте автомобиль и пользователя!');
+                return;
+            }
+            
+            updateProgress(0, 1);
+            
+            await testCreateBusinessCard();
+            updateProgress(1, 1);
+            
+            showSummary();
+        }
+
+        async function runPhotoTests() {
+            if (!createdCarId || !createdUserId) {
+                alert('Сначала создайте автомобиль и пользователя!');
+                return;
+            }
+            
+            updateProgress(0, 1);
+            
+            await testCreatePhoto();
+            updateProgress(1, 1);
+            
+            showSummary();
+        }
+
+        // Запуск всех тестов
+        async function runAllTests() {
+            clearResults();
+            updateProgress(0, 10);
+            
+            // User Actions
+            await testCreateUser();
+            updateProgress(1, 10);
+            
+            await testCheckUser();
+            updateProgress(2, 10);
+            
+            await testUpdateUser();
+            updateProgress(3, 10);
+            
+            await testUpdateRole();
+            updateProgress(4, 10);
+            
+            // Car Actions
+            await testCreateCar();
+            updateProgress(5, 10);
+            
+            await testCheckCar();
+            updateProgress(6, 10);
+            
+            await testUpdateStatus();
+            updateProgress(7, 10);
+            
+            await testUpdateOwner();
+            updateProgress(8, 10);
+            
+            // Business Card Actions
+            await testCreateBusinessCard();
+            updateProgress(9, 10);
+            
+            // Photo Actions
+            await testCreatePhoto();
+            updateProgress(10, 10);
+            
+            showSummary();
+        }
+
+        // Показать итоговый отчет
+        function showSummary() {
+            const summary = document.getElementById('summary');
+            const content = document.getElementById('summary-content');
+            
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(result => result === true).length;
+            const failedTests = totalTests - passedTests;
+            
+            content.innerHTML = `
+                <div class="test-count">Всего тестов: ${totalTests}</div>
+                <div class="test-count">✅ Успешно: ${passedTests}</div>
+                <div class="test-count">❌ Ошибок: ${failedTests}</div>
+                <br>
+                <div><strong>User Actions:</strong> ${testResults.createUser && testResults.checkUser && testResults.updateUser && testResults.updateRole ? '✅ Все работают' : '❌ Есть ошибки'}</div>
+                <div><strong>Car Actions:</strong> ${testResults.createCar && testResults.checkCar && testResults.updateStatus && testResults.updateOwner ? '✅ Все работают' : '❌ Есть ошибки'}</div>
+                <div><strong>Business Card Actions:</strong> ${testResults.createBusinessCard ? '✅ Все работают' : '❌ Есть ошибки'}</div>
+                <div><strong>Photo Actions:</strong> ${testResults.createPhoto ? '✅ Все работают' : '❌ Есть ошибки'}</div>
+                <br>
+                <div><strong>Созданные данные:</strong></div>
+                <div>👤 Пользователь ID: ${createdUserId || 'N/A'}</div>
+                <div>🚗 Автомобиль ID: ${createdCarId || 'N/A'}</div>
+            `;
+            
+            summary.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
