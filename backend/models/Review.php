@@ -21,6 +21,8 @@
  *   $review = Review::findById(1);
  *   $newReview = Review::create([...]);
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class Review {
     public $id;
     public $guide_object_id;
@@ -51,10 +53,45 @@ class Review {
     }
 
     /**
+     * Получить все отзывы
+     */
+    public static function getAll() {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM reviews ORDER BY created_at DESC');
+        $stmt->execute();
+        $data = $stmt->fetchAll();
+        
+        $reviews = [];
+        foreach ($data as $row) {
+            $reviews[] = (new self($row))->toArray();
+        }
+        
+        return $reviews;
+    }
+
+    /**
      * Создать новый отзыв
      */
     public static function create($data) {
         // ... реализация вставки в БД
+    }
+
+    /**
+     * Преобразовать объект отзыва в массив
+     */
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'guide_object_id' => $this->guide_object_id,
+            'quality_rating' => $this->quality_rating,
+            'speed_rating' => $this->speed_rating,
+            'price_rating' => $this->price_rating,
+            'feedback' => $this->feedback,
+            'author_user_id' => $this->author_user_id,
+            'status_id' => $this->status_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
+        ];
     }
 
     /**

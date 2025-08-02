@@ -51,6 +51,37 @@ class Photo {
     }
 
     /**
+     * Получить все фото (с фильтрацией по сущности)
+     */
+    public static function getAll($entityType = null, $entityId = null) {
+        $pdo = Database::getInstance();
+        
+        $sql = 'SELECT * FROM photos';
+        $params = [];
+        
+        if ($entityType && $entityId) {
+            $sql .= ' WHERE entity_type = ? AND entity_id = ?';
+            $params = [$entityType, $entityId];
+        } elseif ($entityType) {
+            $sql .= ' WHERE entity_type = ?';
+            $params = [$entityType];
+        }
+        
+        $sql .= ' ORDER BY uploaded_at DESC';
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $data = $stmt->fetchAll();
+        
+        $photos = [];
+        foreach ($data as $row) {
+            $photos[] = (new self($row))->toArray();
+        }
+        
+        return $photos;
+    }
+
+    /**
      * Получить следующий ID для фото
      */
     public static function getNextId() {

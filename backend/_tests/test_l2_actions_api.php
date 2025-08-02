@@ -9,11 +9,12 @@
 // Загрузка переменных окружения
 require_once __DIR__ . '/../utils/load_env.php';
 
-// Подключение L2 Actions
+// Подключение L2 Actions и AppContext
 require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
 require_once __DIR__ . '/../actions/level2/__SearchCarAction.php';
 require_once __DIR__ . '/../actions/level2/__AddCarToUserAction.php';
 require_once __DIR__ . '/../actions/level2/__DropBusinessCardAction.php';
+require_once __DIR__ . '/../utils/AppContext.php';
 
 // Устанавливаем CORS заголовки
 header('Access-Control-Allow-Origin: *');
@@ -62,6 +63,36 @@ function logResponse($action, $response) {
     error_log('L2 API Response: ' . json_encode($logData, JSON_UNESCAPED_UNICODE));
 }
 
+// Функция для установки тестового пользователя в контекст
+function setupTestUser($userId) {
+    // Очищаем контекст
+    AppContext::clear();
+    
+    // Создаем тестового пользователя
+    $testUser = [
+        'id' => (int)$userId,
+        'telegram_id' => 123456789,
+        'first_name_tg' => 'Тест',
+        'last_name_tg' => 'Пользователь',
+        'username' => 'test_user',
+        'role' => 'member',
+        'role_id' => 3,
+        'city' => 'Москва',
+        'email' => 'test@example.com',
+        'created_at' => '2024-01-15 10:30:00',
+        'updated_at' => '2024-01-15 10:30:00'
+    ];
+    
+    // Устанавливаем пользователя в контекст
+    AppContext::setCurrentUser($testUser);
+    
+    // Устанавливаем базовые метаданные запроса
+    AppContext::setRequestId('test_' . time() . '_' . rand(1000, 9999));
+    AppContext::setStartTime(microtime(true));
+    
+    return $testUser;
+}
+
 try {
     $response = null;
     
@@ -89,11 +120,14 @@ try {
             // __SearchCarAction
             $data = [
                 'plate_number' => $_POST['plate_number'] ?? '',
-                'create_user_id' => (int)($_POST['create_user_id'] ?? 0),
                 'model' => $_POST['model'] ?? null,
                 'color' => $_POST['color'] ?? null,
                 'year' => $_POST['year'] ? (int)$_POST['year'] : null
             ];
+            
+            // Устанавливаем тестового пользователя в контекст
+            $userId = (int)($_POST['create_user_id'] ?? 563);
+            setupTestUser($userId);
             
             // Обрабатываем фото если передана
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -109,11 +143,14 @@ try {
             // __AddCarToUserAction
             $data = [
                 'plate_number' => $_POST['plate_number'] ?? '',
-                'user_id' => (int)($_POST['user_id'] ?? 0),
                 'model' => $_POST['model'] ?? null,
                 'color' => $_POST['color'] ?? null,
                 'year' => $_POST['year'] ? (int)$_POST['year'] : null
             ];
+            
+            // Устанавливаем тестового пользователя в контекст
+            $userId = (int)($_POST['user_id'] ?? 563);
+            setupTestUser($userId);
             
             // Обрабатываем фото если передана
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -129,11 +166,14 @@ try {
             // __DropBusinessCardAction
             $data = [
                 'plate_number' => $_POST['plate_number'] ?? '',
-                'user_id' => (int)($_POST['user_id'] ?? 0),
                 'model' => $_POST['model'] ?? null,
                 'color' => $_POST['color'] ?? null,
                 'year' => $_POST['year'] ? (int)$_POST['year'] : null
             ];
+            
+            // Устанавливаем тестового пользователя в контекст
+            $userId = (int)($_POST['user_id'] ?? 563);
+            setupTestUser($userId);
             
             // Обрабатываем фото если передана
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {

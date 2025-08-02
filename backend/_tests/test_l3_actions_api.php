@@ -9,7 +9,8 @@
 // Загрузка переменных окружения
 require_once __DIR__ . '/../utils/load_env.php';
 
-// Подключение L3 Actions
+// Подключение AppContext и L3 Actions
+require_once __DIR__ . '/../utils/AppContext.php';
 require_once __DIR__ . '/../actions/level3/___CheckCarInClubAction.php';
 require_once __DIR__ . '/../actions/level3/___LeaveBusinessCardAction.php';
 require_once __DIR__ . '/../actions/level3/___AddCarToGarageAction.php';
@@ -61,14 +62,41 @@ function logResponse($action, $response) {
     error_log('L3 API Response: ' . json_encode($logData, JSON_UNESCAPED_UNICODE));
 }
 
+// Функция для настройки тестового пользователя в AppContext
+function setupTestUser($userId) {
+    // Очищаем контекст
+    AppContext::clear();
+    
+    // Создаем тестового пользователя
+    $user = [
+        'id' => $userId,
+        'telegram_id' => '123456789',
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'role' => 4 // member
+    ];
+    
+    // Устанавливаем в контекст
+    AppContext::setCurrentUser($user);
+    AppContext::setRequestId('test_' . time());
+    AppContext::setStartTime(microtime(true));
+    
+    return $user;
+}
+
 try {
     $response = null;
     
     switch ($action) {
         case 'check_car_in_club':
             // ___CheckCarInClubAction
+            $userId = (int)($_POST['user_id'] ?? 0);
+            
+            // Настраиваем тестового пользователя в контексте
+            setupTestUser($userId);
+            
             $data = [
-                'user_id' => (int)($_POST['user_id'] ?? 0)
+                // user_id больше не передается - берется из AppContext
             ];
             
             // Обрабатываем фото если передана
@@ -83,8 +111,13 @@ try {
             
         case 'leave_business_card':
             // ___LeaveBusinessCardAction
+            $userId = (int)($_POST['user_id'] ?? 0);
+            
+            // Настраиваем тестового пользователя в контексте
+            setupTestUser($userId);
+            
             $data = [
-                'user_id' => (int)($_POST['user_id'] ?? 0)
+                // user_id больше не передается - берется из AppContext
             ];
             
             // Обрабатываем фото если передана
@@ -99,8 +132,13 @@ try {
             
         case 'add_car_to_garage':
             // ___AddCarToGarageAction
+            $userId = (int)($_POST['user_id'] ?? 0);
+            
+            // Настраиваем тестового пользователя в контексте
+            setupTestUser($userId);
+            
             $data = [
-                'user_id' => (int)($_POST['user_id'] ?? 0)
+                // user_id больше не передается - берется из AppContext
             ];
             
             // Обрабатываем фото если передана

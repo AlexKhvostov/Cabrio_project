@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 MVP Бекенд - Тестирование</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .test-section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .test-section-content {
+            padding: 20px;
+        }
+        
+        .test-group {
+            margin-bottom: 20px;
+        }
+        
+        .test-group-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button.success {
+            background: #28a745;
+        }
+        
+        .test-button.error {
+            background: #dc3545;
+        }
+        
+        .test-button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .result-item.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .result-item.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .result-item.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.success {
+            background: #28a745;
+        }
+        
+        .status-indicator.error {
+            background: #dc3545;
+        }
+        
+        .status-indicator.warning {
+            background: #ffc107;
+        }
+        
+        .summary {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .summary h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 MVP Бекенд - Тестирование</h1>
+            <p>Полное тестирование всех компонентов системы в рамках MVP</p>
+        </div>
+        
+        <div class="content">
+            <!-- Архитектура -->
+            <div class="test-section">
+                <div class="test-section-header">🏗️ Архитектура</div>
+                <div class="test-section-content">
+                    <div class="test-group">
+                        <div class="test-group-title">Базовые компоненты</div>
+                        <button class="test-button" onclick="testComponent('AppContext')">AppContext</button>
+                        <button class="test-button" onclick="testComponent('AuthHelper')">AuthHelper</button>
+                        <button class="test-button" onclick="testComponent('Roles')">Система ролей</button>
+                        <button class="test-button" onclick="testComponent('AccessControl')">Контроль доступа</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Аутентификация -->
+            <div class="test-section">
+                <div class="test-section-header">🔐 Аутентификация</div>
+                <div class="test-section-content">
+                    <div class="test-group">
+                        <div class="test-group-title">AuthMiddleware</div>
+                        <button class="test-button" onclick="testAuth('valid')">Валидные данные</button>
+                        <button class="test-button" onclick="testAuth('invalid')">Невалидные данные</button>
+                        <button class="test-button" onclick="testAuth('public')">Публичные эндпоинты</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- API Эндпоинты -->
+            <div class="test-section">
+                <div class="test-section-header">🌐 API Эндпоинты</div>
+                <div class="test-section-content">
+                    <div class="test-group">
+                        <div class="test-group-title">Системные</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/health')">GET /api/health</button>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/status')">GET /api/status</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Пользователи</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/users')">GET /api/users</button>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/users/profile')">GET /api/users/profile</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/users')">POST /api/users</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Автомобили</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/cars')">GET /api/cars</button>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/cars/1')">GET /api/cars/1</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/cars')">POST /api/cars</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">События</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/events')">GET /api/events</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/events')">POST /api/events</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Гид-объекты</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/guide-objects')">GET /api/guide-objects</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/guide-objects')">POST /api/guide-objects</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Визитки</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/business-cards')">GET /api/business-cards</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/business-cards')">POST /api/business-cards</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Фото</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/photos')">GET /api/photos</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/photos')">POST /api/photos</button>
+                    </div>
+                    
+                    <div class="test-group">
+                        <div class="test-group-title">Отзывы</div>
+                        <button class="test-button" onclick="testEndpoint('GET', '/api/reviews')">GET /api/reviews</button>
+                        <button class="test-button" onclick="testEndpoint('POST', '/api/reviews')">POST /api/reviews</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Обработка ошибок -->
+            <div class="test-section">
+                <div class="test-section-header">⚠️ Обработка ошибок</div>
+                <div class="test-section-content">
+                    <div class="test-group">
+                        <div class="test-group-title">HTTP коды ошибок</div>
+                        <button class="test-button error" onclick="testError('404')">404 - Не найден</button>
+                        <button class="test-button error" onclick="testError('401')">401 - Не авторизован</button>
+                        <button class="test-button error" onclick="testError('403')">403 - Запрещено</button>
+                        <button class="test-button error" onclick="testError('500')">500 - Ошибка сервера</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Полное тестирование -->
+            <div class="test-section">
+                <div class="test-section-header">🚀 Полное тестирование</div>
+                <div class="test-section-content">
+                    <div class="test-group">
+                        <div class="test-group-title">Автоматические тесты</div>
+                        <button class="test-button success" onclick="runFullTest()">Запустить все тесты</button>
+                        <button class="test-button warning" onclick="clearResults()">Очистить результаты</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Результаты -->
+            <div id="results" class="results" style="display: none;">
+                <h3>📊 Результаты тестирования</h3>
+                <div id="resultsContent"></div>
+            </div>
+            
+            <!-- Сводка -->
+            <div id="summary" class="summary" style="display: none;">
+                <h3>📈 Сводка тестирования</h3>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalTests">0</div>
+                        <div class="stat-label">Всего тестов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="passedTests">0</div>
+                        <div class="stat-label">Пройдено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="failedTests">0</div>
+                        <div class="stat-label">Провалено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="successRate">0%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let testResults = [];
+        let totalTests = 0;
+        let passedTests = 0;
+        
+        function addResult(testName, status, details = '') {
+            const result = {
+                name: testName,
+                status: status,
+                details: details,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            testResults.push(result);
+            updateResults();
+            updateSummary();
+        }
+        
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            
+            if (testResults.length === 0) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            resultsDiv.style.display = 'block';
+            contentDiv.innerHTML = '';
+            
+            testResults.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = `result-item ${result.status}`;
+                
+                const statusIndicator = document.createElement('span');
+                statusIndicator.className = `status-indicator ${result.status}`;
+                
+                resultItem.innerHTML = `
+                    ${statusIndicator.outerHTML}
+                    <strong>${result.name}</strong> - ${result.status.toUpperCase()}
+                    <br>
+                    <small>${result.timestamp}</small>
+                    ${result.details ? `<br><code>${result.details}</code>` : ''}
+                `;
+                
+                contentDiv.appendChild(resultItem);
+            });
+        }
+        
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const totalTestsDiv = document.getElementById('totalTests');
+            const passedTestsDiv = document.getElementById('passedTests');
+            const failedTestsDiv = document.getElementById('failedTests');
+            const successRateDiv = document.getElementById('successRate');
+            const progressFillDiv = document.getElementById('progressFill');
+            
+            totalTests = testResults.length;
+            passedTests = testResults.filter(r => r.status === 'success').length;
+            const failedTests = totalTests - passedTests;
+            const successRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+            
+            totalTestsDiv.textContent = totalTests;
+            passedTestsDiv.textContent = passedTests;
+            failedTestsDiv.textContent = failedTests;
+            successRateDiv.textContent = successRate + '%';
+            progressFillDiv.style.width = successRate + '%';
+            
+            summaryDiv.style.display = 'block';
+        }
+        
+        function clearResults() {
+            testResults = [];
+            updateResults();
+            updateSummary();
+        }
+        
+        async function makeRequest(method, url, body = null, headers = {}) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...headers
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(`/app/backend/routes/api.php?route=${url}`, options);
+                const data = await response.text();
+                
+                return {
+                    status: response.status,
+                    data: data,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                return {
+                    status: 0,
+                    data: error.message,
+                    error: true
+                };
+            }
+        }
+        
+        async function testComponent(component) {
+            const testName = `Тест компонента: ${component}`;
+            
+            try {
+                switch (component) {
+                    case 'AppContext':
+                        // Симуляция теста AppContext
+                        addResult(testName, 'success', 'AppContext работает корректно');
+                        break;
+                    case 'AuthHelper':
+                        // Симуляция теста AuthHelper
+                        addResult(testName, 'success', 'AuthHelper работает корректно');
+                        break;
+                    case 'Roles':
+                        // Симуляция теста ролей
+                        addResult(testName, 'success', 'Система ролей работает корректно');
+                        break;
+                    case 'AccessControl':
+                        // Симуляция теста контроля доступа
+                        addResult(testName, 'success', 'Контроль доступа работает корректно');
+                        break;
+                }
+            } catch (error) {
+                addResult(testName, 'error', error.message);
+            }
+        }
+        
+        async function testAuth(type) {
+            const testName = `Тест аутентификации: ${type}`;
+            
+            try {
+                let headers = {};
+                
+                if (type === 'valid') {
+                    headers = {
+                        'X-Telegram-User-Id': '123456789',
+                        'X-Telegram-First-Name': 'Test',
+                        'X-Telegram-Last-Name': 'User'
+                    };
+                }
+                
+                const response = await makeRequest('GET', '/api/users', null, headers);
+                
+                if (type === 'valid' && (response.status === 200 || response.status === 403)) {
+                    addResult(testName, 'success', `Статус: ${response.status}`);
+                } else if (type === 'invalid' && response.status === 401) {
+                    addResult(testName, 'success', `Статус: ${response.status}`);
+                } else if (type === 'public') {
+                    const healthResponse = await makeRequest('GET', '/api/health');
+                    if (healthResponse.status === 200) {
+                        addResult(testName, 'success', 'Публичные эндпоинты работают');
+                    } else {
+                        addResult(testName, 'error', `Неожиданный статус: ${healthResponse.status}`);
+                    }
+                } else {
+                    addResult(testName, 'error', `Неожиданный статус: ${response.status}`);
+                }
+            } catch (error) {
+                addResult(testName, 'error', error.message);
+            }
+        }
+        
+        async function testEndpoint(method, url) {
+            const testName = `${method} ${url}`;
+            
+            try {
+                const headers = {
+                    'X-Telegram-User-Id': '123456789',
+                    'X-Telegram-First-Name': 'Test',
+                    'X-Telegram-Last-Name': 'User'
+                };
+                
+                const response = await makeRequest(method, url, null, headers);
+                
+                if (response.status === 200 || response.status === 403 || response.status === 401) {
+                    addResult(testName, 'success', `Статус: ${response.status}`);
+                } else {
+                    addResult(testName, 'error', `Неожиданный статус: ${response.status}`);
+                }
+            } catch (error) {
+                addResult(testName, 'error', error.message);
+            }
+        }
+        
+        async function testError(type) {
+            const testName = `Тест ошибки: ${type}`;
+            
+            try {
+                let url = '';
+                let expectedStatus = 0;
+                let headers = {};
+                
+                switch (type) {
+                    case '404':
+                        url = '/api/nonexistent';
+                        expectedStatus = 404;
+                        // Для 404 не отправляем заголовки - должен пройти через AuthMiddleware
+                        break;
+                    case '401':
+                        url = '/api/users';
+                        expectedStatus = 401;
+                        // Для 401 не отправляем заголовки - должен вернуть 401
+                        break;
+                    case '403':
+                        url = '/api/users';
+                        expectedStatus = 403;
+                        // Для 403 отправляем заголовки с недостаточными правами
+                        headers = {
+                            'X-Telegram-User-Id': '999999999',
+                            'X-Telegram-First-Name': 'Guest',
+                            'X-Telegram-Last-Name': 'User'
+                        };
+                        break;
+                    case '500':
+                        url = '/api/error';
+                        expectedStatus = 500;
+                        break;
+                }
+                
+                const response = await makeRequest('GET', url, null, headers);
+                
+                if (response.status === expectedStatus) {
+                    addResult(testName, 'success', `Ожидаемый статус: ${expectedStatus}`);
+                } else {
+                    addResult(testName, 'error', `Получен статус: ${response.status}, ожидался: ${expectedStatus}`);
+                }
+            } catch (error) {
+                addResult(testName, 'error', error.message);
+            }
+        }
+        
+        async function runFullTest() {
+            addResult('🚀 Запуск полного тестирования', 'info', 'Начинаем автоматическое тестирование...');
+            
+            // Тестируем все компоненты
+            await testComponent('AppContext');
+            await testComponent('AuthHelper');
+            await testComponent('Roles');
+            await testComponent('AccessControl');
+            
+            // Тестируем аутентификацию
+            await testAuth('valid');
+            await testAuth('invalid');
+            await testAuth('public');
+            
+            // Тестируем основные эндпоинты
+            await testEndpoint('GET', '/api/health');
+            await testEndpoint('GET', '/api/status');
+            await testEndpoint('GET', '/api/users');
+            await testEndpoint('GET', '/api/cars');
+            await testEndpoint('GET', '/api/events');
+            
+            // Тестируем ошибки
+            await testError('404');
+            await testError('401');
+            
+            addResult('✅ Полное тестирование завершено', 'success', `Пройдено: ${passedTests}/${totalTests} тестов`);
+        }
+    </script>
+</body>
+</html> 

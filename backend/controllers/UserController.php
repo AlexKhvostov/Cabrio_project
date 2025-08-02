@@ -25,14 +25,38 @@ require_once __DIR__ . '/../models/User.php';
 class UserController extends BaseController
 {
     /**
-     * Получить список пользователей (реализация через модель User)
+     * Получить список пользователей
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
      */
     public function getList()
     {
         try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.users.getList')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
             $users = User::getAll();
-            $this->json(['success' => true, 'data' => $users]);
+            
+            // Логируем действие
+            $this->logUserAction('get_users_list', [
+                'count' => count($users)
+            ]);
+            
+            $this->json([
+                'success' => true, 
+                'data' => $users,
+                'meta' => $this->getRequestInfo()
+            ]);
+            
         } catch (Throwable $e) {
+            Logger::error('UserController: getList error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
             $this->json([
                 'success' => false,
                 'error' => [
@@ -43,9 +67,102 @@ class UserController extends BaseController
         }
     }
 
+    /**
+     * Создать нового пользователя
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: admin
+     */
     public function create()
     {
-        // Пример: создать пользователя (заглушка)
-        $this->json(['success' => true, 'data' => ['id' => 3, 'name' => 'Новый пользователь']], 201);
+        try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.users.create')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
+            // Получаем данные из запроса
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // Логируем действие
+            $this->logUserAction('create_user', [
+                'input_data' => $input
+            ]);
+
+            // TODO: Реализовать создание пользователя через модель
+            $this->json([
+                'success' => true, 
+                'data' => [
+                    'id' => 3, 
+                    'name' => 'Новый пользователь',
+                    'created_by' => $this->getCurrentUserId()
+                ],
+                'meta' => $this->getRequestInfo()
+            ], 201);
+            
+        } catch (Throwable $e) {
+            Logger::error('UserController: create error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Получить профиль текущего пользователя
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: guest
+     */
+    public function getProfile()
+    {
+        try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.users.getProfile')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+            
+            // Получаем текущего пользователя
+            $user = $this->requireUser();
+            
+            // Логируем действие
+            $this->logUserAction('get_profile');
+            
+            $this->json([
+                'success' => true,
+                'data' => $user,
+                'meta' => $this->getRequestInfo()
+            ]);
+            
+        } catch (Exception $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => $e->getMessage()
+                ]
+            ], 401);
+        } catch (Throwable $e) {
+            Logger::error('UserController: getProfile error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
 } 

@@ -91,18 +91,20 @@ class AuthMiddleware
                 ];
             }
             
-            $user = $userResult['data'];
+            $userData = $userResult['data'];
             Logger::info('AuthMiddleware: User synchronized', [
-                'user_id' => $user['id'],
-                'telegram_id' => $user['telegram_id']
+                'user_id' => $userData['user_id'],
+                'telegram_id' => $userData['telegram_id']
             ]);
             
             // 4. Создаем или обновляем сессию
-            $sessionResult = SessionHelper::createOrUpdateSession($user['id']);
+            $sessionResult = SessionHelper::createOrUpdateSession($userData['user_id'], [
+                'telegram_data' => $telegramData
+            ]);
             
             if (!$sessionResult['success']) {
                 Logger::error('AuthMiddleware: Session creation failed', [
-                    'user_id' => $user['id'],
+                    'user_id' => $userData['user_id'],
                     'error' => $sessionResult['error']['message']
                 ]);
                 
@@ -116,22 +118,22 @@ class AuthMiddleware
             }
             
             Logger::info('AuthMiddleware: Session created/updated', [
-                'user_id' => $user['id'],
+                'user_id' => $userData['user_id'],
                 'session_id' => substr($sessionResult['session_id'], 0, 8) . '...',
                 'action' => $sessionResult['action']
             ]);
             
             // 5. Устанавливаем глобальный контекст
-            self::setupGlobalContext($telegramData, $user, $sessionResult);
+            self::setupGlobalContext($telegramData, $userData, $sessionResult);
             
             Logger::info('AuthMiddleware: Global context setup complete', [
-                'user_id' => $user['id'],
+                'user_id' => $userData['user_id'],
                 'request_id' => AppContext::getRequestId()
             ]);
             
             return [
                 'success' => true,
-                'user_id' => $user['id'],
+                'user_id' => $userData['user_id'],
                 'session_id' => $sessionResult['session_id'],
                 'message' => 'Авторизация успешна'
             ];
@@ -164,10 +166,21 @@ class AuthMiddleware
      * @param array $sessionResult Результат создания сессии
      * @return void
      */
-    private static function setupGlobalContext($telegramData, $user, $sessionResult)
+    private static function setupGlobalContext($telegramData, $userData, $sessionResult)
     {
         // Устанавливаем Telegram данные
         AppContext::setTelegramData($telegramData);
+        
+        // Преобразуем данные пользователя в нужный формат
+        $user = [
+            'id' => $userData['user_id'],
+            'telegram_id' => $userData['telegram_id'],
+            'first_name' => $userData['first_name'],
+            'last_name' => $userData['last_name'],
+            'username' => $userData['username'],
+            'role' => $userData['role'],
+            'role_id' => $userData['role']
+        ];
         
         // Устанавливаем пользователя
         AppContext::setCurrentUser($user);

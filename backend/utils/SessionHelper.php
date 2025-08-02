@@ -30,7 +30,7 @@ class SessionHelper
      * Создать или обновить сессию для пользователя
      * 
      * @param int $userId ID пользователя
-     * @param array $options Дополнительные опции
+     * @param array $options Дополнительные опции (telegram_data, etc.)
      * @return array Результат операции
      */
     public static function createOrUpdateSession($userId, $options = [])
@@ -41,25 +41,31 @@ class SessionHelper
             
             if ($existingSession && self::isSessionValid($existingSession)) {
                 // Обновляем существующую сессию
-                $sessionId = self::generateSessionId();
+                $sessionToken = self::generateSessionId();
                 $expiresAt = date('Y-m-d H:i:s', time() + self::SESSION_LIFETIME);
                 
-                $updateResult = Session::update($existingSession['id'], [
-                    'session_token' => $sessionId,
-                    'expires_at' => $expiresAt,
-                    'updated_at' => date('Y-m-d H:i:s')
-                ]);
+                $updateData = [
+                    'session_token' => $sessionToken,
+                    'expires_at' => $expiresAt
+                ];
+                
+                // Добавляем telegram_data если предоставлено
+                if (isset($options['telegram_data'])) {
+                    $updateData['telegram_data'] = json_encode($options['telegram_data']);
+                }
+                
+                $updateResult = Session::update($existingSession->id, $updateData);
                 
                 if ($updateResult) {
                     Logger::info('Session updated', [
                         'user_id' => $userId,
-                        'session_id' => substr($sessionId, 0, 8) . '...',
+                        'session_id' => substr($sessionToken, 0, 8) . '...',
                         'expires_at' => $expiresAt
                     ]);
                     
                     return [
                         'success' => true,
-                        'session_id' => $sessionId,
+                        'session_id' => $sessionToken,
                         'expires_at' => $expiresAt,
                         'action' => 'updated'
                     ];
@@ -78,18 +84,23 @@ class SessionHelper
                 'is_active' => 1
             ];
             
-            $sessionId = Session::create($sessionData);
+            // Добавляем telegram_data если предоставлено
+            if (isset($options['telegram_data'])) {
+                $sessionData['telegram_data'] = json_encode($options['telegram_data']);
+            }
             
-            if ($sessionId) {
+            $sessionToken = Session::create($sessionData);
+            
+            if ($sessionToken) {
                 Logger::info('Session created', [
                     'user_id' => $userId,
-                    'session_id' => substr($sessionId, 0, 8) . '...',
+                    'session_id' => substr($sessionToken, 0, 8) . '...',
                     'expires_at' => $expiresAt
                 ]);
                 
                 return [
                     'success' => true,
-                    'session_id' => $sessionId,
+                    'session_id' => $sessionToken,
                     'expires_at' => $expiresAt,
                     'action' => 'created'
                 ];
@@ -334,11 +345,11 @@ class SessionHelper
      */
     private static function isSessionValid($session)
     {
-        if (!$session['is_active']) {
+        if (!$session->is_active) {
             return false;
         }
         
-        $expiresAt = strtotime($session['expires_at']);
+        $expiresAt = strtotime($session->expires_at);
         $currentTime = time();
         
         return $expiresAt > $currentTime;

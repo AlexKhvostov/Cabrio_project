@@ -26,14 +26,38 @@ require_once __DIR__ . '/../models/Car.php';
 class CarController extends BaseController
 {
     /**
-     * Получить список автомобилей (реализация через модель Car)
+     * Получить список автомобилей
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
      */
     public function getList()
     {
         try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.cars.getList')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
             $cars = Car::getAll();
-            $this->json(['success' => true, 'data' => $cars]);
+            
+            // Логируем действие
+            $this->logUserAction('get_cars_list', [
+                'count' => count($cars)
+            ]);
+            
+            $this->json([
+                'success' => true, 
+                'data' => $cars,
+                'meta' => $this->getRequestInfo()
+            ]);
+            
         } catch (Throwable $e) {
+            Logger::error('CarController: getList error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
             $this->json([
                 'success' => false,
                 'error' => [
@@ -46,10 +70,18 @@ class CarController extends BaseController
 
     /**
      * Получить автомобиль по id
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
      */
     public function getById($id)
     {
         try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.cars.getById')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
             $car = Car::findById($id);
             if (!$car) {
                 $this->json([
@@ -61,8 +93,25 @@ class CarController extends BaseController
                 ], 404);
                 return;
             }
-            $this->json(['success' => true, 'data' => $car]);
+            
+            // Логируем действие
+            $this->logUserAction('get_car_by_id', [
+                'car_id' => $id
+            ]);
+            
+            $this->json([
+                'success' => true, 
+                'data' => $car,
+                'meta' => $this->getRequestInfo()
+            ]);
+            
         } catch (Throwable $e) {
+            Logger::error('CarController: getById error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId(),
+                'car_id' => $id
+            ]);
+            
             $this->json([
                 'success' => false,
                 'error' => [
@@ -75,10 +124,51 @@ class CarController extends BaseController
 
     /**
      * Создать новый автомобиль
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
      */
     public function create()
     {
-        // Пример: создать автомобиль (заглушка)
-        $this->json(['success' => true, 'data' => ['id' => 1, 'model' => 'BMW Z4', 'color' => 'red']], 201);
+        try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.cars.create')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
+            // Получаем данные из запроса
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // Логируем действие
+            $this->logUserAction('create_car', [
+                'input_data' => $input
+            ]);
+
+            // TODO: Реализовать создание автомобиля через модель
+            $this->json([
+                'success' => true, 
+                'data' => [
+                    'id' => 1, 
+                    'model' => 'BMW Z4', 
+                    'color' => 'red',
+                    'created_by' => $this->getCurrentUserId()
+                ],
+                'meta' => $this->getRequestInfo()
+            ], 201);
+            
+        } catch (Throwable $e) {
+            Logger::error('CarController: create error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
     }
 } 

@@ -31,14 +31,24 @@ require_once __DIR__ . '/../level2/__DropBusinessCardAction.php';
 require_once __DIR__ . '/../helpers/RecognizeCarNumberFromPhotoAction.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../utils/AppContext.php';
 
 class ___LeaveBusinessCardAction {
     
     public static function handle($data) {
         try {
-            // Валидация обязательных полей
-            ValidationHelper::requireFields($data, ['user_id']);
-            ValidationHelper::validateInt($data['user_id'], 'user_id');
+            // Получаем пользователя из глобального контекста
+            $user = AppContext::getCurrentUser();
+            if (!$user) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NO_USER',
+                        'message' => 'Пользователь не найден в контексте'
+                    ]
+                ];
+            }
+            $userId = $user['id'];
             
             // Проверяем наличие фото
             if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
@@ -50,8 +60,6 @@ class ___LeaveBusinessCardAction {
                     ]
                 ];
             }
-            
-            $userId = $data['user_id'];
             
             // 1. OCR распознавание номера
             try {
@@ -71,8 +79,7 @@ class ___LeaveBusinessCardAction {
             $_FILES['photo'] = $_FILES['photo'];
             
             $cardResult = __DropBusinessCardAction::handle([
-                'plate_number' => $plateNumber,
-                'user_id' => $userId
+                'plate_number' => $plateNumber
             ]);
             
             if (!$cardResult['success']) {

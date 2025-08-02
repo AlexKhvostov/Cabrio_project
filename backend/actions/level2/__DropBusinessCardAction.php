@@ -10,9 +10,11 @@
  * 1. Проверяем существование автомобиля по номеру
  * 2. Если автомобиль найден:
  *    - Создаём визитку для существующего автомобиля
+ *    - Если статус был "noticed" (ID = 1) → обновляем на "business_card" (ID = 2)
+ *    - Если статус другой → оставляем без изменений
  *    - Возвращаем action: "card_created"
  * 3. Если автомобиль не найден:
- *    - Создаём новый автомобиль со статусом "визитка"
+ *    - Создаём новый автомобиль со статусом "business_card" (ID = 2)
  *    - Создаём визитку для нового автомобиля
  *    - Возвращаем action: "car_and_card_created"
  * 4. Если передана фото:
@@ -21,12 +23,13 @@
  * 
  * Входные данные:
  *   - plate_number (string) — номер автомобиля (обязательно)
- *   - user_id (int) — ID пользователя, оставившего визитку (обязательно)
  *   - car_id (int, опционально) — ID автомобиля (если известен)
  *   - model (string, опционально) — модель автомобиля
  *   - color (string, опционально) — цвет автомобиля
  *   - year (int, опционально) — год выпуска
  *   - photo (file, опционально) — фото автомобиля
+ * 
+ * Пользователь получается из глобального контекста (AppContext)
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
@@ -52,19 +55,30 @@ require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../utils/AppContext.php';
 
 class __DropBusinessCardAction {
     
     public static function handle($data) {
         try {
-            // Валидация обязательных полей
-            ValidationHelper::requireFields($data, ['plate_number', 'user_id']);
+            // Получаем пользователя из глобального контекста
+            $user = AppContext::getCurrentUser();
+            if (!$user) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NO_USER',
+                        'message' => 'Пользователь не найден в контексте'
+                    ]
+                ];
+            }
             
-            // Валидация типов данных
-            ValidationHelper::validateInt($data['user_id'], 'user_id');
+            $userId = $user['id'];
+            
+            // Валидация обязательных полей
+            ValidationHelper::requireFields($data, ['plate_number']);
             
             $plateNumber = $data['plate_number'];
-            $userId = $data['user_id'];
             $action = null;
             $carData = null;
             $cardData = null;
@@ -78,8 +92,28 @@ class __DropBusinessCardAction {
                 $carId = $carData['id'];
                 $action = 'card_created';
                 
+                // Обновляем статус только если он был "noticed" (ID = 1)
+                if ($carData['status_id'] == 1) {
+                    $updateResult = _UpdateStatusAction::handle([
+                        'entity_type' => 'car',
+                        'entity_id' => $carId,
+                        'status_id' => 2 // business_card
+                    ]);
+                    
+                    if ($updateResult['success']) {
+                        // Обновляем данные автомобиля с новым статусом
+                        $carData['status_id'] = 2;
+                        Logger::info("Car status updated from noticed to business_card: car_id=$carId");
+                    } else {
+                        Logger::warning("Failed to update car status to business_card: car_id=$carId");
+                        // Не прерываем выполнение, только логируем
+                    }
+                } else {
+                    Logger::info("Car status not updated (was not 'noticed'): car_id=$carId, current_status_id=" . $carData['status_id']);
+                }
+                
             } else {
-                // Автомобиль не найден - создаём новый со статусом "визитка"
+                // Автомобиль не найден - создаём новый со статусом "business_card"
                 $createData = [
                     'reg_number' => $plateNumber,
                     'create_user_id' => $userId,
@@ -87,7 +121,7 @@ class __DropBusinessCardAction {
                     'color' => $data['color'] ?? null,
                     'year' => $data['year'] ?? null,
                     'owner_user_id' => null, // Без владельца
-                    'status_id' => 3 // "визитка" по умолчанию
+                    'status_id' => 2 // "business_card" (ID = 2)
                 ];
                 
                 $createResult = _CreateCarAction::handle($createData);

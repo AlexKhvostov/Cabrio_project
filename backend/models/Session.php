@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../utils/Database.php';
+
 /**
  * Модель Session — работа с таблицей sessions.
  *
@@ -78,9 +80,65 @@ class Session {
     }
 
     /**
+     * Найти сессию по user_id
+     */
+    public static function findByUserId($user_id) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('
+            SELECT * FROM sessions 
+            WHERE user_id = ? AND is_active = 1
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $stmt->execute([$user_id]);
+        $data = $stmt->fetch();
+        return $data ? new self($data) : null;
+    }
+
+    /**
      * Создать новую сессию
      */
     public static function create($data) {
-        // ... реализация вставки в БД
+        $pdo = Database::getInstance();
+        
+        $sql = 'INSERT INTO sessions (user_id, session_token, created_at, expires_at, is_active, telegram_data) VALUES (?, ?, ?, ?, ?, ?)';
+        $stmt = $pdo->prepare($sql);
+        
+        $result = $stmt->execute([
+            $data['user_id'],
+            $data['session_token'],
+            $data['created_at'],
+            $data['expires_at'],
+            $data['is_active'],
+            $data['telegram_data'] ?? null
+        ]);
+        
+        if ($result) {
+            return $data['session_token']; // Возвращаем токен сессии
+        }
+        
+        return false;
+    }
+
+    /**
+     * Обновить сессию
+     */
+    public static function update($id, $data) {
+        $pdo = Database::getInstance();
+        
+        $sql = 'UPDATE sessions SET session_token = ?, expires_at = ?';
+        $params = [$data['session_token'], $data['expires_at']];
+        
+        // Добавляем telegram_data если предоставлено
+        if (isset($data['telegram_data'])) {
+            $sql .= ', telegram_data = ?';
+            $params[] = $data['telegram_data'];
+        }
+        
+        $sql .= ' WHERE id = ?';
+        $params[] = $id;
+        
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute($params);
     }
 } 

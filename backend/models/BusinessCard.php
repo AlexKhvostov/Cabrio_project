@@ -48,6 +48,23 @@ class BusinessCard {
     }
 
     /**
+     * Получить все визитки
+     */
+    public static function getAll() {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM business_cards ORDER BY created_at DESC');
+        $stmt->execute();
+        $data = $stmt->fetchAll();
+        
+        $businessCards = [];
+        foreach ($data as $row) {
+            $businessCards[] = (new self($row))->toArray();
+        }
+        
+        return $businessCards;
+    }
+
+    /**
      * Создать новую визитку
      */
     public static function create($data) {

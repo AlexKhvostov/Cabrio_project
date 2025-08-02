@@ -20,11 +20,12 @@
  * 
  * Входные данные:
  *   - plate_number (string) — номер автомобиля (обязательно)
- *   - create_user_id (int) — ID пользователя, создавшего запись (обязательно)
  *   - model (string, опционально) — модель автомобиля
  *   - color (string, опционально) — цвет автомобиля
  *   - year (int, опционально) — год выпуска
  *   - photo (file, опционально) — фото автомобиля
+ * 
+ * Пользователь получается из глобального контекста (AppContext)
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
@@ -48,19 +49,30 @@ require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../utils/AppContext.php';
 
 class __SearchCarAction {
     
     public static function handle($data) {
         try {
-            // Валидация обязательных полей
-            ValidationHelper::requireFields($data, ['plate_number', 'create_user_id']);
+            // Получаем пользователя из глобального контекста
+            $user = AppContext::getCurrentUser();
+            if (!$user) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NO_USER',
+                        'message' => 'Пользователь не найден в контексте'
+                    ]
+                ];
+            }
             
-            // Валидация типов данных
-            ValidationHelper::validateInt($data['create_user_id'], 'create_user_id');
+            $createUserId = $user['id'];
+            
+            // Валидация обязательных полей
+            ValidationHelper::requireFields($data, ['plate_number']);
             
             $plateNumber = $data['plate_number'];
-            $createUserId = $data['create_user_id'];
             $action = null;
             $carData = null;
             

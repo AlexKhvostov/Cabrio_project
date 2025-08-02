@@ -138,12 +138,14 @@ class AuthHelper {
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
         
+
+        
         // Telegram WebApp передает данные в заголовках
         $telegramData = [];
         
         // Основные поля
         $fields = [
-            'X-Telegram-User-ID' => 'telegram_id',
+            'X-Telegram-User-Id' => 'telegram_id',
             'X-Telegram-First-Name' => 'first_name',
             'X-Telegram-Last-Name' => 'last_name',
             'X-Telegram-Username' => 'username',
@@ -153,11 +155,24 @@ class AuthHelper {
         ];
         
         foreach ($fields as $header => $field) {
-            $value = $headers[$header] ?? $_SERVER['HTTP_' . str_replace('-', '_', $header)] ?? null;
+            // Пробуем из заголовков
+            $value = $headers[$header] ?? null;
+            
+            // Если нет в заголовках, пробуем из $_SERVER
+            if ($value === null) {
+                // Преобразуем X-Telegram-User-Id в HTTP_X_TELEGRAM_USER_ID
+                $serverKey = 'HTTP_' . strtoupper(str_replace('-', '_', $header));
+                $value = $_SERVER[$serverKey] ?? null;
+            }
+            
+
+            
             if ($value !== null) {
                 $telegramData[$field] = $value;
             }
         }
+        
+
         
         // Проверяем, что есть хотя бы telegram_id
         if (!empty($telegramData['telegram_id'])) {
