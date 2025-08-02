@@ -1,14 +1,16 @@
 <?php
 require_once __DIR__ . '/load_env.php';
+require_once __DIR__ . '/ResponseHelper.php';
 
 /**
- * AuthHelper — утилита для авторизации и проверки токенов в backend CabrioRide.
- * Используется во всех контроллерах и actions для централизованной проверки прав.
- *
- * Методы:
- * - checkAuth() — проверяет наличие и валидность токена, возвращает user_id или 'system'
- * - getUserFromToken() — возвращает объект пользователя по токену
- * - requireRole($role) — проверяет, что у пользователя есть нужная роль
+ * 🔐 AuthHelper — утилита для авторизации и проверки токенов в backend CabrioRide.
+ * 
+ * Централизованная обработка авторизации:
+ * - JWT токены (legacy)
+ * - Telegram данные (новый подход)
+ * - Извлечение и валидация данных
+ * 
+ * @package CabrioRide\Utils
  */
 class AuthHelper {
     /**
@@ -87,5 +89,294 @@ class AuthHelper {
             exit;
         }
         return true;
+    }
+
+    // ========================================
+    // МЕТОДЫ ДЛЯ РАБОТЫ С TELEGRAM ДАННЫМИ
+    // ========================================
+
+    /**
+     * Извлечь данные из Telegram из различных источников
+     * 
+     * @return array|null Данные из Telegram или null
+     */
+    public static function extractTelegramData()
+    {
+        // 1. Пробуем извлечь из заголовков (Telegram WebApp)
+        $telegramData = self::extractFromHeaders();
+        if ($telegramData) {
+            return $telegramData;
+        }
+        
+        // 2. Пробуем извлечь из JSON тела запроса (Telegram Bot)
+        $telegramData = self::extractFromJsonBody();
+        if ($telegramData) {
+            return $telegramData;
+        }
+        
+        // 3. Пробуем извлечь из FormData (Telegram Bot)
+        $telegramData = self::extractFromFormData();
+        if ($telegramData) {
+            return $telegramData;
+        }
+        
+        // 4. Пробуем извлечь из GET параметров (для тестирования)
+        $telegramData = self::extractFromGetParams();
+        if ($telegramData) {
+            return $telegramData;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Извлечь данные из заголовков (Telegram WebApp)
+     * 
+     * @return array|null
+     */
+    private static function extractFromHeaders()
+    {
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        
+        // Telegram WebApp передает данные в заголовках
+        $telegramData = [];
+        
+        // Основные поля
+        $fields = [
+            'X-Telegram-User-ID' => 'telegram_id',
+            'X-Telegram-First-Name' => 'first_name',
+            'X-Telegram-Last-Name' => 'last_name',
+            'X-Telegram-Username' => 'username',
+            'X-Telegram-Photo-URL' => 'photo_url',
+            'X-Telegram-Auth-Date' => 'auth_date',
+            'X-Telegram-Hash' => 'hash'
+        ];
+        
+        foreach ($fields as $header => $field) {
+            $value = $headers[$header] ?? $_SERVER['HTTP_' . str_replace('-', '_', $header)] ?? null;
+            if ($value !== null) {
+                $telegramData[$field] = $value;
+            }
+        }
+        
+        // Проверяем, что есть хотя бы telegram_id
+        if (!empty($telegramData['telegram_id'])) {
+            return $telegramData;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Извлечь данные из JSON тела запроса (Telegram Bot)
+     * 
+     * @return array|null
+     */
+    private static function extractFromJsonBody()
+    {
+        $input = file_get_contents('php://input');
+        if (empty($input)) {
+            return null;
+        }
+        
+        $data = json_decode($input, true);
+        if (!$data) {
+            return null;
+        }
+        
+        // Telegram Bot передает данные в структуре message.from
+        if (isset($data['message']['from'])) {
+            $from = $data['message']['from'];
+            
+            return [
+                'telegram_id' => $from['id'] ?? null,
+                'first_name' => $from['first_name'] ?? null,
+                'last_name' => $from['last_name'] ?? null,
+                'username' => $from['username'] ?? null,
+                'photo_url' => $from['photo_url'] ?? null,
+                'auth_date' => time(),
+                'hash' => $data['hash'] ?? null
+            ];
+        }
+        
+        // Прямые данные (для тестирования)
+        if (isset($data['telegram_id'])) {
+            return $data;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Извлечь данные из FormData (Telegram Bot)
+     * 
+     * @return array|null
+     */
+    private static function extractFromFormData()
+    {
+        if (empty($_POST)) {
+            return null;
+        }
+        
+        $telegramData = [];
+        $fields = [
+            'telegram_id', 'first_name', 'last_name', 
+            'username', 'photo_url', 'auth_date', 'hash'
+        ];
+        
+        foreach ($fields as $field) {
+            if (isset($_POST[$field])) {
+                $telegramData[$field] = $_POST[$field];
+            }
+        }
+        
+        if (!empty($telegramData['telegram_id'])) {
+            return $telegramData;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Извлечь данные из GET параметров (для тестирования)
+     * 
+     * @return array|null
+     */
+    private static function extractFromGetParams()
+    {
+        if (empty($_GET)) {
+            return null;
+        }
+        
+        $telegramData = [];
+        $fields = [
+            'telegram_id', 'first_name', 'last_name', 
+            'username', 'photo_url', 'auth_date', 'hash'
+        ];
+        
+        foreach ($fields as $field) {
+            if (isset($_GET[$field])) {
+                $telegramData[$field] = $_GET[$field];
+            }
+        }
+        
+        if (!empty($telegramData['telegram_id'])) {
+            return $telegramData;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Валидировать данные из Telegram
+     * 
+     * @param array $telegramData Данные из Telegram
+     * @return array Результат валидации
+     */
+    public static function validateTelegramData($telegramData)
+    {
+        if (!$telegramData || !is_array($telegramData)) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_DATA',
+                    'message' => 'Некорректные данные Telegram'
+                ]
+            ];
+        }
+        
+        // Проверяем обязательные поля
+        if (empty($telegramData['telegram_id'])) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'MISSING_TELEGRAM_ID',
+                    'message' => 'Отсутствует telegram_id'
+                ]
+            ];
+        }
+        
+        if (empty($telegramData['first_name'])) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'MISSING_FIRST_NAME',
+                    'message' => 'Отсутствует first_name'
+                ]
+            ];
+        }
+        
+        // Проверяем типы данных
+        if (!is_numeric($telegramData['telegram_id'])) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_TELEGRAM_ID',
+                    'message' => 'telegram_id должен быть числом'
+                ]
+            ];
+        }
+        
+        // Проверяем длину строк
+        if (strlen($telegramData['first_name']) > 64) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_FIRST_NAME',
+                    'message' => 'first_name слишком длинный'
+                ]
+            ];
+        }
+        
+        if (!empty($telegramData['last_name']) && strlen($telegramData['last_name']) > 64) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_LAST_NAME',
+                    'message' => 'last_name слишком длинный'
+                ]
+            ];
+        }
+        
+        if (!empty($telegramData['username']) && strlen($telegramData['username']) > 32) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_USERNAME',
+                    'message' => 'username слишком длинный'
+                ]
+            ];
+        }
+        
+        // TODO: Добавить проверку подписи Telegram (hash)
+        // Это требует реализации проверки подписи согласно документации Telegram
+        
+        return [
+            'success' => true,
+            'message' => 'Данные Telegram валидны'
+        ];
+    }
+
+    /**
+     * Получить информацию о текущем источнике данных
+     * 
+     * @return array
+     */
+    public static function getDataSourceInfo()
+    {
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        $hasHeaders = !empty($headers['X-Telegram-User-ID']) || !empty($_SERVER['HTTP_X_TELEGRAM_USER_ID']);
+        $hasJsonBody = !empty(file_get_contents('php://input'));
+        $hasFormData = !empty($_POST);
+        $hasGetParams = !empty($_GET);
+        
+        return [
+            'has_headers' => $hasHeaders,
+            'has_json_body' => $hasJsonBody,
+            'has_form_data' => $hasFormData,
+            'has_get_params' => $hasGetParams,
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+            'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'unknown'
+        ];
     }
 } 
