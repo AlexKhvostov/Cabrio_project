@@ -99,10 +99,7 @@ class PhotoPlusPlusHandler {
             $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
             
             // Отправляем начальное сообщение
-            $initialMessage = "🚗 <b>Добавление автомобиля</b>\n\n";
-            $initialMessage .= "Привет, <b>$username</b>! 👋\n\n";
-            $initialMessage .= "📸 Анализируем фото автомобиля...\n";
-            $initialMessage .= "⏳ Добавляем в ваш гараж...";
+            $initialMessage = "🚗 <b>Добавляю авто...</b>";
             
             $this->botService->sendMessage($chatId, $initialMessage);
             
@@ -114,7 +111,7 @@ class PhotoPlusPlusHandler {
             $photoBase64 = $this->downloadAndConvertPhoto($photoId);
             
             if (!$photoBase64) {
-                $this->sendErrorMessage($chatId, $username, "Не удалось загрузить фото");
+                $this->sendErrorMessage($chatId, "Не удалось загрузить фото");
                 return;
             }
             
@@ -136,7 +133,7 @@ class PhotoPlusPlusHandler {
                 $this->sendSuccessMessage($chatId, $username, $result['data']);
             } else {
                 $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
-                $this->sendErrorMessage($chatId, $username, $errorMsg);
+                $this->sendErrorMessage($chatId, $errorMsg);
             }
             
         } catch (Exception $e) {
@@ -145,7 +142,7 @@ class PhotoPlusPlusHandler {
                 'user_id' => $user['id']
             ]);
             
-            $this->sendErrorMessage($chatId, $username ?? 'Участник', "Ошибка обработки: " . $e->getMessage());
+            $this->sendErrorMessage($chatId, "Ошибка обработки: " . $e->getMessage());
         }
     }
     
@@ -196,31 +193,23 @@ class PhotoPlusPlusHandler {
         // Извлекаем данные из вложенной структуры ответа
         $carData = $data['data'] ?? $data;
         
-        $message = "✅ <b>Автомобиль добавлен!</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message = "✅ <b>Автомобиль добавлен</b>\n\n";
         
         // Номер автомобиля
         $plateNumber = strtoupper($carData['plate_number'] ?? 'НЕ РАСПОЗНАН');
-        $message .= "🔢 <b>Номер:</b> <code>$plateNumber</code>\n\n";
+        $message .= "🔢 <b>Номер авто:</b> <code>$plateNumber</code>\n\n";
+        
+        // Статус автомобиля
+        $carStatus = $carData['status']['name'] ?? 'Неизвестен';
+        $carStatusDescription = $carData['status']['description'] ?? 'Нет описания';
+        $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
+        
+        // Владелец
+        $message .= "👤 <b>Владелец:</b> $username\n\n";
         
         // Сообщение от сервера
         $serverMessage = $carData['message'] ?? 'Автомобиль добавлен в гараж';
-        $message .= "🚗 <b>Результат:</b> $serverMessage\n\n";
-        
-        // Действие
-        $action = $carData['action'] ?? 'unknown';
-        $actionText = '';
-        switch ($action) {
-            case 'assigned':
-                $actionText = "Автомобиль назначен вам и добавлен в гараж";
-                break;
-            case 'created':
-                $actionText = "Автомобиль создан и добавлен в ваш гараж";
-                break;
-            default:
-                $actionText = "Автомобиль добавлен в гараж";
-        }
-        $message .= "🎯 <b>Действие:</b> $actionText";
+        $message .= "🎯 <b>Результат:</b> $serverMessage";
         
         $this->botService->sendMessage($chatId, $message);
     }
@@ -228,12 +217,9 @@ class PhotoPlusPlusHandler {
     /**
      * Отправляет сообщение об ошибке
      */
-    private function sendErrorMessage($chatId, $username, $errorMsg) {
-        $message = "❌ <b>Ошибка добавления автомобиля</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
-        $message .= "😔 К сожалению, произошла ошибка:\n";
-        $message .= "• $errorMsg\n\n";
-        $message .= "🔄 Попробуйте еще раз или обратитесь к администратору";
+    private function sendErrorMessage($chatId, $errorMsg) {
+        $message = "❌ <b>Ошибка добавления авто</b>\n\n";
+        $message .= "😔 $errorMsg";
         
         $this->botService->sendMessage($chatId, $message);
     }

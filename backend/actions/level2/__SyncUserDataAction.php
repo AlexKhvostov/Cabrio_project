@@ -117,7 +117,7 @@ class __SyncUserDataAction {
                     'first_name' => $data['first_name'] ?? null,
                     'last_name' => $data['last_name'] ?? null,
                     'username' => $data['username'] ?? null,
-                    'role_id' => 1 // guest по умолчанию
+                    'role_id' => 2 // guest по умолчанию
                 ];
                 
                 $createResult = _CreateUserAction::handle($createData);

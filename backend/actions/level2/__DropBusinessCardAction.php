@@ -107,8 +107,9 @@ class __DropBusinessCardAction {
                         // Обновляем данные автомобиля с новым статусом
                         // Получаем обновленные данные автомобиля
                         $updatedCarResult = Car::findByIdWithDetails($carId);
-                        if ($updatedCarResult['success']) {
-                            $carData = $updatedCarResult['data'];
+                        // Исправлено: Car::findByIdWithDetails возвращает просто массив данных, а не массив с ключом 'success'
+                        if ($updatedCarResult) {
+                            $carData = $updatedCarResult;
                         }
                         Logger::info("Car status updated from noticed to business_card: car_id=$carId");
                     } else {

@@ -99,10 +99,7 @@ class PhotoExclamationHandler {
             $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
             
             // Отправляем начальное сообщение
-            $initialMessage = "💼 <b>Сброс визитки</b>\n\n";
-            $initialMessage .= "Привет, <b>$username</b>! 👋\n\n";
-            $initialMessage .= "📸 Анализируем фото визитки...\n";
-            $initialMessage .= "⏳ Обрабатываем данные...";
+            $initialMessage = "💼 <b>Сохраняю визитку...</b>";
             
             $this->botService->sendMessage($chatId, $initialMessage);
             
@@ -114,7 +111,7 @@ class PhotoExclamationHandler {
             $photoBase64 = $this->downloadAndConvertPhoto($photoId);
             
             if (!$photoBase64) {
-                $this->sendErrorMessage($chatId, $username, "Не удалось загрузить фото");
+                $this->sendErrorMessage($chatId, "Не удалось загрузить фото");
                 return;
             }
             
@@ -137,7 +134,7 @@ class PhotoExclamationHandler {
                 $this->sendSuccessMessage($chatId, $username, $result['data']);
             } else {
                 $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
-                $this->sendErrorMessage($chatId, $username, $errorMsg);
+                $this->sendErrorMessage($chatId, $errorMsg);
             }
             
         } catch (Exception $e) {
@@ -146,7 +143,7 @@ class PhotoExclamationHandler {
                 'user_id' => $user['id']
             ]);
             
-            $this->sendErrorMessage($chatId, $username ?? 'Участник', "Ошибка обработки: " . $e->getMessage());
+            $this->sendErrorMessage($chatId, "Ошибка обработки: " . $e->getMessage());
         }
     }
     
@@ -197,31 +194,23 @@ class PhotoExclamationHandler {
         // Извлекаем данные из вложенной структуры ответа
         $cardData = $data['data'] ?? $data;
         
-        $message = "✅ <b>Визитка оставлена!</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message = "✅ <b>Визитка сохранена</b>\n\n";
         
         // Номер автомобиля
         $plateNumber = strtoupper($cardData['plate_number'] ?? 'НЕ РАСПОЗНАН');
-        $message .= "🔢 <b>Номер:</b> <code>$plateNumber</code>\n\n";
+        $message .= "🔢 <b>Номер авто:</b> <code>$plateNumber</code>\n\n";
+        
+        // Статус автомобиля
+        $carStatus = $cardData['status']['name'] ?? 'Неизвестен';
+        $carStatusDescription = $cardData['status']['description'] ?? 'Нет описания';
+        $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
+        
+        // Кто оставил визитку
+        $message .= "👤 <b>Кто оставил визитку:</b> $username\n\n";
         
         // Сообщение от сервера
-        $serverMessage = $cardData['message'] ?? 'Визитка оставлена';
-        $message .= "💼 <b>Результат:</b> $serverMessage\n\n";
-        
-        // Действие
-        $action = $cardData['action'] ?? 'unknown';
-        $actionText = '';
-        switch ($action) {
-            case 'card_created':
-                $actionText = "Визитка оставлена для существующего автомобиля";
-                break;
-            case 'car_and_card_created':
-                $actionText = "Автомобиль создан и визитка оставлена";
-                break;
-            default:
-                $actionText = "Визитка оставлена";
-        }
-        $message .= "🎯 <b>Действие:</b> $actionText";
+        $serverMessage = $cardData['message'] ?? 'Визитка сохранена в базу данных';
+        $message .= "🎯 <b>Результат:</b> $serverMessage";
         
         $this->botService->sendMessage($chatId, $message);
     }
@@ -229,12 +218,9 @@ class PhotoExclamationHandler {
     /**
      * Отправляет сообщение об ошибке
      */
-    private function sendErrorMessage($chatId, $username, $errorMsg) {
-        $message = "❌ <b>Ошибка обновления визитки</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
-        $message .= "😔 К сожалению, произошла ошибка:\n";
-        $message .= "• $errorMsg\n\n";
-        $message .= "🔄 Попробуйте еще раз или обратитесь к администратору";
+    private function sendErrorMessage($chatId, $errorMsg) {
+        $message = "❌ <b>Ошибка сохранения визитки</b>\n\n";
+        $message .= "😔 $errorMsg";
         
         $this->botService->sendMessage($chatId, $message);
     }

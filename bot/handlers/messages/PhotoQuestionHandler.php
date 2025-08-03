@@ -99,10 +99,7 @@ class PhotoQuestionHandler {
             $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
             
             // Отправляем начальное сообщение
-            $initialMessage = "🔍 <b>Поиск автомобиля</b>\n\n";
-            $initialMessage .= "Привет, <b>$username</b>! 👋\n\n";
-            $initialMessage .= "📸 Анализируем фото автомобиля...\n";
-            $initialMessage .= "⏳ Обрабатываем данные...";
+            $initialMessage = "🔍 <b>Проверяю авто...</b>";
             
             $this->botService->sendMessage($chatId, $initialMessage);
             
@@ -114,7 +111,7 @@ class PhotoQuestionHandler {
             $photoBase64 = $this->downloadAndConvertPhoto($photoId);
             
             if (!$photoBase64) {
-                $this->sendErrorMessage($chatId, $username, "Не удалось загрузить фото");
+                $this->sendErrorMessage($chatId, "Не удалось загрузить фото");
                 return;
             }
             
@@ -136,7 +133,7 @@ class PhotoQuestionHandler {
                 $this->sendSuccessMessage($chatId, $username, $result['data']);
             } else {
                 $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
-                $this->sendErrorMessage($chatId, $username, $errorMsg);
+                $this->sendErrorMessage($chatId, $errorMsg);
             }
             
         } catch (Exception $e) {
@@ -145,7 +142,7 @@ class PhotoQuestionHandler {
                 'user_id' => $user['id']
             ]);
             
-            $this->sendErrorMessage($chatId, $username ?? 'Участник', "Ошибка обработки: " . $e->getMessage());
+            $this->sendErrorMessage($chatId, "Ошибка обработки: " . $e->getMessage());
         }
     }
     
@@ -199,58 +196,23 @@ class PhotoQuestionHandler {
      * Отправляет сообщение об успешном результате
      */
     private function sendSuccessMessage($chatId, $username, $data) {
-        $message = "✅ <b>Поиск завершен!</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
-        
         // Извлекаем данные из вложенной структуры ответа
         $carData = $data['data'] ?? $data;
         
+        $message = "✅ <b>Результат проверки</b>\n\n";
+        
         // 1. Номер автомобиля (в верхнем регистре)
         $plateNumber = strtoupper($carData['plate_number'] ?? 'НЕ РАСПОЗНАН');
-        $message .= "🔢 <b>Номер:</b> <code>$plateNumber</code>\n\n";
+        $message .= "🔢 <b>Номер авто:</b> <code>$plateNumber</code>\n\n";
         
-        // 2. Статус поиска
-        $action = $carData['action'] ?? 'unknown';
-        $searchStatusText = '';
-        switch ($action) {
-            case 'found':
-                $searchStatusText = "✅ Автомобиль найден в базе данных";
-                break;
-            case 'created':
-                $searchStatusText = "➕ Автомобиль добавлен в базу данных";
-                break;
-            default:
-                $searchStatusText = "❓ Статус поиска неизвестен";
-                break;
-        }
-        $message .= "✔ <b>$searchStatusText</b>\n\n";
-        
-        // 3. Статус автомобиля в базе
+        // 2. Статус автомобиля в базе
         $carStatus = $carData['status']['name'] ?? 'Неизвестен';
         $carStatusDescription = $carData['status']['description'] ?? 'Нет описания';
         $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
         
-        // 4. Владелец
-        if (isset($carData['owner']) && !empty($carData['owner'])) {
-            $message .= "👤 <b>Участник клуба</b> ✅\n\n";
-        } else {
-            $message .= "👤 <b>Проверка</b> ⚠️\n\n";
-        }
-        
-        // 5. Действие
-        $actionText = '';
-        switch ($action) {
-            case 'found':
-                $actionText = "Проверка выполнена";
-                break;
-            case 'created':
-                $actionText = "Автомобиль добавлен в гараж";
-                break;
-            default:
-                $actionText = "Действие не определено";
-                break;
-        }
-        $message .= "🎯 <b>Действие:</b> $actionText";
+        // 3. Результат выполнения
+        $serverMessage = $carData['message'] ?? 'Проверка выполнена';
+        $message .= "🎯 <b>Результат:</b> $serverMessage";
         
         $this->botService->sendMessage($chatId, $message);
     }
@@ -258,12 +220,9 @@ class PhotoQuestionHandler {
     /**
      * Отправляет сообщение об ошибке
      */
-    private function sendErrorMessage($chatId, $username, $errorMsg) {
-        $message = "❌ <b>Ошибка поиска</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
-        $message .= "😔 К сожалению, произошла ошибка:\n";
-        $message .= "• $errorMsg\n\n";
-        $message .= "🔄 Попробуйте еще раз или обратитесь к администратору";
+    private function sendErrorMessage($chatId, $errorMsg) {
+        $message = "❌ <b>Ошибка проверки</b>\n\n";
+        $message .= "😔 $errorMsg";
         
         $this->botService->sendMessage($chatId, $message);
     }

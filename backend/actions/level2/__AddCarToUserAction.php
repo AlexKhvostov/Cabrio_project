@@ -254,7 +254,7 @@ class __AddCarToUserAction {
             }
             
             $requiredRoleId = $userRoleId['data'];
-            $currentRoleId = $user['role_id'] ?? $user['role']['id'] ?? 1; // guest по умолчанию
+            $currentRoleId = $user['role_id'] ?? $user['role']['id'] ?? 2; // guest по умолчанию
             
             // Если роль меньше user, обновляем
             if ($currentRoleId < $requiredRoleId) {

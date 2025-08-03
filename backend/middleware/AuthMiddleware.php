@@ -179,7 +179,7 @@ class AuthMiddleware
             'last_name' => $userData['last_name_tg'] ?? $userData['last_name'] ?? null,
             'username' => $userData['username'],
             'role' => $userData['role'],
-            'role_id' => $userData['role']['id'] ?? $userData['role_id'] ?? 1
+            'role_id' => $userData['role']['id'] ?? $userData['role_id'] ?? 2
         ];
         
         // Устанавливаем пользователя

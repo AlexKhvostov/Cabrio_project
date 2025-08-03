@@ -11,7 +11,7 @@
  *   - first_name (string, опционально) — имя пользователя
  *   - last_name (string, опционально) — фамилия пользователя  
  *   - username (string, опционально) — username в Telegram
- *   - role_id (int, опционально) — ID роли (по умолчанию 1 - guest)
+ *   - role_id (int, опционально) — ID роли (по умолчанию 2 - guest)
  *   - city (string, опционально) — город
  *   - email (string, опционально) — email
  * 
@@ -54,7 +54,7 @@ class _CreateUserAction {
                 'last_name_tg' => $data['last_name'] ?? null,
                 'telegram_id' => $data['telegram_id'],
                 'username' => $data['username'] ?? null,
-                'role_id' => $data['role_id'] ?? 1, // guest по умолчанию
+                'role_id' => $data['role_id'] ?? 2, // guest по умолчанию
                 'city' => $data['city'] ?? null,
                 'email' => $data['email'] ?? null
             ];

@@ -125,7 +125,7 @@ class User {
             $data['username'] ?? null,
             $data['first_name'] ?? null,
             $data['last_name'] ?? null,
-            $data['role_id'] ?? 1 // guest по умолчанию
+            $data['role_id'] ?? 2 // guest по умолчанию
         ];
         
         $stmt->execute($values);
