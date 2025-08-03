@@ -50,8 +50,9 @@ class ___AddCarToGarageAction {
             }
             $userId = $user['id'];
             
-            // Проверяем наличие фото
-            if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            // Проверяем наличие фото (base64 или файл)
+            if ((!isset($data['photo']) || empty($data['photo'])) && 
+                (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK)) {
                 return [
                     'success' => false,
                     'error' => [
@@ -62,24 +63,38 @@ class ___AddCarToGarageAction {
             }
             
             // 1. OCR распознавание номера
+            $plateNumber = null;
             try {
-                $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                // Проверяем, есть ли base64 данные в data
+                if (isset($data['photo']) && !empty($data['photo'])) {
+                    // Используем base64 данные
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handleFromBase64($data['photo']);
+                } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                    // Используем файл из $_FILES
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                } else {
+                    throw new Exception('Фото не предоставлено ни в base64, ни в файле');
+                }
             } catch (Exception $e) {
-                return [
-                    'success' => false,
-                    'error' => [
-                        'code' => 'OCR_FAILED',
-                        'message' => 'Не удалось распознать номер автомобиля: ' . $e->getMessage()
-                    ]
-                ];
+                Logger::warning('OCR failed, creating car without plate number: ' . $e->getMessage());
+                // Продолжаем без номера - создаём авто без номера
+                $plateNumber = null;
             }
             
             // 2. Добавление автомобиля в гараж
-            // Передаем фото в $_FILES для L2 Action ПЕРЕД вызовом
-            $_FILES['photo'] = $_FILES['photo'];
+            // Если есть base64 данные, создаем временный файл для L2 Action
+            if (isset($data['photo']) && !empty($data['photo'])) {
+                try {
+                    require_once __DIR__ . '/../helpers/FileHelper.php';
+                    $_FILES['photo'] = FileHelper::createTempFileFromBase64($data['photo'], 'car_photo.jpg');
+                } catch (Exception $e) {
+                    Logger::error('Failed to create temp file from base64: ' . $e->getMessage());
+                    // Продолжаем без фото
+                }
+            }
             
             $addResult = __AddCarToUserAction::handle([
-                'plate_number' => $plateNumber
+                'plate_number' => $plateNumber // может быть null
             ]);
             
             if (!$addResult['success']) {
@@ -89,26 +104,14 @@ class ___AddCarToGarageAction {
             // 3. Формируем ответ
             $response = [
                 'success' => true,
-                'data' => [
-                    'action' => $addResult['data']['action'],
+                'data' => array_merge($addResult['data'], [ // Используем развернутые данные из L2 Action
                     'plate_number' => $plateNumber,
-                    'car_id' => $addResult['data']['car_id'],
-                    'model' => $addResult['data']['model'],
-                    'color' => $addResult['data']['color'],
-                    'year' => $addResult['data']['year'],
-                    'status_id' => $addResult['data']['status_id'],
-                    'owner_user_id' => $addResult['data']['owner_user_id'],
-                    'create_user_id' => $addResult['data']['create_user_id'],
-                    'message' => self::getActionMessage($addResult['data']['action'])
-                ]
+                    'message' => self::getActionMessage($addResult['data']['action'], $plateNumber)
+                ])
             ];
             
-            // Добавляем информацию о фото если есть
-            if (isset($addResult['data']['photo'])) {
-                $response['data']['photo'] = $addResult['data']['photo'];
-            }
-            
-            Logger::info("Car added to garage: plate_number=$plateNumber, user_id=$userId, action=" . $addResult['data']['action']);
+            $plateInfo = $plateNumber ? "plate_number=$plateNumber" : "without plate number";
+            Logger::info("Car added to garage: $plateInfo, user_id=$userId, action=" . $addResult['data']['action']);
             
             return $response;
             
@@ -127,14 +130,16 @@ class ___AddCarToGarageAction {
     /**
      * Получить сообщение для действия
      */
-    private static function getActionMessage($action) {
+    private static function getActionMessage($action, $plateNumber = null) {
+        $plateInfo = $plateNumber ? "с номером $plateNumber" : "без номера";
+        
         switch ($action) {
             case 'assigned':
-                return 'Автомобиль назначен вам и добавлен в гараж';
+                return "Автомобиль $plateInfo назначен вам и добавлен в гараж";
             case 'created':
-                return 'Автомобиль создан и добавлен в ваш гараж';
+                return "Автомобиль $plateInfo создан и добавлен в ваш гараж";
             default:
-                return 'Автомобиль добавлен в гараж';
+                return "Автомобиль $plateInfo добавлен в гараж";
         }
     }
 } 

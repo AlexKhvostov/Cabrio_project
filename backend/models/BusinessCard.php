@@ -20,6 +20,7 @@
  *   $newCard = BusinessCard::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/ExpandHelper.php';
 
 class BusinessCard {
     public $id;
@@ -45,6 +46,26 @@ class BusinessCard {
         $stmt->execute([$id]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    /**
+     * Найти визитку по id с развернутыми данными
+     * 
+     * @param int $id ID визитки
+     * @return array|null Развернутые данные визитки или null
+     */
+    public static function findByIdWithDetails($id) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM business_cards WHERE id = ?');
+        $stmt->execute([$id]);
+        $data = $stmt->fetch();
+        
+        if (!$data) {
+            return null;
+        }
+        
+        // Развертываем данные с помощью ExpandHelper
+        return ExpandHelper::expandBusinessCardData($data);
     }
 
     /**
@@ -86,6 +107,23 @@ class BusinessCard {
         
         $stmt->execute($values);
         return $pdo->lastInsertId();
+    }
+
+    /**
+     * Создать новую визитку с возвратом развернутых данных
+     * 
+     * @param array $data Данные для создания
+     * @return array|null Развернутые данные созданной визитки или null
+     */
+    public static function createWithDetails($data) {
+        $cardId = self::create($data);
+        
+        if (!$cardId) {
+            return null;
+        }
+        
+        // Возвращаем развернутые данные созданной визитки
+        return self::findByIdWithDetails($cardId);
     }
 
     /**

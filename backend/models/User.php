@@ -26,6 +26,7 @@
  *   $newUser = User::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/ExpandHelper.php';
 
 class User {
     public $id;
@@ -56,6 +57,26 @@ class User {
     }
 
     /**
+     * Найти пользователя по id с развернутыми данными
+     * 
+     * @param int $id ID пользователя
+     * @return array|null Развернутые данные пользователя или null
+     */
+    public static function findByIdWithDetails($id) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+        $data = $stmt->fetch();
+        
+        if (!$data) {
+            return null;
+        }
+        
+        // Развертываем данные с помощью ExpandHelper
+        return ExpandHelper::expandUserData($data);
+    }
+
+    /**
      * Найти пользователя по telegram_id
      */
     public static function findByTelegramId($telegram_id) {
@@ -64,6 +85,26 @@ class User {
         $stmt->execute([$telegram_id]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    /**
+     * Найти пользователя по telegram_id с развернутыми данными
+     * 
+     * @param string $telegramId Telegram ID пользователя
+     * @return array|null Развернутые данные пользователя или null
+     */
+    public static function findByTelegramIdWithDetails($telegramId) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE telegram_id = ?');
+        $stmt->execute([$telegramId]);
+        $data = $stmt->fetch();
+        
+        if (!$data) {
+            return null;
+        }
+        
+        // Развертываем данные с помощью ExpandHelper
+        return ExpandHelper::expandUserData($data);
     }
 
     /**
@@ -89,6 +130,23 @@ class User {
         
         $stmt->execute($values);
         return $pdo->lastInsertId();
+    }
+
+    /**
+     * Создать нового пользователя с возвратом развернутых данных
+     * 
+     * @param array $data Данные для создания
+     * @return array|null Развернутые данные созданного пользователя или null
+     */
+    public static function createWithDetails($data) {
+        $userId = self::create($data);
+        
+        if (!$userId) {
+            return null;
+        }
+        
+        // Возвращаем развернутые данные созданного пользователя
+        return self::findByIdWithDetails($userId);
     }
 
     /**
@@ -125,6 +183,26 @@ class User {
         $stmt = $pdo->prepare($sql);
         
         return $stmt->execute($values);
+    }
+
+    /**
+     * Обновить пользователя с возвратом развернутых данных
+     * 
+     * @param int $id ID пользователя
+     * @param array $data Данные для обновления
+     * @return array|null Развернутые данные обновленного пользователя или null
+     */
+    public static function updateWithDetails($id, $data) {
+        $data['id'] = $id; // Добавляем ID для обновления
+        
+        $updateResult = self::update($data);
+        
+        if (!$updateResult) {
+            return null;
+        }
+        
+        // Возвращаем развернутые данные обновленного пользователя
+        return self::findByIdWithDetails($id);
     }
 
     /**
@@ -181,6 +259,8 @@ class User {
         $users = [];
         foreach ($rows as $row) {
             $user = $row;
+            
+            // Формируем объект role
             $user['role'] = [
                 'id' => $row['role_id'],
                 'code' => $row['role_code'],
@@ -188,6 +268,7 @@ class User {
             ];
             unset($user['role_id'], $user['role_code'], $user['role_name']);
 
+            // Формируем объект photo
             $user['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
                 'url' => $row['photo_url'],

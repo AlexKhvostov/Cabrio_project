@@ -93,18 +93,18 @@ class AuthMiddleware
             
             $userData = $userResult['data'];
             Logger::info('AuthMiddleware: User synchronized', [
-                'user_id' => $userData['user_id'],
+                'user_id' => $userData['id'],
                 'telegram_id' => $userData['telegram_id']
             ]);
             
             // 4. Создаем или обновляем сессию
-            $sessionResult = SessionHelper::createOrUpdateSession($userData['user_id'], [
+            $sessionResult = SessionHelper::createOrUpdateSession($userData['id'], [
                 'telegram_data' => $telegramData
             ]);
             
             if (!$sessionResult['success']) {
                 Logger::error('AuthMiddleware: Session creation failed', [
-                    'user_id' => $userData['user_id'],
+                    'user_id' => $userData['id'],
                     'error' => $sessionResult['error']['message']
                 ]);
                 
@@ -118,7 +118,7 @@ class AuthMiddleware
             }
             
             Logger::info('AuthMiddleware: Session created/updated', [
-                'user_id' => $userData['user_id'],
+                'user_id' => $userData['id'],
                 'session_id' => substr($sessionResult['session_id'], 0, 8) . '...',
                 'action' => $sessionResult['action']
             ]);
@@ -127,13 +127,13 @@ class AuthMiddleware
             self::setupGlobalContext($telegramData, $userData, $sessionResult);
             
             Logger::info('AuthMiddleware: Global context setup complete', [
-                'user_id' => $userData['user_id'],
+                'user_id' => $userData['id'],
                 'request_id' => AppContext::getRequestId()
             ]);
             
             return [
                 'success' => true,
-                'user_id' => $userData['user_id'],
+                'user_id' => $userData['id'],
                 'session_id' => $sessionResult['session_id'],
                 'message' => 'Авторизация успешна'
             ];
@@ -173,13 +173,13 @@ class AuthMiddleware
         
         // Преобразуем данные пользователя в нужный формат
         $user = [
-            'id' => $userData['user_id'],
+            'id' => $userData['id'],
             'telegram_id' => $userData['telegram_id'],
-            'first_name' => $userData['first_name'],
-            'last_name' => $userData['last_name'],
+            'first_name' => $userData['first_name_tg'] ?? $userData['first_name'] ?? null,
+            'last_name' => $userData['last_name_tg'] ?? $userData['last_name'] ?? null,
             'username' => $userData['username'],
             'role' => $userData['role'],
-            'role_id' => $userData['role']
+            'role_id' => $userData['role']['id'] ?? $userData['role_id'] ?? 1
         ];
         
         // Устанавливаем пользователя
@@ -230,13 +230,46 @@ class AuthMiddleware
         try {
             Logger::info('AuthMiddleware: Processing public request');
             
-            // Устанавливаем только базовый контекст
+            // Устанавливаем базовый контекст
             $requestId = self::generateRequestId();
             AppContext::setRequestId($requestId);
             AppContext::setStartTime(microtime(true));
             
+            // Для L3 Actions обрабатываем Telegram данные из headers
+            $route = $_GET['route'] ?? '';
+            if (strpos($route, '/api/actions/') === 0) {
+                // Получаем Telegram данные из headers
+                $telegramData = self::extractTelegramData();
+                
+                if ($telegramData) {
+                    // Синхронизируем пользователя с реальными Telegram данными
+                    $syncResult = __SyncUserDataAction::handle($telegramData);
+                    
+                    if ($syncResult['success']) {
+                        $userData = $syncResult['data'];
+                        AppContext::setCurrentUser($userData);
+                        
+                        Logger::info('AuthMiddleware: Real user set for L3 Action', [
+                            'user_id' => $userData['id'],
+                            'telegram_id' => $telegramData['telegram_id'],
+                            'route' => $route
+                        ]);
+                    } else {
+                        Logger::warning('AuthMiddleware: Failed to sync user for L3 Action', [
+                            'telegram_data' => $telegramData,
+                            'route' => $route
+                        ]);
+                    }
+                } else {
+                    Logger::warning('AuthMiddleware: No Telegram data found for L3 Action', [
+                        'route' => $route
+                    ]);
+                }
+            }
+            
             Logger::info('AuthMiddleware: Public request processed', [
-                'request_id' => $requestId
+                'request_id' => $requestId,
+                'route' => $route
             ]);
             
             return [
@@ -273,7 +306,17 @@ class AuthMiddleware
             ['route' => '/api/health', 'method' => 'GET'],
             ['route' => '/api/status', 'method' => 'GET'],
             ['route' => '/api/telegram/webhook', 'method' => 'POST'],
-            ['route' => '/api/bot/webhook', 'method' => 'POST']
+            ['route' => '/api/bot/webhook', 'method' => 'POST'],
+            ['route' => '/api/system/user-sync', 'method' => 'POST'],
+            ['route' => '/api/system/user-role', 'method' => 'POST'],
+            ['route' => '/api/system/entity-status', 'method' => 'POST'],
+            ['route' => '/api/actions/check-car-in-club', 'method' => 'POST'],
+            ['route' => '/api/actions/leave-business-card', 'method' => 'POST'],
+            ['route' => '/api/actions/add-car-to-garage', 'method' => 'POST'],
+            // Временно добавляем L3 эндпоинты для тестирования
+            ['route' => '/api/actions/check-car-in-club', 'method' => 'POST'],
+            ['route' => '/api/actions/leave-business-card', 'method' => 'POST'],
+            ['route' => '/api/actions/add-car-to-garage', 'method' => 'POST']
         ];
         
         foreach ($publicEndpoints as $endpoint) {
@@ -312,5 +355,40 @@ class AuthMiddleware
     {
         AppContext::clear();
         Logger::info('AuthMiddleware: Auth context cleared');
+    }
+
+    /**
+     * Извлечь Telegram данные из headers
+     * 
+     * @return array|null Telegram данные или null
+     */
+    private static function extractTelegramData()
+    {
+        // Проверяем наличие Telegram headers (с правильными именами)
+        $telegramId = $_SERVER['HTTP_X_TELEGRAM_USER_ID'] ?? null;
+        $telegramUsername = $_SERVER['HTTP_X_TELEGRAM_USERNAME'] ?? null;
+        $telegramFirstName = $_SERVER['HTTP_X_TELEGRAM_FIRST_NAME'] ?? null;
+        $telegramLastName = $_SERVER['HTTP_X_TELEGRAM_LAST_NAME'] ?? null;
+        
+        // Логируем для отладки
+        Logger::info('AuthMiddleware: Extracting Telegram data from headers', [
+            'telegram_id' => $telegramId,
+            'telegram_username' => $telegramUsername,
+            'telegram_first_name' => $telegramFirstName,
+            'telegram_last_name' => $telegramLastName,
+            'all_headers' => array_keys($_SERVER)
+        ]);
+        
+        if (!$telegramId) {
+            Logger::warning('AuthMiddleware: No Telegram User ID found in headers');
+            return null;
+        }
+        
+        return [
+            'telegram_id' => (int)$telegramId,
+            'username' => $telegramUsername,
+            'first_name' => $telegramFirstName,
+            'last_name' => $telegramLastName
+        ];
     }
 } 

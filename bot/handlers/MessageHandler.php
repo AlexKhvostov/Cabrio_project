@@ -2,18 +2,19 @@
 /**
  * MessageHandler.php
  * 
- * Главный обработчик сообщений бота
+ * Главный обработчик сообщений Telegram бота
+ * Маршрутизирует входящие сообщения к соответствующим обработчикам
  */
 
 require_once __DIR__ . '/../services/BotService.php';
-require_once __DIR__ . '/../commands/StartCommand.php';
-require_once __DIR__ . '/../commands/HelpCommand.php';
+require_once __DIR__ . '/../utils/Logger.php';
+require_once __DIR__ . '/commands/StartCommand.php';
+require_once __DIR__ . '/commands/HelpCommand.php';
+require_once __DIR__ . '/events/UserJoinedHandler.php';
+require_once __DIR__ . '/events/UserLeftHandler.php';
 require_once __DIR__ . '/messages/PhotoQuestionHandler.php';
-require_once __DIR__ . '/messages/TextPlateSearchHandler.php';
 require_once __DIR__ . '/messages/PhotoExclamationHandler.php';
 require_once __DIR__ . '/messages/PhotoPlusPlusHandler.php';
-require_once __DIR__ . '/messages/GroupPhotoCheckHandler.php';
-require_once __DIR__ . '/../utils/Logger.php';
 
 class MessageHandler {
     /** @var BotService */
@@ -24,135 +25,95 @@ class MessageHandler {
      */
     public function __construct() {
         $this->botService = new BotService();
+        writeToLog("MessageHandler: Initialized");
     }
     
     /**
      * Обрабатывает входящее сообщение
+     * 
+     * @param array $message — сообщение от Telegram
      */
     public function handle($message) {
         try {
-            writeToLog("MessageHandler: Processing message");
+            writeToLog("MessageHandler: Processing message", [
+                'chat_type' => $message['chat']['type'] ?? 'unknown',
+                'has_text' => isset($message['text']),
+                'has_photo' => isset($message['photo']),
+                'user_id' => $message['from']['id'] ?? null
+            ]);
             
-            // Создаем сервис бота
-            $botService = new BotService();
+            $chat_type = $message['chat']['type'] ?? null;
+            $chat_id = $message['chat']['id'] ?? null;
             
-            // Если это команда
-            if (isset($message['entities']) && 
-                $message['entities'][0]['type'] === 'bot_command') {
-                
-                $command = strtolower(explode(' ', $message['text'])[0]);
-                
-                switch ($command) {
-                    case '/start':
-                        $cmd = new StartCommand($botService);
-                        $this->botService->handleWithProfileSync($cmd, $message);
-                        break;
-                        
-                    case '/help':
-                        $cmd = new HelpCommand($botService);
-                        $this->botService->handleWithProfileSync($cmd, $message);
-                        break;
-                        
-                    case '/search':
-                        $cmd = new TextPlateSearchHandler($botService);
-                        $this->botService->handleWithProfileSync($cmd, $message);
-                        break;
-                        
-                    default:
-                        $botService->sendMessage(
-                            $message['chat']['id'],
-                            "⚠️ Неизвестная команда. Используйте /help для списка команд."
-                        );
-                }
-                return;
-            }
-            // Фото с подписью "?" — только для группового чата!
-            if (
-                isset($message['photo']) &&
-                (
-                    (isset($message['text']) && trim($message['text']) === '?') ||
-                    (isset($message['caption']) && trim($message['caption']) === '?')
-                ) &&
-                ($message['chat']['type'] === 'group' || $message['chat']['type'] === 'supergroup')
-            ) {
-                $cmd = new GroupPhotoCheckHandler($botService);
-                $this->botService->handleWithProfileSync($cmd, $message);
-                return;
-            }
-            
-            // Если это фото в личных сообщениях
-            if (isset($message['photo']) && $message['chat']['type'] === 'private') {
-                $cmd = new PhotoQuestionHandler($botService);
-                $this->botService->handleWithProfileSync($cmd, $message);
-                return;
-            }
-            
-            // Если это текстовый поиск номера (не команда)
-            if (isset($message['text']) && $message['chat']['type'] === 'private') {
-                $text = trim($message['text']);
-                
-                // Проверяем, что это похоже на номер (содержит буквы и цифры)
-                if (preg_match('/[a-z0-9]{4,}/ui', $text)) {
-                    $cmd = new TextPlateSearchHandler($botService);
-                    $this->botService->handleWithProfileSync($cmd, $message);
-                    return;
-                }
-            }
-            
-            // Если это новые участники в группе
-            if (isset($message['new_chat_members']) && !empty($message['new_chat_members'])) {
-                $this->handleNewChatMembers($botService, $message); // Можно централизовать аналогично, если нужно
-                return;
-            }
-            
-            // Если это участник покинул группу
-            if (isset($message['left_chat_member'])) {
-                $this->handleLeftChatMember($botService, $message); // Можно централизовать аналогично, если нужно
-                return;
-            }
-            
-            // Если это текст в личных сообщениях
-            if (isset($message['text']) && $message['chat']['type'] === 'private') {
-                // TODO: Здесь будет поиск по номеру
-                $botService->sendMessage(
-                    $message['chat']['id'],
-                    "🔍 Для поиска авто отправьте фото номера или используйте команду /search"
-                );
-                return;
-            }
-            
-            // Если это фото с текстом "!" в групповом чате — оставить визитку
-            if (isset($message['photo']) && (
-                (isset($message['text']) && trim($message['text']) === '!') ||
-                (isset($message['caption']) && trim($message['caption']) === '!')
-            )) {
-                $cmd = new PhotoExclamationHandler($botService);
-                $this->botService->handleWithProfileSync($cmd, $message);
-                return;
-            }
-
-            // Если это фото с подписью '++' в групповом чате — добавить/обновить авто
-            if (isset($message['photo']) && (
-                (isset($message['text']) && trim($message['text']) === '++') ||
-                (isset($message['caption']) && trim($message['caption']) === '++')
-            )) {
-                $cmd = new PhotoPlusPlusHandler($botService);
-                $this->botService->handleWithProfileSync($cmd, $message);
-                return;
-            }
-            
-
-            // В групповом чате игнорируем все остальные сообщения
-            if ($message['chat']['type'] !== 'private') {
-                return; // Бот не реагирует на обычные сообщения в группе
+            // Проверяем тип чата
+            if ($chat_type === 'private') {
+                $this->handlePrivateMessage($message);
+            } elseif ($chat_type === 'group' || $chat_type === 'supergroup') {
+                $this->handleGroupMessage($message);
+            } else {
+                writeToLog("MessageHandler: Unknown chat type", [
+                    'chat_type' => $chat_type
+                ]);
             }
             
         } catch (Exception $e) {
             writeToLog("Error in MessageHandler: " . $e->getMessage());
-            $botService->sendMessage(
+            $this->botService->sendMessage(
                 $message['chat']['id'],
                 "❌ Произошла ошибка при обработке сообщения. Попробуйте позже."
             );
+        }
+    }
+    
+    /**
+     * Обрабатывает сообщения в личных чатах
+     */
+    private function handlePrivateMessage($message) {
+        writeToLog("MessageHandler: Handling private message");
+        
+        $chat_id = $message['chat']['id'];
+        $user = $message['from'];
+        
+        // Проверяем членство пользователя в клубном чате
+        $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
+        $isMember = $this->botService->checkChatMember($club_chat_id, $user['id']);
+        
+        if (!$isMember) {
+            writeToLog("MessageHandler: User not in club chat");
+            $this->botService->sendNonMemberMessage($chat_id);
+            return;
+        }
+        
+        // Пользователь в клубе - обрабатываем сообщение
+        writeToLog("MessageHandler: User is club member, processing message");
+        
+        // Обрабатываем команды
+        $this->handleCommands($message);
+    }
+    
+    /**
+     * Обрабатывает сообщения в групповых чатах
+     */
+    private function handleGroupMessage($message) {
+        writeToLog("MessageHandler: Handling group message");
+        
+        $chat_id = $message['chat']['id'];
+        $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
+        $club_chat_name = $_ENV['CLUB_CHAT_NAME'] ?? 'CabrioRide';
+        
+        // Проверяем, что это клубный чат
+        if ($chat_id != $club_chat_id) {
+            writeToLog("MessageHandler: Not club chat, ignoring");
+            $this->botService->sendMessage($chat_id, "❌ Бот работает только в клубном чате: @$club_chat_name");
+            return;
+        }
+        
+        // Это клубный чат - обрабатываем сообщение
+        writeToLog("MessageHandler: Club chat message, processing");
+        
+        // Обрабатываем фото с комментариями
+        if (isset($message['photo']) && isset($message['caption'])) {
+            $this->handlePhotoWithCaption($message);
         }
     }
     
@@ -161,225 +122,162 @@ class MessageHandler {
      */
     public function handleCallback($callback) {
         try {
+            $data = $callback['data'] ?? '';
+            $chat_id = $callback['message']['chat']['id'] ?? null;
+            $user = $callback['from'];
+            
             writeToLog("MessageHandler: Processing callback", [
-                'data' => $callback['data']
+                'data' => $data,
+                'user_id' => $user['id'] ?? null
             ]);
             
-            $botService = new BotService();
-            
-            // Определяем тип callback по префиксу
-            if (strpos($callback['data'], 'test_') === 0) {
-                $botService->answerCallbackQuery($callback['id'], "Неизвестная команда");
-            } elseif (strpos($callback['data'], 'search_') === 0) {
-                $cmd = new PhotoQuestionHandler($botService);
-                $cmd->handleCallback($callback);
-                
-            } elseif (strpos($callback['data'], 'leave_card_') === 0) {
-                // Обработка кнопки "Оставить визитку"
-                $plate = str_replace('leave_card_', '', $callback['data']);
-                $this->handleLeaveCard($callback, $plate);
-                
-            } elseif ($callback['data'] === 'cancel_card') {
-                // Обработка кнопки "Отмена"
-                $this->handleCancelCard($callback);
-                
-            } else {
-                writeToLog("MessageHandler: Unknown callback type", [
-                    'data' => $callback['data']
-                ]);
-                
-                // Отвечаем на callback (убираем "часики")
-                $botService->answerCallbackQuery($callback['id'], "Неизвестная команда");
+            switch ($data) {
+                case 'start':
+                    $startCommand = new StartCommand($this->botService);
+                    $startCommand->execute(['chat' => ['id' => $chat_id], 'from' => $user]);
+                    break;
+                    
+                case 'help':
+                    $helpCommand = new HelpCommand($this->botService);
+                    $helpCommand->execute(['chat' => ['id' => $chat_id], 'from' => $user]);
+                    break;
+                    
+                case 'profile':
+                    $this->botService->sendMessage($chat_id, "👥 <b>Профиль</b>\n\nФункция профиля пока в разработке.");
+                    break;
+                    
+                case 'my_cars':
+                    $this->botService->sendMessage($chat_id, "🚗 <b>Мои автомобили</b>\n\nФункция пока в разработке.");
+                    break;
+                    
+                case 'support':
+                    $this->botService->sendMessage($chat_id, "📞 <b>Поддержка</b>\n\nОбратитесь к администрации клуба.");
+                    break;
+                    
+                default:
+                    $this->botService->sendMessage($chat_id, "❓ Неизвестная кнопка.");
+                    break;
             }
             
         } catch (Exception $e) {
             writeToLog("Error in MessageHandler callback: " . $e->getMessage());
-            $botService->sendMessage(
-                $callback['message']['chat']['id'],
-                "❌ Произошла ошибка при обработке запроса. Попробуйте позже."
-            );
         }
     }
     
     /**
-     * Обрабатывает нажатие кнопки "Оставить визитку"
-     */
-    private function handleLeaveCard($callback, $plate) {
-        try {
-            $chat_id = $callback['message']['chat']['id'];
-            $user = $callback['from'];
-            
-            writeToLog("Handling leave card", [
-                'plate' => $plate,
-                'user_id' => $user['id']
-            ]);
-            
-            // Проверяем роль пользователя
-            $user_role = $this->botService->checkUserRole($user['id']);
-            if (!in_array($user_role, ['member', 'moderator', 'admin'])) {
-                $this->botService->answerCallbackQuery($callback['id'], "Только участники клуба могут оставлять визитки");
-                return;
-            }
-            
-            // Открываем WebApp для создания визитки
-            $webAppUrl = getWebAppUrl() . '/visiting-card/' . urlencode($plate);
-            
-            $text = "💼 Создание визитки\n\n🚗 Номер: $plate\n\nОткроется приложение для заполнения визитки.";
-            
-            $buttons = [[
-                [
-                    'text' => '📝 Заполнить визитку',
-                    'web_app' => ['url' => $webAppUrl]
-                ]
-            ]];
-            
-            $this->botService->sendInlineKeyboard($chat_id, $text, $buttons);
-            
-            // Отвечаем на callback
-            $this->botService->answerCallbackQuery($callback['id'], "Открываю форму визитки");
-            
-        } catch (Exception $e) {
-            writeToLog("Error handling leave card: " . $e->getMessage());
-            $this->botService->answerCallbackQuery($callback['id'], "Ошибка при создании визитки");
-        }
-    }
-    
-    /**
-     * Обрабатывает нажатие кнопки "Отмена"
-     */
-    private function handleCancelCard($callback) {
-        try {
-            $chat_id = $callback['message']['chat']['id'];
-            
-            writeToLog("Handling cancel card");
-            
-            $text = "✅ Хорошо, визитка не будет создана.\n\nМожете отправить другое фото для проверки.";
-            
-            $this->botService->sendMessage($chat_id, $text);
-            
-            // Отвечаем на callback
-            $this->botService->answerCallbackQuery($callback['id'], "Визитка отменена");
-            
-        } catch (Exception $e) {
-            writeToLog("Error handling cancel card: " . $e->getMessage());
-            $this->botService->answerCallbackQuery($callback['id'], "Ошибка при отмене");
-        }
-    }
-    
-    /**
-     * Обрабатывает обновления статуса участника чата
+     * Обрабатывает обновления участников чата
      */
     public function handleChatMemberUpdate($update) {
         try {
-            writeToLog("MessageHandler: Processing chat member update", $update);
+            $chat = $update['chat'];
+            $newMember = $update['new_chat_member'];
+            $user = $newMember['user'];
             
-            $botService = new BotService();
-            $chatMember = $update['new_chat_member'] ?? $update['old_chat_member'] ?? null;
-            
-            if (!$chatMember) {
-                writeToLog("MessageHandler: No chat member data in update");
-                return;
-            }
-            
-            $chat_id = $update['chat']['id'];
-            $user = $chatMember['user'];
-            $status = $chatMember['status'];
-            
-            writeToLog("MessageHandler: Chat member update details", [
-                'chat_id' => $chat_id,
-                'user_id' => $user['id'],
-                'username' => $user['username'] ?? 'Нет username',
-                'first_name' => $user['first_name'] ?? 'Нет имени',
-                'status' => $status
+            writeToLog("MessageHandler: Processing chat member update", [
+                'chat_id' => $chat['id'] ?? null,
+                'user_id' => $user['id'] ?? null,
+                'status' => $newMember['status'] ?? null
             ]);
             
-            // Проверяем, что это основная группа клуба
-            $clubChatId = getConfig('club_chat_id');
-            if ((int)$chat_id != (int)$clubChatId) {
-                writeToLog("MessageHandler: Not main chat, ignoring");
+            // Проверяем, что это клубный чат
+            $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
+            if ($chat['id'] != $club_chat_id) {
+                writeToLog("MessageHandler: Not club chat, ignoring chat member update");
                 return;
             }
             
-            // Обрабатываем разные статусы
-            switch ($status) {
+            // Обрабатываем в зависимости от статуса
+            switch ($newMember['status']) {
                 case 'member':
-                case 'administrator':
-                    // Пользователь присоединился к группе
-                    $this->handleUserJoined($botService, $chat_id, $user);
+                    // Пользователь присоединился к чату
+                    $joinedHandler = new UserJoinedHandler($this->botService);
+                    $joinedHandler->handle($update);
                     break;
                     
                 case 'left':
                 case 'kicked':
-                    // Пользователь покинул группу
-                    $this->handleUserLeft($botService, $chat_id, $user);
+                    // Пользователь покинул чат
+                    $leftHandler = new UserLeftHandler($this->botService);
+                    $leftHandler->handle($update);
                     break;
                     
                 default:
-                    writeToLog("MessageHandler: Unknown status", ['status' => $status]);
+                    writeToLog("MessageHandler: Unknown member status", [
+                        'status' => $newMember['status']
+                    ]);
                     break;
             }
             
         } catch (Exception $e) {
-            writeToLog("Error handling chat member update: " . $e->getMessage());
+            writeToLog("Error in MessageHandler chat member update: " . $e->getMessage());
         }
     }
     
     /**
-     * Обрабатывает присоединение пользователя к группе
+     * Обрабатывает фото с комментариями
      */
-    private function handleUserJoined($botService, $chat_id, $user) {
-        // Делегируем обработку отдельному классу
-        require_once __DIR__ . '/events/UserJoinedHandler.php';
-        $handler = new UserJoinedHandler($botService);
-        // Пока joinType определяем как unknown, можно доработать по событиям
-        $handler->handle($chat_id, $user, 'unknown');
-    }
-    /**
-     * Обрабатывает выход пользователя из группы
-     */
-    private function handleUserLeft($botService, $chat_id, $user) {
-        require_once __DIR__ . '/events/UserLeftHandler.php';
-        $handler = new UserLeftHandler($botService);
-        // Пока leaveType определяем как unknown, можно доработать по событиям
-        $handler->handle($chat_id, $user, 'unknown');
-    }
-    
-    /**
-     * Обрабатывает новых участников в группе
-     */
-    private function handleNewChatMembers($botService, $message) {
-        try {
-            $chat_id = $message['chat']['id'];
-            $newMembers = $message['new_chat_members'];
-            writeToLog("MessageHandler: New chat members", [
-                'chat_id' => $chat_id,
-                'members_count' => count($newMembers)
-            ]);
-            // Проверяем, что это основная группа клуба
-            $clubChatId = getConfig('club_chat_id');
-            if ((int)$chat_id != (int)$clubChatId) {
-                writeToLog("MessageHandler: Not main chat, ignoring new members");
-                return;
-            }
-            foreach ($newMembers as $member) {
-                // Пропускаем ботов
-                if ($member['is_bot']) {
-                    continue;
-                }
-                // Вместо отправки приветствия вызываем handleUserJoined
-                $this->handleUserJoined($botService, $chat_id, $member);
-            }
-        } catch (Exception $e) {
-            writeToLog("Error handling new chat members: " . $e->getMessage());
+    private function handlePhotoWithCaption($message) {
+        $caption = trim($message['caption'] ?? '');
+        
+        writeToLog("MessageHandler: Processing photo with caption", [
+            'caption' => $caption,
+            'user_id' => $message['from']['id'] ?? null
+        ]);
+        
+        // Обрабатываем разные комментарии
+        switch ($caption) {
+            case '?':
+                $handler = new PhotoQuestionHandler($this->botService);
+                $handler->handle($message);
+                break;
+                
+            case '!':
+                $handler = new PhotoExclamationHandler($this->botService);
+                $handler->handle($message);
+                break;
+                
+            case '++':
+                $handler = new PhotoPlusPlusHandler($this->botService);
+                $handler->handle($message);
+                break;
+                
+            default:
+                writeToLog("MessageHandler: Unknown photo caption", [
+                    'caption' => $caption
+                ]);
+                break;
         }
     }
     
     /**
-     * Обрабатывает участника, покинувшего группу
+     * Обрабатывает команды пользователя
      */
-    private function handleLeftChatMember($botService, $message) {
+    private function handleCommands($message) {
+        $text = $message['text'] ?? '';
         $chat_id = $message['chat']['id'];
-        $leftMember = $message['left_chat_member'];
-        $this->handleUserLeft($botService, $chat_id, $leftMember);
+        
+        writeToLog("MessageHandler: Processing command", [
+            'text' => $text,
+            'chat_id' => $chat_id
+        ]);
+        
+        switch ($text) {
+            case '/start':
+                $startCommand = new StartCommand($this->botService);
+                $startCommand->execute($message);
+                break;
+                
+            case '/help':
+                $helpCommand = new HelpCommand($this->botService);
+                $helpCommand->execute($message);
+                break;
+                
+            default:
+                // Неизвестная команда
+                $this->botService->sendMessage($chat_id, 
+                    "❓ Неизвестная команда. Используйте /help для списка доступных команд."
+                );
+                break;
+        }
     }
 } 

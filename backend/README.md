@@ -22,8 +22,6 @@ backend/
 │
 ├── actions/                    # Бизнес-логика (уровни 1-4)
 │   ├── level1/                # Базовые операции (префикс: _)
-│   │   ├── _CreateUserWithPhotoAction.php      # Создание пользователя + фото
-│   │   ├── _CreateCarWithPhotoAction.php       # Создание авто + фото
 │   │   ├── _CheckUserExistsAction.php           # Проверка существования пользователя
 │   │   ├── _FindCarByNumberAction.php           # Поиск авто по номеру
 │   │   └── ...                                 # Другие базовые операции

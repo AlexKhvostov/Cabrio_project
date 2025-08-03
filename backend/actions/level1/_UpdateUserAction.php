@@ -16,7 +16,7 @@
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
- *   - data (array) — обновленные данные пользователя
+ *   - data (array) — развернутые данные обновленного пользователя
  *   - error (array, опционально) — информация об ошибке
  */
 require_once __DIR__ . '/../../utils/Database.php';
@@ -56,7 +56,9 @@ class _UpdateUserAction {
                 'last_name' => 'last_name_tg',
                 'username' => 'username',
                 'city' => 'city',
-                'email' => 'email'
+                'email' => 'email',
+                'join_date' => 'join_date',
+                'left_date' => 'left_date'
             ];
             
             foreach ($fieldMapping as $inputField => $dbField) {
@@ -81,11 +83,10 @@ class _UpdateUserAction {
                 ValidationHelper::validateEmail($updateData['email']);
             }
             
-            // Обновляем пользователя
-            $updateData['id'] = $data['user_id'];
-            $result = User::update($updateData);
+            // Обновляем пользователя с развернутыми данными
+            $updatedUserData = User::updateWithDetails($data['user_id'], $updateData);
             
-            if (!$result) {
+            if (!$updatedUserData) {
                 return [
                     'success' => false,
                     'error' => [
@@ -95,14 +96,11 @@ class _UpdateUserAction {
                 ];
             }
             
-            // Получаем обновленного пользователя
-            $updatedUser = User::findById($data['user_id']);
-            
             Logger::info("User updated: ID={$data['user_id']}");
             
             return [
                 'success' => true,
-                'data' => $updatedUser->toArray()
+                'data' => $updatedUserData // Возвращаем развернутые данные
             ];
             
         } catch (Exception $e) {

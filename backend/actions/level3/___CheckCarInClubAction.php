@@ -50,8 +50,9 @@ class ___CheckCarInClubAction {
             }
             $userId = $user['id'];
             
-            // Проверяем наличие фото
-            if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            // Проверяем наличие фото (base64 или файл)
+            if ((!isset($data['photo']) || empty($data['photo'])) && 
+                (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK)) {
                 return [
                     'success' => false,
                     'error' => [
@@ -63,7 +64,16 @@ class ___CheckCarInClubAction {
             
             // 1. OCR распознавание номера
             try {
-                $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                // Проверяем, есть ли base64 данные в data
+                if (isset($data['photo']) && !empty($data['photo'])) {
+                    // Используем base64 данные
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handleFromBase64($data['photo']);
+                } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                    // Используем файл из $_FILES
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                } else {
+                    throw new Exception('Фото не предоставлено ни в base64, ни в файле');
+                }
             } catch (Exception $e) {
                 return [
                     'success' => false,
@@ -75,8 +85,16 @@ class ___CheckCarInClubAction {
             }
             
             // 2. Поиск автомобиля в клубе
-            // Передаем фото в $_FILES для L2 Action ПЕРЕД вызовом
-            $_FILES['photo'] = $_FILES['photo'];
+            // Если есть base64 данные, создаем временный файл для L2 Action
+            if (isset($data['photo']) && !empty($data['photo'])) {
+                try {
+                    require_once __DIR__ . '/../helpers/FileHelper.php';
+                    $_FILES['photo'] = FileHelper::createTempFileFromBase64($data['photo'], 'car_photo.jpg');
+                } catch (Exception $e) {
+                    Logger::error('Failed to create temp file from base64: ' . $e->getMessage());
+                    // Продолжаем без фото
+                }
+            }
             
             $searchResult = __SearchCarAction::handle([
                 'plate_number' => $plateNumber
@@ -89,24 +107,11 @@ class ___CheckCarInClubAction {
             // 3. Формируем ответ
             $response = [
                 'success' => true,
-                'data' => [
-                    'action' => $searchResult['data']['action'],
+                'data' => array_merge($searchResult['data'], [ // Используем развернутые данные из L2 Action
                     'plate_number' => $plateNumber,
-                    'car_id' => $searchResult['data']['car_id'],
-                    'model' => $searchResult['data']['model'],
-                    'color' => $searchResult['data']['color'],
-                    'year' => $searchResult['data']['year'],
-                    'status_id' => $searchResult['data']['status_id'],
-                    'owner_user_id' => $searchResult['data']['owner_user_id'],
-                    'create_user_id' => $searchResult['data']['create_user_id'],
                     'message' => self::getActionMessage($searchResult['data']['action'])
-                ]
+                ])
             ];
-            
-            // Добавляем информацию о фото если есть
-            if (isset($searchResult['data']['photo'])) {
-                $response['data']['photo'] = $searchResult['data']['photo'];
-            }
             
             Logger::info("Car check in club completed: plate_number=$plateNumber, user_id=$userId, action=" . $searchResult['data']['action']);
             

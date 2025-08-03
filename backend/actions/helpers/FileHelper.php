@@ -213,4 +213,53 @@ class FileHelper {
         
         return file_exists($filePath);
     }
+    
+    /**
+     * 🔄 Создание временного файла из base64 для совместимости с $_FILES
+     * 
+     * @param string $base64Data - Base64 кодированное изображение
+     * @param string $originalName - Оригинальное имя файла
+     * @return array - Данные файла в формате $_FILES
+     * @throws Exception - Если не удалось создать временный файл
+     */
+    public static function createTempFileFromBase64($base64Data, $originalName = 'photo.jpg') {
+        try {
+            // Декодируем base64
+            $imageBinary = base64_decode($base64Data, true);
+            if ($imageBinary === false) {
+                throw new Exception('Неверный формат base64 данных');
+            }
+            
+            // Создаем временный файл
+            $tempFile = tempnam(sys_get_temp_dir(), 'upload_');
+            if (file_put_contents($tempFile, $imageBinary) === false) {
+                throw new Exception('Не удалось создать временный файл');
+            }
+            
+            // Определяем MIME тип
+            $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+            $mimeType = 'image/jpeg'; // По умолчанию
+            switch ($extension) {
+                case 'png':
+                    $mimeType = 'image/png';
+                    break;
+                case 'gif':
+                    $mimeType = 'image/gif';
+                    break;
+            }
+            
+            // Возвращаем данные в формате $_FILES
+            return [
+                'name' => $originalName,
+                'type' => $mimeType,
+                'tmp_name' => $tempFile,
+                'error' => UPLOAD_ERR_OK,
+                'size' => strlen($imageBinary)
+            ];
+            
+        } catch (Exception $e) {
+            Logger::error('FileHelper::createTempFileFromBase64 failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 } 

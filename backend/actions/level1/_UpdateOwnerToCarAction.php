@@ -56,7 +56,18 @@ class _UpdateOwnerToCarAction {
                 ];
             }
             
-            // Обновляем владельца автомобиля
+            // Проверяем, есть ли уже владелец у автомобиля
+            if ($car->owner_user_id !== null) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'CAR_ALREADY_OWNED',
+                        'message' => 'Автомобиль уже имеет владельца'
+                    ]
+                ];
+            }
+            
+            // Обновляем владельца автомобиля и устанавливаем статус "Активный"
             $result = Car::updateOwner($data['car_id'], $data['user_id']);
             
             if (!$result) {
@@ -67,6 +78,22 @@ class _UpdateOwnerToCarAction {
                         'message' => 'Ошибка обновления владельца автомобиля'
                     ]
                 ];
+            }
+            
+            // Устанавливаем статус "Активный" (status_id = 7)
+            require_once __DIR__ . '/_UpdateStatusAction.php';
+            $statusResult = _UpdateStatusAction::handle([
+                'entity_type' => 'car',
+                'entity_id' => $data['car_id'],
+                'status_id' => 7 // "Активный"
+            ]);
+            
+            if (!$statusResult['success']) {
+                Logger::warning("Failed to update car status to active", [
+                    'car_id' => $data['car_id'],
+                    'error' => $statusResult['error']
+                ]);
+                // Не прерываем выполнение, только логируем
             }
             
             // Получаем обновленный автомобиль

@@ -156,6 +156,11 @@ class FunctionRoles {
     // API endpoints - System
     const API_HEALTH = 'external';
     const API_STATUS = 'external';
+    
+    // API endpoints - L3 Actions (с OCR)
+    const API_ACTIONS_CHECK_CAR_IN_CLUB = 'member';
+    const API_ACTIONS_LEAVE_BUSINESS_CARD = 'member';
+    const API_ACTIONS_ADD_CAR_TO_GARAGE = 'member';
 
     /**
      * Получить массив всех функций с их минимальными ролями
@@ -198,6 +203,11 @@ class FunctionRoles {
             // API endpoints - System
             'api.health' => self::API_HEALTH,
             'api.status' => self::API_STATUS,
+            
+            // API endpoints - L3 Actions (с OCR)
+            'api.actions.checkCarInClub' => self::API_ACTIONS_CHECK_CAR_IN_CLUB,
+            'api.actions.leaveBusinessCard' => self::API_ACTIONS_LEAVE_BUSINESS_CARD,
+            'api.actions.addCarToGarage' => self::API_ACTIONS_ADD_CAR_TO_GARAGE,
         ];
     }
 

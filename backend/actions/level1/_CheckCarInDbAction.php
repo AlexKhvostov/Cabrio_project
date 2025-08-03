@@ -11,7 +11,7 @@
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
- *   - data (array) — данные автомобиля или null
+ *   - data (array) — развернутые данные автомобиля или null
  *   - error (array, опционально) — информация об ошибке
  */
 require_once __DIR__ . '/../../utils/Database.php';
@@ -37,14 +37,14 @@ class _CheckCarInDbAction {
                 ];
             }
             
-            // Ищем автомобиль по номеру
-            $car = Car::findByPlateNumber($data['plate_number']);
+            // Ищем автомобиль по номеру с развернутыми данными
+            $carData = Car::findByPlateNumberWithDetails($data['plate_number']);
             
-            Logger::info("Car check by plate_number: {$data['plate_number']}, found: " . ($car ? 'yes' : 'no'));
+            Logger::info("Car check by plate_number: {$data['plate_number']}, found: " . ($carData ? 'yes' : 'no'));
             
             return [
                 'success' => true,
-                'data' => $car ? $car->toArray() : null
+                'data' => $carData // Возвращаем развернутые данные
             ];
             
         } catch (Exception $e) {

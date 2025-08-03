@@ -38,6 +38,7 @@ class UserController extends BaseController
                 return; // Ответ уже отправлен в requireAccess
             }
 
+            // Получаем список пользователей с развернутыми данными
             $users = User::getAll();
             
             // Логируем действие
@@ -47,7 +48,7 @@ class UserController extends BaseController
             
             $this->json([
                 'success' => true, 
-                'data' => $users,
+                'data' => $users, // Уже содержит развернутые данные из модели
                 'meta' => $this->getRequestInfo()
             ]);
             
@@ -89,7 +90,7 @@ class UserController extends BaseController
                 'input_data' => $input
             ]);
 
-            // TODO: Реализовать создание пользователя через модель
+            // TODO: Реализовать создание пользователя через модель с развернутыми данными
             $this->json([
                 'success' => true, 
                 'data' => [
@@ -133,12 +134,26 @@ class UserController extends BaseController
             // Получаем текущего пользователя
             $user = $this->requireUser();
             
+            // Получаем развернутые данные пользователя
+            $userWithDetails = User::findByIdWithDetails($user['id']);
+            
+            if (!$userWithDetails) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'USER_NOT_FOUND',
+                        'message' => 'Пользователь не найден'
+                    ]
+                ], 404);
+                return;
+            }
+            
             // Логируем действие
             $this->logUserAction('get_profile');
             
             $this->json([
                 'success' => true,
-                'data' => $user,
+                'data' => $userWithDetails, // Развернутые данные пользователя
                 'meta' => $this->getRequestInfo()
             ]);
             

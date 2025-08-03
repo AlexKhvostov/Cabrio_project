@@ -33,6 +33,8 @@ try {
     $existingRoutes = [
         '/api/users' => ['GET', 'POST'],
         '/api/users/profile' => ['GET'],
+        '/api/users/check-by-telegram' => ['POST'],
+        '/api/users/find-by-telegram' => ['POST'],
         '/api/cars' => ['GET', 'POST'],
         '/api/events' => ['GET', 'POST'],
         '/api/guide-objects' => ['GET', 'POST'],
@@ -40,7 +42,13 @@ try {
         '/api/photos' => ['GET', 'POST'],
         '/api/reviews' => ['GET', 'POST'],
         '/api/health' => ['GET'],
-        '/api/status' => ['GET']
+        '/api/status' => ['GET'],
+        '/api/system/user-sync' => ['POST'],
+        '/api/system/user-role' => ['POST'],
+        '/api/system/entity-status' => ['POST'],
+        '/api/actions/check-car-in-club' => ['POST'],
+        '/api/actions/leave-business-card' => ['POST'],
+        '/api/actions/add-car-to-garage' => ['POST']
     ];
     
     // Проверяем точное совпадение
@@ -176,6 +184,28 @@ try {
     elseif ($route === '/api/users/profile' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/UserController.php';
         (new UserController())->getProfile();
+    }
+    // Системные маршруты (требуют SYSTEM_TOKEN)
+    elseif ($route === '/api/system/user-sync' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/SystemController.php';
+        (new SystemController())->userSync();
+    } elseif ($route === '/api/system/user-role' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/SystemController.php';
+        (new SystemController())->userRole();
+    } elseif ($route === '/api/system/entity-status' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/SystemController.php';
+        (new SystemController())->entityStatus();
+    }
+    // Маршруты для L3 Actions (с OCR)
+    elseif ($route === '/api/actions/check-car-in-club' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->checkCarInClub();
+    } elseif ($route === '/api/actions/leave-business-card' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->leaveBusinessCard();
+    } elseif ($route === '/api/actions/add-car-to-garage' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->addCarToGarage();
     }
     // ...добавляйте остальные маршруты по аналогии
 } catch (Throwable $e) {

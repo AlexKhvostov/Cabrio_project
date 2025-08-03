@@ -50,8 +50,9 @@ class ___LeaveBusinessCardAction {
             }
             $userId = $user['id'];
             
-            // Проверяем наличие фото
-            if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            // Проверяем наличие фото (base64 или файл)
+            if ((!isset($data['photo']) || empty($data['photo'])) && 
+                (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK)) {
                 return [
                     'success' => false,
                     'error' => [
@@ -63,7 +64,16 @@ class ___LeaveBusinessCardAction {
             
             // 1. OCR распознавание номера
             try {
-                $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                // Проверяем, есть ли base64 данные в data
+                if (isset($data['photo']) && !empty($data['photo'])) {
+                    // Используем base64 данные
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handleFromBase64($data['photo']);
+                } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                    // Используем файл из $_FILES
+                    $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
+                } else {
+                    throw new Exception('Фото не предоставлено ни в base64, ни в файле');
+                }
             } catch (Exception $e) {
                 return [
                     'success' => false,
@@ -75,8 +85,16 @@ class ___LeaveBusinessCardAction {
             }
             
             // 2. Создание визитки
-            // Передаем фото в $_FILES для L2 Action ПЕРЕД вызовом
-            $_FILES['photo'] = $_FILES['photo'];
+            // Если есть base64 данные, создаем временный файл для L2 Action
+            if (isset($data['photo']) && !empty($data['photo'])) {
+                try {
+                    require_once __DIR__ . '/../helpers/FileHelper.php';
+                    $_FILES['photo'] = FileHelper::createTempFileFromBase64($data['photo'], 'business_card_photo.jpg');
+                } catch (Exception $e) {
+                    Logger::error('Failed to create temp file from base64: ' . $e->getMessage());
+                    // Продолжаем без фото
+                }
+            }
             
             $cardResult = __DropBusinessCardAction::handle([
                 'plate_number' => $plateNumber
@@ -89,19 +107,11 @@ class ___LeaveBusinessCardAction {
             // 3. Формируем ответ
             $response = [
                 'success' => true,
-                'data' => [
-                    'action' => $cardResult['data']['action'],
+                'data' => array_merge($cardResult['data'], [ // Используем развернутые данные из L2 Action
                     'plate_number' => $plateNumber,
-                    'car' => $cardResult['data']['car'],
-                    'business_card' => $cardResult['data']['business_card'],
                     'message' => self::getActionMessage($cardResult['data']['action'])
-                ]
+                ])
             ];
-            
-            // Добавляем информацию о фото если есть
-            if (isset($cardResult['data']['photo'])) {
-                $response['data']['photo'] = $cardResult['data']['photo'];
-            }
             
             Logger::info("Business card left: plate_number=$plateNumber, user_id=$userId, action=" . $cardResult['data']['action']);
             

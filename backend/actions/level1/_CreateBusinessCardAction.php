@@ -14,7 +14,7 @@
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
- *   - data (array) — данные созданной визитки
+ *   - data (array) — развернутые данные созданной визитки
  *   - error (array, опционально) — информация об ошибке
  */
 require_once __DIR__ . '/../../utils/Database.php';
@@ -67,17 +67,24 @@ class _CreateBusinessCardAction {
                 'inviter_user_id' => $data['user_id']
             ];
             
-            // Создаём визитку через модель
-            $cardId = BusinessCard::create($cardData);
+            // Создаём визитку с развернутыми данными
+            $cardData = BusinessCard::createWithDetails($cardData);
             
-            // Получаем созданную визитку
-            $card = BusinessCard::findById($cardId);
+            if (!$cardData) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'CARD_CREATION_FAILED',
+                        'message' => 'Не удалось создать визитку'
+                    ]
+                ];
+            }
             
-            Logger::info("Business card created: ID=$cardId, car_id={$data['car_id']}, user_id={$data['user_id']}");
+            Logger::info("Business card created: ID={$cardData['id']}, car_id={$data['car_id']}, user_id={$data['user_id']}");
             
             return [
                 'success' => true,
-                'data' => $card->toArray()
+                'data' => $cardData // Возвращаем развернутые данные
             ];
             
         } catch (Exception $e) {

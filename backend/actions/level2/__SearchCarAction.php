@@ -144,18 +144,10 @@ class __SearchCarAction {
             // 3. Формируем ответ
             $response = [
                 'success' => true,
-                'data' => [
-                    'car_id' => $carData['id'],
+                'data' => array_merge($carData, [ // Используем развернутые данные из L1 Actions
                     'action' => $action,
-                    'plate_number' => $carData['reg_number'],
-                    'model' => $carData['model'],
-                    'color' => $carData['color'],
-                    'year' => $carData['year'],
-                    'status_id' => $carData['status_id'],
-                    'owner_user_id' => $carData['owner_user_id'],
-                    'create_user_id' => $carData['create_user_id'] ?? $createUserId,
                     'message' => self::getActionMessage($action)
-                ]
+                ])
             ];
             
             // Добавляем информацию о фото если загружали

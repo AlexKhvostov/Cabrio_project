@@ -43,6 +43,33 @@ class RecognizeCarNumberFromPhotoAction {
             throw new Exception('Не удалось распознать номер автомобиля: ' . $e->getMessage());
         }
     }
+
+    /**
+     * 🔍 Обработка распознавания номера из base64
+     * 
+     * @param string $base64Data - Base64 кодированное изображение
+     * @return string - Распознанный номер автомобиля
+     * @throws Exception - Если не удалось распознать номер
+     */
+    public static function handleFromBase64($base64Data) {
+        try {
+            // Валидация входных данных
+            if (empty($base64Data)) {
+                throw new Exception('Base64 данные не предоставлены');
+            }
+            
+            // Распознавание номера через IntegrationHelper
+            $plateNumber = IntegrationHelper::recognizePlateNumberFromBase64($base64Data);
+            
+            Logger::info("Plate number recognized from base64 successfully: $plateNumber");
+            
+            return $plateNumber;
+            
+        } catch (Exception $e) {
+            Logger::error('RecognizeCarNumberFromPhotoAction::handleFromBase64 failed: ' . $e->getMessage());
+            throw new Exception('Не удалось распознать номер автомобиля: ' . $e->getMessage());
+        }
+    }
 }
 
  

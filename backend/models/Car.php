@@ -23,6 +23,7 @@
  *   $newCar = Car::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/ExpandHelper.php';
 
 class Car {
     public $id;
@@ -54,6 +55,26 @@ class Car {
     }
 
     /**
+     * Найти автомобиль по id с развернутыми данными
+     * 
+     * @param int $id ID автомобиля
+     * @return array|null Развернутые данные автомобиля или null
+     */
+    public static function findByIdWithDetails($id) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM cars WHERE id = ?');
+        $stmt->execute([$id]);
+        $data = $stmt->fetch();
+        
+        if (!$data) {
+            return null;
+        }
+        
+        // Развертываем данные с помощью ExpandHelper
+        return ExpandHelper::expandCarData($data);
+    }
+
+    /**
      * Найти автомобиль по номеру
      */
     public static function findByPlateNumber($plateNumber) {
@@ -62,6 +83,26 @@ class Car {
         $stmt->execute([$plateNumber]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    /**
+     * Найти автомобиль по номеру с развернутыми данными
+     * 
+     * @param string $plateNumber Номер автомобиля
+     * @return array|null Развернутые данные автомобиля или null
+     */
+    public static function findByPlateNumberWithDetails($plateNumber) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT * FROM cars WHERE reg_number = ?');
+        $stmt->execute([$plateNumber]);
+        $data = $stmt->fetch();
+        
+        if (!$data) {
+            return null;
+        }
+        
+        // Развертываем данные с помощью ExpandHelper
+        return ExpandHelper::expandCarData($data);
     }
 
     /**
@@ -93,6 +134,23 @@ class Car {
     }
 
     /**
+     * Создать новый автомобиль с возвратом развернутых данных
+     * 
+     * @param array $data Данные для создания
+     * @return array|null Развернутые данные созданного автомобиля или null
+     */
+    public static function createWithDetails($data) {
+        $carId = self::create($data);
+        
+        if (!$carId) {
+            return null;
+        }
+        
+        // Возвращаем развернутые данные созданного автомобиля
+        return self::findByIdWithDetails($carId);
+    }
+
+    /**
      * Обновить автомобиль
      */
     public function update($data) {
@@ -102,7 +160,7 @@ class Car {
         $values = [];
         
         // Подготавливаем поля для обновления
-        $fields = ['car_brand_id', 'model', 'color', 'year', 'reg_number', 'vin', 'description', 'show_reg_number'];
+        $fields = ['car_brand_id', 'model', 'color', 'year', 'owner_user_id', 'status_id'];
         
         foreach ($fields as $field) {
             if (isset($data[$field])) {
@@ -122,6 +180,30 @@ class Car {
         $stmt = $pdo->prepare($sql);
         
         return $stmt->execute($values);
+    }
+
+    /**
+     * Обновить автомобиль с возвратом развернутых данных
+     * 
+     * @param int $id ID автомобиля
+     * @param array $data Данные для обновления
+     * @return array|null Развернутые данные обновленного автомобиля или null
+     */
+    public static function updateWithDetails($id, $data) {
+        $car = self::findById($id);
+        
+        if (!$car) {
+            return null;
+        }
+        
+        $updateResult = $car->update($data);
+        
+        if (!$updateResult) {
+            return null;
+        }
+        
+        // Возвращаем развернутые данные обновленного автомобиля
+        return self::findByIdWithDetails($id);
     }
 
     /**

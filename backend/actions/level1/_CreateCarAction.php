@@ -17,7 +17,7 @@
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
- *   - data (array) — данные созданного автомобиля
+ *   - data (array) — развернутые данные созданного автомобиля
  *   - error (array, опционально) — информация об ошибке
  */
 require_once __DIR__ . '/../../utils/Database.php';
@@ -65,17 +65,24 @@ class _CreateCarAction {
                 }
             }
             
-            // Создаём автомобиль через модель
-            $carId = Car::create($carData);
+            // Создаём автомобиль с развернутыми данными
+            $carData = Car::createWithDetails($carData);
             
-            Logger::info("Car created: ID=$carId, model={$data['model']}");
+            if (!$carData) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'CAR_CREATION_FAILED',
+                        'message' => 'Не удалось создать автомобиль'
+                    ]
+                ];
+            }
             
-            // Получаем созданный автомобиль
-            $car = Car::findById($carId);
+            Logger::info("Car created: ID={$carData['id']}, model={$carData['model']}");
             
             return [
                 'success' => true,
-                'data' => $car->toArray()
+                'data' => $carData // Возвращаем развернутые данные
             ];
             
         } catch (Exception $e) {

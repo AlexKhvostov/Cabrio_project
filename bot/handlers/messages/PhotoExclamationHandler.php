@@ -1,128 +1,241 @@
 <?php
 /**
- * LeaveBusinessCardCommand.php
- * Команда для добавления визитки по фото с '!' в групповом чате CabrioRide
- * Вызывает orchestrator /api/business-cards/add_full.php
- * Теперь бот сам распознаёт номер через OCR!
+ * PhotoExclamationHandler.php
+ * 
+ * Обработчик фото с комментарием "!"
+ * Использует __DropBusinessCardAction для сброса визитки
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
 
 class PhotoExclamationHandler {
+    /** @var BotService */
     private $botService;
+    
+    /**
+     * Конструктор
+     */
     public function __construct($botService) {
         $this->botService = $botService;
     }
-
+    
     /**
-     * Основной обработчик команды
-     * @param array $message — сообщение Telegram
+     * Обрабатывает фото с комментарием "!"
+     * 
+     * @param array $message Данные сообщения
      */
-    public function execute($message, $userSyncResult = null) {
+    public function handle($message) {
         try {
-            $chat_id = $message['chat']['id'];
+            $chat = $message['chat'];
             $user = $message['from'];
-            // --- Синхронизируем профиль Telegram-пользователя с backend (создаём или обновляем) ---
-            $user_id = $userSyncResult['user_id'] ?? null;
-            $role = $userSyncResult['role'] ?? 'external';
-            // Если роль guest — переводим в new
-            if ($user_id && $role === 'guest') {
-                $role = $this->botService->promoteGuestToNew($user_id, $role);
-            }
-            if ($role === 'external') {
-                writeToLog('PhotoExclamationHandler: пользователь с ролью external', [
-                    'user_id' => $user['id'],
-                    'role' => $role
-                ]);
-                return;
-            }
-
-            writeToLog('PhotoExclamationHandler: called', [
-                'chat_id' => $chat_id,
+            $photo = $message['photo'];
+            $caption = $message['caption'] ?? '';
+            
+            writeToLog("PhotoExclamationHandler: Processing photo with '!' comment", [
+                'chat_id' => $chat['id'],
                 'user_id' => $user['id'],
-                'username' => $user['username'] ?? null
+                'username' => $user['username'] ?? 'unknown',
+                'first_name' => $user['first_name'] ?? 'unknown',
+                'caption' => $caption,
+                'photo_count' => count($photo)
             ]);
-
-            // Проверяем наличие фото
-            if (!isset($message['photo'])) {
-                writeToLog('PhotoExclamationHandler: no photo', []);
-                $this->botService->sendMessage($chat_id, "⚠️ Пожалуйста, отправьте фото для визитки.");
+            
+            // Проверяем, что это клубный чат
+            $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
+            if ($chat['id'] != $club_chat_id) {
+                writeToLog("PhotoExclamationHandler: Not club chat, ignoring");
                 return;
             }
-
-            // Берём самое большое фото
-            $photo = end($message['photo']);
-            $file_id = $photo['file_id'];
-            $file_info = $this->botService->getFile($file_id);
-            if (!$file_info) {
-                writeToLog('PhotoExclamationHandler: getFile failed', ['file_id' => $file_id]);
-                $this->botService->sendMessage($chat_id, "❌ Не удалось получить фото. Попробуйте ещё раз.");
+            
+            // Проверяем, что комментарий именно "!"
+            if (trim($caption) !== '!') {
+                writeToLog("PhotoExclamationHandler: Caption is not '!', ignoring");
                 return;
             }
-            $photo_path = $this->botService->downloadFile($file_info['file_path']);
-            if (!$photo_path) {
-                writeToLog('PhotoExclamationHandler: downloadFile failed', ['file_path' => $file_info['file_path']]);
-                $this->botService->sendMessage($chat_id, "❌ Не удалось скачать фото. Попробуйте ещё раз.");
-                return;
-            }
-
-            // Конвертируем фото в base64
-            $image_data = file_get_contents($photo_path);
-            $base64_image = 'data:image/jpeg;base64,' . base64_encode($image_data);
-            if (file_exists($photo_path)) {
-                unlink($photo_path);
-            }
-
-            // Формируем payload для orchestrator
-            $payload = [
-                'auth' => [
-                    'user_id' => 1, // системный
-                    'role' => 'admin',
-                    'telegram_id' => $user['id']
-                ],
-                'data' => [
-                    'photo' => $base64_image
-                ]
-            ];
-            writeToLog('PhotoExclamationHandler: payload', $payload);
-            $api_url = getApiUrl() . '/business-cards/auto_add.php';
-            $ch = curl_init($api_url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            $response = curl_exec($ch);
-            $curl_error = curl_error($ch);
-            curl_close($ch);
-            writeToLog('PhotoExclamationHandler: orchestrator response', [
-                'response' => $response,
-                'curl_error' => $curl_error
+            
+            // Вызываем реальный API эндпоинт
+            $this->processBusinessCardDrop($chat['id'], $user, $photo);
+            
+            writeToLog("PhotoExclamationHandler: Photo with '!' processed successfully", [
+                'user_id' => $user['id']
             ]);
-            $result = json_decode($response, true);
-
-            // Обрабатываем результат
-            if ($result && !empty($result['success'])) {
-                $reg_number = $result['result']['reg_number']
-                    ?? $result['result']['data']['reg_number']
-                    ?? '???';
-                $car_created = !empty($result['result']['car_created'])
-                    || !empty($result['result']['data']['car_created']);
-                $who = $user['username'] ? '@' . $user['username'] : ($user['first_name'] ?? 'Пользователь');
-                $msg = "Визитка оставлена в машине № $reg_number\n";
-                $msg .= "Кто оставил: $who";
-                if ($car_created) {
-                    $msg .= "\n\nПоздравляем! Это авто только что добавлено в базу клуба.";
-                }
-                $this->botService->sendMessage($chat_id, $msg);
-                writeToLog('PhotoExclamationHandler: success', ['reg_number' => $reg_number, 'car_created' => $car_created]);
-            } else {
-                $error = $result['error']['message'] ?? 'Не удалось добавить визитку.';
-                writeToLog('PhotoExclamationHandler: error', ['error' => $error, 'result' => $result]);
-                $this->botService->sendMessage($chat_id, "❌ $error");
-            }
+            
         } catch (Exception $e) {
-            writeToLog('PhotoExclamationHandler: exception', ['error' => $e->getMessage()]);
-            $this->botService->sendMessage($chat_id, "❌ Произошла ошибка: " . $e->getMessage());
+            writeToLog("PhotoExclamationHandler: Error processing photo with '!' - " . $e->getMessage());
         }
+    }
+    
+    /**
+     * Отправляет сообщение о сбросе визитки
+     * 
+     * @param int $chatId ID чата
+     * @param array $user Данные пользователя
+     */
+    private function sendDropBusinessCardMessage($chatId, $user) {
+        $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+        
+        $message = "💼 <b>Сброс визитки</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message .= "📸 Вы отправили фото с комментарием \"!\"\n";
+        $message .= "🔧 Используется эндпоинт: <code>__DropBusinessCardAction</code>\n\n";
+        $message .= "💼 <b>Что происходит:</b>\n";
+        $message .= "• Анализируем фото визитки\n";
+        $message .= "• Сбрасываем старую визитку\n";
+        $message .= "• Создаем новую визитку\n\n";
+        $message .= "⏳ Обработка в разработке...";
+        
+        $this->botService->sendMessage($chatId, $message);
+    }
+    
+    /**
+     * Обрабатывает сброс визитки через API
+     * 
+     * @param int $chatId ID чата
+     * @param array $user Данные пользователя
+     * @param array $photo Данные фото
+     */
+    private function processBusinessCardDrop($chatId, $user, $photo) {
+        try {
+            $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+            
+            // Отправляем начальное сообщение
+            $initialMessage = "💼 <b>Сброс визитки</b>\n\n";
+            $initialMessage .= "Привет, <b>$username</b>! 👋\n\n";
+            $initialMessage .= "📸 Анализируем фото визитки...\n";
+            $initialMessage .= "⏳ Обрабатываем данные...";
+            
+            $this->botService->sendMessage($chatId, $initialMessage);
+            
+            // Получаем фото в base64
+            $photoData = end($photo);
+            $photoId = $photoData['file_id'];
+            
+            // Скачиваем фото и конвертируем в base64
+            $photoBase64 = $this->downloadAndConvertPhoto($photoId);
+            
+            if (!$photoBase64) {
+                $this->sendErrorMessage($chatId, $username, "Не удалось загрузить фото");
+                return;
+            }
+            
+            // Подготавливаем данные для API
+            $apiData = [
+                'photo' => $photoBase64,
+                'user_id' => $user['id'],
+                'location' => 'group_chat' // Место сброса визитки
+            ];
+            
+            // Вызываем API
+            $result = $this->botService->callBackendApi('/api/actions/leave-business-card', $apiData, $user);
+            
+            // Логируем сырой ответ от сервера
+            writeToLog("PhotoExclamationHandler: RAW backend response", [
+                'raw_response' => json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            ]);
+            
+            if ($result['success']) {
+                $this->sendSuccessMessage($chatId, $username, $result['data']);
+            } else {
+                $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                $this->sendErrorMessage($chatId, $username, $errorMsg);
+            }
+            
+        } catch (Exception $e) {
+            writeToLog("PhotoExclamationHandler: Error in processBusinessCardDrop", [
+                'error' => $e->getMessage(),
+                'user_id' => $user['id']
+            ]);
+            
+            $this->sendErrorMessage($chatId, $username ?? 'Участник', "Ошибка обработки: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Скачивает фото и конвертирует в base64
+     */
+    private function downloadAndConvertPhoto($fileId) {
+        try {
+            $fileInfo = $this->botService->makeRequest('getFile', ['file_id' => $fileId]);
+            
+            if (!$fileInfo || !isset($fileInfo['result']['file_path'])) {
+                writeToLog("PhotoExclamationHandler: Failed to get file info", ['file_id' => $fileId]);
+                return false;
+            }
+            
+            $filePath = $fileInfo['result']['file_path'];
+            $token = $_ENV['BOT_TOKEN'];
+            $fileUrl = "https://api.telegram.org/file/bot{$token}/{$filePath}";
+            
+            $fileContent = file_get_contents($fileUrl);
+            if ($fileContent === false) {
+                writeToLog("PhotoExclamationHandler: Failed to download file", ['url' => $fileUrl]);
+                return false;
+            }
+            
+            $base64 = base64_encode($fileContent);
+            
+            writeToLog("PhotoExclamationHandler: Photo converted to base64", [
+                'file_id' => $fileId,
+                'size' => strlen($base64)
+            ]);
+            
+            return $base64;
+            
+        } catch (Exception $e) {
+            writeToLog("PhotoExclamationHandler: Error downloading photo", [
+                'file_id' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+    
+    /**
+     * Отправляет сообщение об успешном результате
+     */
+    private function sendSuccessMessage($chatId, $username, $data) {
+        // Извлекаем данные из вложенной структуры ответа
+        $cardData = $data['data'] ?? $data;
+        
+        $message = "✅ <b>Визитка оставлена!</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        
+        // Номер автомобиля
+        $plateNumber = strtoupper($cardData['plate_number'] ?? 'НЕ РАСПОЗНАН');
+        $message .= "🔢 <b>Номер:</b> <code>$plateNumber</code>\n\n";
+        
+        // Сообщение от сервера
+        $serverMessage = $cardData['message'] ?? 'Визитка оставлена';
+        $message .= "💼 <b>Результат:</b> $serverMessage\n\n";
+        
+        // Действие
+        $action = $cardData['action'] ?? 'unknown';
+        $actionText = '';
+        switch ($action) {
+            case 'card_created':
+                $actionText = "Визитка оставлена для существующего автомобиля";
+                break;
+            case 'car_and_card_created':
+                $actionText = "Автомобиль создан и визитка оставлена";
+                break;
+            default:
+                $actionText = "Визитка оставлена";
+        }
+        $message .= "🎯 <b>Действие:</b> $actionText";
+        
+        $this->botService->sendMessage($chatId, $message);
+    }
+    
+    /**
+     * Отправляет сообщение об ошибке
+     */
+    private function sendErrorMessage($chatId, $username, $errorMsg) {
+        $message = "❌ <b>Ошибка обновления визитки</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message .= "😔 К сожалению, произошла ошибка:\n";
+        $message .= "• $errorMsg\n\n";
+        $message .= "🔄 Попробуйте еще раз или обратитесь к администратору";
+        
+        $this->botService->sendMessage($chatId, $message);
     }
 } 

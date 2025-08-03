@@ -1,215 +1,240 @@
 <?php
 /**
- * AddCarCommand.php
- * Команда для обработки фото с подписью '++' в групповом чате CabrioRide
- * Алгоритм: получить/создать пользователя → распознать номер → проверить авто → обработать по сценарию → отправить лаконичный ответ
- * Подробные комментарии для не программиста!
+ * PhotoPlusPlusHandler.php
+ * 
+ * Обработчик фото с комментарием "++"
+ * Использует __AddCarToUserAction для добавления автомобиля пользователю
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
 
 class PhotoPlusPlusHandler {
+    /** @var BotService */
     private $botService;
+    
+    /**
+     * Конструктор
+     */
     public function __construct($botService) {
         $this->botService = $botService;
     }
-
+    
     /**
-     * Основной обработчик команды
-     * @param array $message — сообщение Telegram
+     * Обрабатывает фото с комментарием "++"
+     * 
+     * @param array $message Данные сообщения
      */
-    public function execute($message, $userSyncResult = null) {
+    public function handle($message) {
         try {
-            $chat_id = $message['chat']['id'];
+            $chat = $message['chat'];
             $user = $message['from'];
-            $telegram_id = $user['id'];
-            $first_name = $user['first_name'] ?? '';
-            $last_name = $user['last_name'] ?? '';
-            $username = $user['username'] ?? '';
-
-            writeToLog('PhotoPlusPlusHandler: старт', [
-                'chat_id' => $chat_id,
-                'telegram_id' => $telegram_id,
-                'username' => $username
+            $photo = $message['photo'];
+            $caption = $message['caption'] ?? '';
+            
+            writeToLog("PhotoPlusPlusHandler: Processing photo with '++' comment", [
+                'chat_id' => $chat['id'],
+                'user_id' => $user['id'],
+                'username' => $user['username'] ?? 'unknown',
+                'first_name' => $user['first_name'] ?? 'unknown',
+                'caption' => $caption,
+                'photo_count' => count($photo)
             ]);
-
-            // --- Синхронизируем профиль Telegram-пользователя с backend (создаём или обновляем) ---
-            $user_id = $userSyncResult['user_id'] ?? null;
-            $role = $userSyncResult['role'] ?? 'guest';
-            // Если роль guest — переводим в new
-            if ($user_id && $role === 'guest') {
-                $role = $this->botService->promoteGuestToNew($user_id, $role);
-            }
-            if ($role === 'external') {
+            
+            // Проверяем, что это клубный чат
+            $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
+            if ($chat['id'] != $club_chat_id) {
+                writeToLog("PhotoPlusPlusHandler: Not club chat, ignoring");
                 return;
             }
-
-            // 2️⃣ Распознаём номер по фото
-            if (!isset($message['photo'])) {
-                $this->botService->sendMessage($chat_id, '⚠️ Пожалуйста, отправьте фото для добавления авто.');
+            
+            // Проверяем, что комментарий именно "++"
+            if (trim($caption) !== '++') {
+                writeToLog("PhotoPlusPlusHandler: Caption is not '++', ignoring");
                 return;
             }
-            $photo = end($message['photo']);
-            $file_id = $photo['file_id'];
-            $file_info = $this->botService->getFile($file_id);
-            if (!$file_info) {
-                $this->botService->sendMessage($chat_id, '❌ Не удалось получить фото. Попробуйте ещё раз.');
-                return;
-            }
-            $photo_path = $this->botService->downloadFile($file_info['file_path']);
-            if (!$photo_path) {
-                $this->botService->sendMessage($chat_id, '❌ Не удалось скачать фото. Попробуйте ещё раз.');
-                return;
-            }
-            $image_data = file_get_contents($photo_path);
-            $base64_image = 'data:image/jpeg;base64,' . base64_encode($image_data);
-            if (file_exists($photo_path)) {
-                unlink($photo_path);
-            }
-            $ocr_result = $this->botService->callBackendApi('/ocr/recognize.php', [
-                'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                'data' => [ 'image' => $base64_image ]
+            
+            // Вызываем реальный API эндпоинт
+            $this->processAddCarToGarage($chat['id'], $user, $photo);
+            
+            writeToLog("PhotoPlusPlusHandler: Photo with '++' processed successfully", [
+                'user_id' => $user['id']
             ]);
-            writeToLog('PhotoPlusPlusHandler: результат OCR', $ocr_result);
-            $plate_number = $ocr_result['result']['data']['plate'] ?? null;
-            if (!$plate_number) {
-                $this->botService->sendMessage($chat_id, "❌ Не удалось распознать номер на фото.\n💡 Советы: сделайте чёткое фото, избегайте бликов и теней.");
-                return;
-            }
-            $plate_number_display = strtoupper($plate_number); // Только для экрана!
-
-            // 3️⃣ Проверяем авто по номеру
-            $check_result = $this->botService->callBackendApi('/cars/check.php', [
-                'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                'data' => [ 'reg_number' => $plate_number ]
-            ]);
-            writeToLog('PhotoPlusPlusHandler: результат check', $check_result);
-            $car_found = $check_result['result']['data']['found'] ?? false;
-            $car_id = $check_result['result']['data']['car_id'] ?? null;
-            $owner_user_id = $check_result['result']['data']['owner_user_id'] ?? null;
-            writeToLog('PhotoPlusPlusHandler: owner_user_id перед ветвлением', [
-                'owner_user_id' => $owner_user_id,
-                'car_id' => $car_id,
-                'user_id' => $user_id
-            ]);
-
-            // 4️⃣ Ветвление по ситуации
-            // Логируем типы и значения для диагностики
-            writeToLog('DEBUG: owner_user_id и user_id', [
-                'owner_user_id' => $owner_user_id,
-                'user_id' => $user_id,
-                'type_owner' => gettype($owner_user_id),
-                'type_user' => gettype($user_id)
-            ]);
-            if ($car_found) {
-                $owner_id_int = (int)$owner_user_id;
-                $user_id_int = (int)$user_id;
-                if ($owner_id_int > 0 && $owner_id_int !== $user_id_int) {
-                    $msg = "🚗 Номер: $plate_number_display\n❌ В базе данных другой владелец.\n⚠️ Если это ошибка — сообщите админам.";
-                    $this->botService->sendMessage($chat_id, $msg);
-                    writeToLog('PhotoPlusPlusHandler: авто с другим владельцем', [
-                        'car_id' => $car_id,
-                        'owner_user_id' => $owner_user_id,
-                        'user_id' => $user_id
-                    ]);
-                    return;
-                }
-                if ($owner_id_int === $user_id_int && $owner_id_int > 0) {
-                    // Пользователь уже владелец — обновляем статус и добавляем фото
-                    $this->botService->callBackendApi('/backend/api/cars/update.php', [
-                        'auth' => [ 'user_id' => 1, 'role' => 'admin' ],
-                        'data' => [ 'car_id' => $car_id, 'status' => 'active' ]
-                    ]);
-                    $this->botService->callBackendApi('/backend/api/photos/add.php', [
-                        'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                        'data' => [
-                            'entity_type' => 'car',
-                            'entity_id' => $car_id,
-                            'photo' => $base64_image,
-                            'description' => 'Фото добавлено через Telegram-бота'
-                        ]
-                    ]);
-                    $owner_display = $username ? '@' . $username : ($first_name . ' ' . $last_name);
-                    $msg = "🚗 Номер: $plate_number_display\n"
-                         . "Владелец: $owner_display\n"
-                         . "Статус: активный\n"
-                         . "Фото добавлено.";
-                    $this->botService->sendMessage($chat_id, $msg);
-                    return;
-                }
-                // Только если владелец отсутствует — claim
-                if ($owner_id_int === 0) {
-                    writeToLog('PhotoPlusPlusHandler: вызываю claim', [ 'car_id' => $car_id, 'user_id' => $user_id ]);
-                    $claim_result = $this->botService->callBackendApi('/cars/claim.php', [
-                        'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                        'data' => [ 'car_id' => $car_id ]
-                    ]);
-                    writeToLog('PhotoPlusPlusHandler: результат claim', $claim_result);
-                    if (!($claim_result['success'] ?? false)) {
-                        $this->botService->sendMessage($chat_id, '❌ Не удалось присвоить авто пользователю.');
-                        return;
-                    }
-                    // Если роль была guest — меняем на registered
-                    if ($role === 'guest') {
-                        $set_role_result = $this->botService->callBackendApi('/backend/api/users/set_role.php', [
-                            'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                            'data' => [ 'user_id' => $user_id, 'role' => 'registered' ]
-                        ]);
-                        writeToLog('PhotoPlusPlusHandler: set_role после claim', $set_role_result);
-                    }
-                    $this->botService->callBackendApi('/backend/api/cars/update.php', [
-                        'auth' => [ 'user_id' => 1, 'role' => 'admin' ],
-                        'data' => [ 'car_id' => $car_id, 'status' => 'active' ]
-                    ]);
-                    $this->botService->callBackendApi('/backend/api/photos/add.php', [
-                        'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                        'data' => [
-                            'entity_type' => 'car',
-                            'entity_id' => $car_id,
-                            'photo' => $base64_image,
-                            'description' => 'Фото добавлено через Telegram-бота'
-                        ]
-                    ]);
-                    $owner_display = $username ? '@' . $username : ($first_name . ' ' . $last_name);
-                    $msg = "✅ Визитка сработала!\n"
-                         . "🚗 Авто: $plate_number_display\n"
-                         . "Владелец: $owner_display\n"
-                         . "Статус: 'Активен'.\n"
-                         . "Фото добавлено.";
-                    $this->botService->sendMessage($chat_id, $msg);
-                    return;
-                }
-            } else {
-                // Авто не найдено — добавляем авто (фото прикладывается сразу)
-                $add_car_result = $this->botService->callBackendApi('/cars/add.php', [
-                    'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                    'data' => [
-                        'reg_number' => $plate_number,
-                        'photo' => $base64_image,
-                        'create_user_id' => $user_id,
-                        'owner_user_id' => $user_id
-                    ]
-                ]);
-                writeToLog('PhotoPlusPlusHandler: результат add car', $add_car_result);
-                if ($add_car_result['success'] ?? false) {
-                    // Если роль была guest — меняем на registered
-                    if ($role === 'guest') {
-                        $set_role_result = $this->botService->callBackendApi('/backend/api/users/set_role.php', [
-                            'auth' => [ 'user_id' => $user_id, 'role' => $role ],
-                            'data' => [ 'user_id' => $user_id, 'role' => 'registered' ]
-                        ]);
-                        writeToLog('PhotoPlusPlusHandler: set_role после add', $set_role_result);
-                    }
-                    $owner_display = $username ? '@' . $username : ($first_name . ' ' . $last_name);
-                    $this->botService->sendMessage($chat_id, "НОВЫЙ АВТО: \n🚗 Номер: $plate_number_display\nВладелец: $owner_display\n✅ Статус 'Активнен'.");
-                } else {
-                    $this->botService->sendMessage($chat_id, "❌ Не удалось добавить авто. Попробуйте позже.");
-                }
-                return;
-            }
+            
         } catch (Exception $e) {
-            writeToLog('PhotoPlusPlusHandler: Ошибка', [ 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString() ]);
-            $this->botService->sendMessage($chat_id, '❌ Произошла ошибка. Попробуйте позже.');
+            writeToLog("PhotoPlusPlusHandler: Error processing photo with '++' - " . $e->getMessage());
         }
+    }
+    
+    /**
+     * Отправляет сообщение о добавлении автомобиля пользователю
+     * 
+     * @param int $chatId ID чата
+     * @param array $user Данные пользователя
+     */
+    private function sendAddCarToUserMessage($chatId, $user) {
+        $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+        
+        $message = "🚗 <b>Добавление автомобиля</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message .= "📸 Вы отправили фото с комментарием \"++\"\n";
+        $message .= "🔧 Используется эндпоинт: <code>__AddCarToUserAction</code>\n\n";
+        $message .= "🚗 <b>Что происходит:</b>\n";
+        $message .= "• Анализируем фото автомобиля\n";
+        $message .= "• Добавляем автомобиль в ваш гараж\n";
+        $message .= "• Обновляем профиль пользователя\n\n";
+        $message .= "⏳ Обработка в разработке...";
+        
+        $this->botService->sendMessage($chatId, $message);
+    }
+    
+    /**
+     * Обрабатывает добавление автомобиля в гараж через API
+     * 
+     * @param int $chatId ID чата
+     * @param array $user Данные пользователя
+     * @param array $photo Данные фото
+     */
+    private function processAddCarToGarage($chatId, $user, $photo) {
+        try {
+            $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+            
+            // Отправляем начальное сообщение
+            $initialMessage = "🚗 <b>Добавление автомобиля</b>\n\n";
+            $initialMessage .= "Привет, <b>$username</b>! 👋\n\n";
+            $initialMessage .= "📸 Анализируем фото автомобиля...\n";
+            $initialMessage .= "⏳ Добавляем в ваш гараж...";
+            
+            $this->botService->sendMessage($chatId, $initialMessage);
+            
+            // Получаем фото в base64
+            $photoData = end($photo);
+            $photoId = $photoData['file_id'];
+            
+            // Скачиваем фото и конвертируем в base64
+            $photoBase64 = $this->downloadAndConvertPhoto($photoId);
+            
+            if (!$photoBase64) {
+                $this->sendErrorMessage($chatId, $username, "Не удалось загрузить фото");
+                return;
+            }
+            
+            // Подготавливаем данные для API
+            $apiData = [
+                'photo' => $photoBase64,
+                'user_id' => $user['id']
+            ];
+            
+            // Вызываем API
+            $result = $this->botService->callBackendApi('/api/actions/add-car-to-garage', $apiData, $user);
+            
+            // Логируем сырой ответ от сервера
+            writeToLog("PhotoPlusPlusHandler: RAW backend response", [
+                'raw_response' => json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            ]);
+            
+            if ($result['success']) {
+                $this->sendSuccessMessage($chatId, $username, $result['data']);
+            } else {
+                $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                $this->sendErrorMessage($chatId, $username, $errorMsg);
+            }
+            
+        } catch (Exception $e) {
+            writeToLog("PhotoPlusPlusHandler: Error in processAddCarToGarage", [
+                'error' => $e->getMessage(),
+                'user_id' => $user['id']
+            ]);
+            
+            $this->sendErrorMessage($chatId, $username ?? 'Участник', "Ошибка обработки: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Скачивает фото и конвертирует в base64
+     */
+    private function downloadAndConvertPhoto($fileId) {
+        try {
+            $fileInfo = $this->botService->makeRequest('getFile', ['file_id' => $fileId]);
+            
+            if (!$fileInfo || !isset($fileInfo['result']['file_path'])) {
+                writeToLog("PhotoPlusPlusHandler: Failed to get file info", ['file_id' => $fileId]);
+                return false;
+            }
+            
+            $filePath = $fileInfo['result']['file_path'];
+            $token = $_ENV['BOT_TOKEN'];
+            $fileUrl = "https://api.telegram.org/file/bot{$token}/{$filePath}";
+            
+            $fileContent = file_get_contents($fileUrl);
+            if ($fileContent === false) {
+                writeToLog("PhotoPlusPlusHandler: Failed to download file", ['url' => $fileUrl]);
+                return false;
+            }
+            
+            $base64 = base64_encode($fileContent);
+            
+            writeToLog("PhotoPlusPlusHandler: Photo converted to base64", [
+                'file_id' => $fileId,
+                'size' => strlen($base64)
+            ]);
+            
+            return $base64;
+            
+        } catch (Exception $e) {
+            writeToLog("PhotoPlusPlusHandler: Error downloading photo", [
+                'file_id' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+    
+    /**
+     * Отправляет сообщение об успешном результате
+     */
+    private function sendSuccessMessage($chatId, $username, $data) {
+        // Извлекаем данные из вложенной структуры ответа
+        $carData = $data['data'] ?? $data;
+        
+        $message = "✅ <b>Автомобиль добавлен!</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        
+        // Номер автомобиля
+        $plateNumber = strtoupper($carData['plate_number'] ?? 'НЕ РАСПОЗНАН');
+        $message .= "🔢 <b>Номер:</b> <code>$plateNumber</code>\n\n";
+        
+        // Сообщение от сервера
+        $serverMessage = $carData['message'] ?? 'Автомобиль добавлен в гараж';
+        $message .= "🚗 <b>Результат:</b> $serverMessage\n\n";
+        
+        // Действие
+        $action = $carData['action'] ?? 'unknown';
+        $actionText = '';
+        switch ($action) {
+            case 'assigned':
+                $actionText = "Автомобиль назначен вам и добавлен в гараж";
+                break;
+            case 'created':
+                $actionText = "Автомобиль создан и добавлен в ваш гараж";
+                break;
+            default:
+                $actionText = "Автомобиль добавлен в гараж";
+        }
+        $message .= "🎯 <b>Действие:</b> $actionText";
+        
+        $this->botService->sendMessage($chatId, $message);
+    }
+    
+    /**
+     * Отправляет сообщение об ошибке
+     */
+    private function sendErrorMessage($chatId, $username, $errorMsg) {
+        $message = "❌ <b>Ошибка добавления автомобиля</b>\n\n";
+        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message .= "😔 К сожалению, произошла ошибка:\n";
+        $message .= "• $errorMsg\n\n";
+        $message .= "🔄 Попробуйте еще раз или обратитесь к администратору";
+        
+        $this->botService->sendMessage($chatId, $message);
     }
 } 

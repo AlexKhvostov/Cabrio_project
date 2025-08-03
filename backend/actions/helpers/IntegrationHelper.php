@@ -42,6 +42,41 @@ class IntegrationHelper {
             throw new Exception('Не удалось распознать номер автомобиля: ' . $e->getMessage());
         }
     }
+
+    /**
+     * 🔍 Распознавание номера автомобиля из base64 данных
+     * 
+     * @param string $base64Data - Base64 кодированное изображение
+     * @return string - Распознанный номер автомобиля
+     * @throws Exception - Если не удалось распознать номер
+     */
+    public static function recognizePlateNumberFromBase64($base64Data) {
+        try {
+            // Валидация base64 данных
+            if (empty($base64Data)) {
+                throw new Exception('Base64 данные не предоставлены');
+            }
+            
+            // Проверка валидности base64
+            if (!base64_decode($base64Data, true)) {
+                throw new Exception('Неверный формат base64 данных');
+            }
+            
+            // Вызов OCR API напрямую с base64
+            $result = self::callOCRAPIFromBase64($base64Data);
+            
+            // Обработка результата
+            $plateNumber = self::extractPlateNumber($result);
+            
+            Logger::info("Plate number recognized from base64: $plateNumber");
+            
+            return $plateNumber;
+            
+        } catch (Exception $e) {
+            Logger::error('IntegrationHelper::recognizePlateNumberFromBase64 failed: ' . $e->getMessage());
+            throw new Exception('Не удалось распознать номер автомобиля: ' . $e->getMessage());
+        }
+    }
     
     /**
      * 🖼️ Подготовка изображения для OCR
@@ -74,7 +109,7 @@ class IntegrationHelper {
     }
     
     /**
-     * 📡 Вызов OCR API (platerecognizer.com)
+     * 📡 Вызов OCR API (platerecognizer.com) с временным файлом
      * 
      * @param string $imageData - Base64 изображение
      * @return array - Ответ от OCR API
@@ -92,6 +127,106 @@ class IntegrationHelper {
         
         // Декодируем base64 в бинарные данные
         $imageBinary = base64_decode($imageData);
+        
+        // Создаем временный файл для cURL
+        $tempFile = tempnam(sys_get_temp_dir(), 'ocr_');
+        file_put_contents($tempFile, $imageBinary);
+        
+        // Подготовка данных для API
+        $postData = [
+            'upload' => new CURLFile($tempFile, 'image/jpeg', 'image.jpg'),
+            'regions' => 'by' // Только Беларусь для нашего теста
+        ];
+        
+        // Заголовки для API
+        $headers = [
+            'Authorization: Token ' . $apiToken
+        ];
+        
+        // Отправка запроса через cURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        
+        Logger::info("OCR API request started...");
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        // Удаляем временный файл
+        unlink($tempFile);
+        
+        if ($error) {
+            throw new Exception('CURL ошибка: ' . $error);
+        }
+        
+        if ($httpCode >= 400) {
+            throw new Exception('HTTP ошибка: ' . $httpCode . ' - ' . $response);
+        }
+        
+        // Парсинг ответа
+        Logger::info("OCR API response: " . substr($response, 0, 500) . "...");
+        
+        $result = json_decode($response, true);
+        
+        if (!$result) {
+            throw new Exception('Неверный ответ от OCR API');
+        }
+        
+        // Проверка на ошибки API
+        if (isset($result['error'])) {
+            throw new Exception('OCR API ошибка: ' . $result['error']);
+        }
+        
+        // Извлечение номера из результата
+        if (isset($result['results']) && !empty($result['results'])) {
+            $plate = $result['results'][0]['plate'];
+            $confidence = $result['results'][0]['confidence'] ?? 0;
+            
+            return [
+                'success' => true,
+                'data' => [
+                    'plate_number' => $plate,
+                    'confidence' => $confidence
+                ]
+            ];
+        } else {
+            throw new Exception('Номер автомобиля не найден на изображении');
+        }
+    }
+    
+    /**
+     * 📡 Вызов OCR API (platerecognizer.com) напрямую с base64
+     * 
+     * @param string $base64Data - Base64 изображение
+     * @return array - Ответ от OCR API
+     */
+    private static function callOCRAPIFromBase64($base64Data) {
+        // Загрузка переменных окружения
+        require_once __DIR__ . '/../../utils/load_env.php';
+        
+        $apiUrl = 'https://api.platerecognizer.com/v1/plate-reader/';
+        $apiToken = $_ENV['OCR_TOKEN'] ?? '';
+        
+        if (empty($apiToken)) {
+            throw new Exception('OCR_TOKEN не найден в переменных окружения');
+        }
+        
+        // Декодируем base64 в бинарные данные
+        $imageBinary = base64_decode($base64Data);
+        
+        // Проверяем размер данных (максимум 3MB для platerecognizer.com)
+        if (strlen($imageBinary) > 3 * 1024 * 1024) {
+            throw new Exception('Размер изображения превышает 3MB');
+        }
         
         // Создаем временный файл для cURL
         $tempFile = tempnam(sys_get_temp_dir(), 'ocr_');

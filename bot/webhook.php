@@ -2,81 +2,68 @@
 /**
  * webhook.php
  * 
- * Точка входа для Telegram Webhook
- * Получает и обрабатывает все входящие сообщения от Telegram
+ * Точка входа для Telegram webhook
+ * Обрабатывает входящие обновления от Telegram
  */
 
-// Включаем отображение всех ошибок
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Подключаем конфигурацию бота и логирование
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/handlers/MessageHandler.php';
 require_once __DIR__ . '/utils/Logger.php';
-require_once __DIR__ . '/services/BotService.php';
 
-// Получаем входящие данные
-$content = file_get_contents('php://input');
-
-// Логируем все входящие запросы
-writeToLog("Received update:", $content);
-
-// Декодируем JSON от Telegram
-$update = json_decode($content, true);
-
-// Проверяем что данные получены
-if (empty($update)) {
-    writeToLog('Error: Empty update received');
-    die('Empty update');
+// Проверяем метод запроса
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method Not Allowed');
 }
 
 try {
-    // Подключаем обработчик сообщений
-    require_once __DIR__ . '/handlers/MessageHandler.php';
+    // Получаем данные от Telegram
+    $input = file_get_contents('php://input');
+    $update = json_decode($input, true);
     
-    // Создаем сервисы
-    $botService = new BotService();
+    if (!$update) {
+        writeToLog("Webhook: Invalid JSON input", ['input' => $input]);
+        http_response_code(400);
+        exit('Invalid JSON');
+    }
+    
+    writeToLog("Webhook: Received update", [
+        'update_id' => $update['update_id'] ?? null,
+        'has_message' => isset($update['message']),
+        'has_callback' => isset($update['callback_query']),
+        'has_chat_member' => isset($update['chat_member'])
+    ]);
+    
+    // Создаем обработчик
     $handler = new MessageHandler();
     
-    // Логируем для отладки
-    writeToLog("Update type check:", $update);
-    
-    // Обрабатываем разные типы обновлений
+    // Обрабатываем обновление по типу
     if (isset($update['message'])) {
         // Обычное сообщение
-        writeToLog("Processing message:", $update['message']);
-        
-        // Проверяем специальные типы сообщений
-        if (isset($update['message']['new_chat_members'])) {
-            writeToLog("Processing new chat members:", $update['message']['new_chat_members']);
-            $handler->handle($update['message']);
-        } elseif (isset($update['message']['left_chat_member'])) {
-            writeToLog("Processing left chat member:", $update['message']['left_chat_member']);
-            $handler->handle($update['message']);
-        } else {
-            // Обычное сообщение
-            $handler->handle($update['message']);
-        }
+        $handler->handle($update['message']);
         
     } elseif (isset($update['callback_query'])) {
-        // Callback от inline-кнопок
-        writeToLog("Processing callback:", $update['callback_query']);
+        // Callback от inline-кнопки
         $handler->handleCallback($update['callback_query']);
         
     } elseif (isset($update['chat_member'])) {
-        // Изменения в статусе участника чата
-        writeToLog("Processing chat member update:", $update['chat_member']);
+        // Изменение участника чата
         $handler->handleChatMemberUpdate($update['chat_member']);
         
-    } elseif (isset($update['my_chat_member'])) {
-        // Изменения в статусе бота в чате
-        writeToLog("Processing my chat member update:", $update['my_chat_member']);
-        $handler->handleChatMemberUpdate($update['my_chat_member']);
+    } else {
+        writeToLog("Webhook: Unknown update type", ['update' => $update]);
     }
     
+    // Отвечаем успехом
+    http_response_code(200);
+    echo 'OK';
+    
 } catch (Exception $e) {
-    writeToLog('Error processing update: ' . $e->getMessage());
-    writeToLog('Update data:', $update);
-    writeToLog('Stack trace: ' . $e->getTraceAsString());
-}
+    writeToLog("Webhook: Critical error", [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+    
+    http_response_code(500);
+    echo 'Internal Server Error';
+} 

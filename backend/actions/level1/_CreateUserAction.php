@@ -17,7 +17,7 @@
  * 
  * Выходные данные:
  *   - success (boolean) — результат операции
- *   - data (array) — данные созданного пользователя
+ *   - data (array) — развернутые данные созданного пользователя
  *   - error (array, опционально) — информация об ошибке
  */
 require_once __DIR__ . '/../../utils/Database.php';
@@ -64,17 +64,24 @@ class _CreateUserAction {
                 ValidationHelper::validateEmail($userData['email']);
             }
             
-            // Создаём пользователя через модель
-            $userId = User::create($userData);
+            // Создаём пользователя с развернутыми данными
+            $userData = User::createWithDetails($userData);
             
-            // Получаем созданного пользователя
-            $user = User::findByTelegramId($data['telegram_id']);
+            if (!$userData) {
+                return [
+                    'success' => false,
+                    'error' => [
+                        'code' => 'USER_CREATION_FAILED',
+                        'message' => 'Не удалось создать пользователя'
+                    ]
+                ];
+            }
             
-            Logger::info("User created: ID=$userId, telegram_id={$data['telegram_id']}");
+            Logger::info("User created: ID={$userData['id']}, telegram_id={$userData['telegram_id']}");
             
             return [
                 'success' => true,
-                'data' => $user->toArray()
+                'data' => $userData // Возвращаем развернутые данные
             ];
             
         } catch (Exception $e) {

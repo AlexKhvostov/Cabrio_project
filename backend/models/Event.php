@@ -76,6 +76,15 @@ class Event {
     }
 
     /**
+     * Обновить статус события
+     */
+    public static function updateStatus($eventId, $statusId) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('UPDATE events SET status_id = ?, updated_at = NOW() WHERE id = ?');
+        return $stmt->execute([$statusId, $eventId]);
+    }
+
+    /**
      * Получить список событий с раскрытыми объектами type, organizer и photo
      */
     public static function getAll()

@@ -167,16 +167,10 @@ class __SyncUserDataAction {
             // 3. Формируем ответ
             $response = [
                 'success' => true,
-                'data' => [
-                    'user_id' => $userData['id'],
+                'data' => array_merge($userData, [ // Используем развернутые данные из L1 Actions
                     'action' => $action,
-                    'role' => $userData['role_id'],
-                    'telegram_id' => $userData['telegram_id'],
-                    'username' => $userData['username'],
-                    'first_name' => $userData['first_name'],
-                    'last_name' => $userData['last_name'],
                     'message' => self::getActionMessage($action)
-                ]
+                ])
             ];
             
             // Добавляем информацию об изменённых полях если обновляли

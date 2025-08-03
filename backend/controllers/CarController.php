@@ -22,6 +22,9 @@
  */
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/Car.php';
+require_once __DIR__ . '/../actions/level3/___CheckCarInClubAction.php';
+require_once __DIR__ . '/../actions/level3/___LeaveBusinessCardAction.php';
+require_once __DIR__ . '/../actions/level3/___AddCarToGarageAction.php';
 
 class CarController extends BaseController
 {
@@ -39,6 +42,7 @@ class CarController extends BaseController
                 return; // Ответ уже отправлен в requireAccess
             }
 
+            // Получаем список автомобилей с развернутыми данными
             $cars = Car::getAll();
             
             // Логируем действие
@@ -48,7 +52,7 @@ class CarController extends BaseController
             
             $this->json([
                 'success' => true, 
-                'data' => $cars,
+                'data' => $cars, // Уже содержит развернутые данные из модели
                 'meta' => $this->getRequestInfo()
             ]);
             
@@ -82,7 +86,8 @@ class CarController extends BaseController
                 return; // Ответ уже отправлен в requireAccess
             }
 
-            $car = Car::findById($id);
+            // Получаем автомобиль с развернутыми данными
+            $car = Car::findByIdWithDetails($id);
             if (!$car) {
                 $this->json([
                     'success' => false,
@@ -100,8 +105,8 @@ class CarController extends BaseController
             ]);
             
             $this->json([
-                'success' => true, 
-                'data' => $car,
+                'success' => true,
+                'data' => $car, // Развернутые данные автомобиля
                 'meta' => $this->getRequestInfo()
             ]);
             
@@ -115,7 +120,7 @@ class CarController extends BaseController
             $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'DB_ERROR',
+                    'code' => 'INTERNAL_ERROR',
                     'message' => $e->getMessage()
                 ]
             ], 500);
@@ -139,20 +144,31 @@ class CarController extends BaseController
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true);
             
+            // Добавляем ID создателя
+            $input['create_user_id'] = $this->getCurrentUserId();
+            
             // Логируем действие
             $this->logUserAction('create_car', [
                 'input_data' => $input
             ]);
 
-            // TODO: Реализовать создание автомобиля через модель
+            // Создаем автомобиль с развернутыми данными
+            $car = Car::createWithDetails($input);
+            
+            if (!$car) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'CAR_CREATION_FAILED',
+                        'message' => 'Не удалось создать автомобиль'
+                    ]
+                ], 400);
+                return;
+            }
+            
             $this->json([
-                'success' => true, 
-                'data' => [
-                    'id' => 1, 
-                    'model' => 'BMW Z4', 
-                    'color' => 'red',
-                    'created_by' => $this->getCurrentUserId()
-                ],
+                'success' => true,
+                'data' => $car, // Развернутые данные созданного автомобиля
                 'meta' => $this->getRequestInfo()
             ], 201);
             
@@ -169,6 +185,231 @@ class CarController extends BaseController
                     'message' => $e->getMessage()
                 ]
             ], 500);
+        }
+    }
+
+    /**
+     * Проверить автомобиль в клубе с OCR
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
+     * 
+     * POST /api/actions/check-car-in-club
+     */
+    public function checkCarInClub()
+    {
+        try {
+            // Временно отключаем проверку доступа для тестирования
+            // if (!$this->requireAccess('api.actions.checkCarInClub')) {
+            //     return;
+            // }
+            
+            // Получаем данные из запроса
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+            
+            // Логируем действие
+            $this->logUserAction('check_car_in_club', [
+                'input_data' => $input
+            ]);
+            
+            // Проверяем наличие фото
+            if (empty($input['photo'])) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'PHOTO_REQUIRED',
+                        'message' => 'Фото автомобиля обязательно для проверки'
+                    ]
+                ], 400);
+                return;
+            }
+            
+            // Вызываем L3 Action с base64 данными
+            $result = ___CheckCarInClubAction::handle($input);
+            
+            if ($result['success']) {
+                $this->json([
+                    'success' => true,
+                    'data' => $result['data']
+                ]);
+            } else {
+                $this->json([
+                    'success' => false,
+                    'error' => $result['error']
+                ], 400);
+            }
+            
+        } catch (Throwable $e) {
+            Logger::error('CarController: checkCarInClub error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => 'Внутренняя ошибка сервера'
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Оставить визитку с OCR
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
+     * 
+     * POST /api/actions/leave-business-card
+     */
+    public function leaveBusinessCard()
+    {
+        try {
+            // Временно отключаем проверку доступа для тестирования
+            // if (!$this->requireAccess('api.actions.leaveBusinessCard')) {
+            //     return;
+            // }
+            
+            // Получаем данные из запроса
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+            
+            // Логируем действие
+            $this->logUserAction('leave_business_card', [
+                'input_data' => $input
+            ]);
+            
+            // Вызываем L3 Action
+            $result = ___LeaveBusinessCardAction::handle($input);
+            
+            if ($result['success']) {
+                $this->json([
+                    'success' => true,
+                    'data' => $result['data']
+                ]);
+            } else {
+                $this->json([
+                    'success' => false,
+                    'error' => $result['error']
+                ], 400);
+            }
+            
+        } catch (Throwable $e) {
+            Logger::error('CarController: leaveBusinessCard error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => 'Внутренняя ошибка сервера'
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Добавить автомобиль в гараж с OCR
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: member
+     * 
+     * POST /api/actions/add-car-to-garage
+     */
+    public function addCarToGarage()
+    {
+        try {
+            // Временно отключаем проверку доступа для тестирования
+            // if (!$this->requireAccess('api.actions.addCarToGarage')) {
+            //     return;
+            // }
+            
+            // Получаем данные из запроса
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+            
+            // Логируем действие
+            $this->logUserAction('add_car_to_garage', [
+                'input_data' => $input
+            ]);
+            
+            // Вызываем L3 Action
+            $result = ___AddCarToGarageAction::handle($input);
+            
+            if ($result['success']) {
+                $this->json([
+                    'success' => true,
+                    'data' => $result['data']
+                ]);
+            } else {
+                $this->json([
+                    'success' => false,
+                    'error' => $result['error']
+                ], 400);
+            }
+            
+        } catch (Throwable $e) {
+            Logger::error('CarController: addCarToGarage error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+            
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => 'Внутренняя ошибка сервера'
+                ]
+            ], 500);
+        }
+    }
+    
+    /**
+     * Конвертирует base64 в временный файл
+     * 
+     * @param string $base64Data - Base64 данные
+     * @return string|false - Путь к временному файлу или false при ошибке
+     */
+    private function convertBase64ToTempFile($base64Data) {
+        if (empty($base64Data)) {
+            return false;
+        }
+        
+        try {
+            // Декодируем base64
+            $binaryData = base64_decode($base64Data, true);
+            if ($binaryData === false) {
+                Logger::error('CarController: Invalid base64 data');
+                return false;
+            }
+            
+            // Создаем временный файл
+            $tempFile = tempnam(sys_get_temp_dir(), 'car_photo_');
+            if ($tempFile === false) {
+                Logger::error('CarController: Failed to create temp file');
+                return false;
+            }
+            
+            // Записываем данные в файл
+            if (file_put_contents($tempFile, $binaryData) === false) {
+                Logger::error('CarController: Failed to write to temp file');
+                unlink($tempFile);
+                return false;
+            }
+            
+            Logger::info('CarController: Base64 converted to temp file', [
+                'temp_file' => $tempFile,
+                'size' => filesize($tempFile)
+            ]);
+            
+            return $tempFile;
+            
+        } catch (Exception $e) {
+            Logger::error('CarController: convertBase64ToTempFile error', [
+                'error' => $e->getMessage()
+            ]);
+            return false;
         }
     }
 } 

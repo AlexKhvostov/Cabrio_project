@@ -80,6 +80,15 @@ class GuideObject {
     }
 
     /**
+     * Обновить статус гид-объекта
+     */
+    public static function updateStatus($guideObjectId, $statusId) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('UPDATE guide_objects SET status_id = ?, updated_at = NOW() WHERE id = ?');
+        return $stmt->execute([$statusId, $guideObjectId]);
+    }
+
+    /**
      * Получить список гид-объектов с раскрытыми объектами type, kind, author и photo
      */
     public static function getAll()

@@ -56,6 +56,7 @@ require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
 require_once __DIR__ . '/../../utils/AppContext.php';
+require_once __DIR__ . '/../../models/Car.php';
 
 class __DropBusinessCardAction {
     
@@ -93,7 +94,8 @@ class __DropBusinessCardAction {
                 $action = 'card_created';
                 
                 // Обновляем статус только если он был "noticed" (ID = 1)
-                if ($carData['status_id'] == 1) {
+                $currentStatusId = $carData['status_id'] ?? $carData['status']['id'] ?? null;
+                if ($currentStatusId == 1) {
                     $updateResult = _UpdateStatusAction::handle([
                         'entity_type' => 'car',
                         'entity_id' => $carId,
@@ -102,14 +104,18 @@ class __DropBusinessCardAction {
                     
                     if ($updateResult['success']) {
                         // Обновляем данные автомобиля с новым статусом
-                        $carData['status_id'] = 2;
+                        // Получаем обновленные данные автомобиля
+                        $updatedCarResult = Car::findByIdWithDetails($carId);
+                        if ($updatedCarResult['success']) {
+                            $carData = $updatedCarResult['data'];
+                        }
                         Logger::info("Car status updated from noticed to business_card: car_id=$carId");
                     } else {
                         Logger::warning("Failed to update car status to business_card: car_id=$carId");
                         // Не прерываем выполнение, только логируем
                     }
                 } else {
-                    Logger::info("Car status not updated (was not 'noticed'): car_id=$carId, current_status_id=" . $carData['status_id']);
+                    Logger::info("Car status not updated (was not 'noticed'): car_id=$carId, current_status_id=" . $currentStatusId);
                 }
                 
             } else {
@@ -185,22 +191,8 @@ class __DropBusinessCardAction {
                 'success' => true,
                 'data' => [
                     'action' => $action,
-                    'car' => [
-                        'car_id' => $carData['id'],
-                        'plate_number' => $carData['reg_number'],
-                        'model' => $carData['model'],
-                        'color' => $carData['color'],
-                        'year' => $carData['year'],
-                        'status_id' => $carData['status_id'],
-                        'owner_user_id' => $carData['owner_user_id'],
-                        'create_user_id' => $carData['create_user_id'] ?? $userId
-                    ],
-                    'business_card' => [
-                        'card_id' => $cardData['id'],
-                        'car_id' => $cardData['car_id'],
-                        'user_id' => $cardData['user_id'] ?? $userId,
-                        'created_at' => $cardData['created_at']
-                    ],
+                    'car' => $carData, // Используем развернутые данные из L1 Actions
+                    'business_card' => $cardData, // Используем развернутые данные из L1 Actions
                     'message' => self::getActionMessage($action)
                 ]
             ];
