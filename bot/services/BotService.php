@@ -136,7 +136,7 @@ class BotService {
         
         $text = "❌ Для использования бота необходимо вступить в клубный чат.";
         $buttons = [[
-            ['text' => '💬 Вступить в чат', 'url' => $_ENV['CHAT_INVITE_LINK'] ?? 'https://t.me/+Iwe_Bi1rZWI5Yjcy']
+            ['text' => '💬 Вступить в чат', 'url' => $_ENV['CHAT_INVITE_LINK'] ?? 'https://t.me/+r4avCK_b3v5iZmFi']
         ]];
         
         $this->sendInlineKeyboard($chat_id, $text, $buttons);

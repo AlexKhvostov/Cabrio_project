@@ -57,6 +57,7 @@ require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
 require_once __DIR__ . '/../../utils/AppContext.php';
 require_once __DIR__ . '/../../models/Car.php';
+require_once __DIR__ . '/../../models/Photo.php';
 
 class __DropBusinessCardAction {
     
@@ -155,7 +156,39 @@ class __DropBusinessCardAction {
             
             // 3. Обрабатываем фото если передана
             $photoData = null;
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            if (isset($data['photo']) && !empty($data['photo'])) {
+                try {
+                    // Получаем следующий ID заранее
+                    $photoId = Photo::getNextId();
+                    $extension = 'jpg'; // Бот отправляет в формате JPEG
+                    $fileName = FileHelper::generateCorrectFileName('business_card', $cardData['id'], $photoId, $extension);
+                    
+                    // Сохраняем файл на сервер используя новый метод для base64
+                    $savedPath = FileHelper::savePhotoFromBase64($data['photo'], 'business_card', $cardData['id'], $photoId, 'business_card_photo.jpg');
+                    
+                    // Создаём запись в БД
+                    $photoResult = _CreatePhotoAction::handle([
+                        'entity_type' => 'business_card',
+                        'entity_id' => $cardData['id'],
+                        'file_name' => $fileName,
+                        'url' => $savedPath,
+                        'photo_type' => 'cover',
+                        'description' => 'Фото приглашенного автомобиля',
+                        'uploaded_by' => $userId
+                    ]);
+                    
+                    if ($photoResult['success']) {
+                        $photoData = $photoResult['data'];
+                        Logger::info("Photo saved successfully: business_card_id=" . $cardData['id'] . ", photo_id=" . $photoData['id']);
+                    } else {
+                        Logger::error("Failed to create photo record: " . json_encode($photoResult['error']));
+                    }
+                    
+                } catch (Exception $e) {
+                    Logger::error('Photo upload failed: ' . $e->getMessage());
+                    // Не прерываем выполнение, только логируем ошибку
+                }
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
                 try {
                     // Сохраняем файл на сервер
                     $photoId = Photo::getNextId(); // Получаем следующий ID заранее

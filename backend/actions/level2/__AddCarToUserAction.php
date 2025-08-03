@@ -172,47 +172,25 @@ class __AddCarToUserAction {
                      $extension = 'jpg'; // Бот отправляет в формате JPEG
                      $fileName = FileHelper::generateCorrectFileName('car', $carId, $photoId, $extension);
                      
-                     // Создаём временный файл из base64
-                     $tempFileData = FileHelper::createTempFileFromBase64($data['photo'], $fileName);
+                     // Сохраняем файл на сервер используя новый метод для base64
+                     $savedPath = FileHelper::savePhotoFromBase64($data['photo'], 'car', $carId, $photoId, 'car_photo.jpg');
                      
-                     // Создаём директорию если не существует
-                     $uploadDir = FileHelper::getUploadDir('car');
-                     if (!is_dir($uploadDir)) {
-                         mkdir($uploadDir, 0755, true);
-                     }
+                     // Создаём запись в БД
+                     $photoResult = _CreatePhotoAction::handle([
+                         'entity_type' => 'car',
+                         'entity_id' => $carId,
+                         'file_name' => $fileName,
+                         'url' => $savedPath,
+                         'photo_type' => 'cover',
+                         'description' => 'Фото автомобиля',
+                         'uploaded_by' => $userId
+                     ]);
                      
-                     // Сохраняем файл на сервер
-                     $filePath = $uploadDir . '/' . $fileName;
-                     if (copy($tempFileData['tmp_name'], $filePath)) {
-                         // Получаем относительный путь для БД
-                         $savedPath = FileHelper::getRelativePath($filePath);
-                         
-                         Logger::info("Photo file saved: $filePath");
-                         
-                         // Создаём запись в БД
-                         $photoResult = _CreatePhotoAction::handle([
-                             'entity_type' => 'car',
-                             'entity_id' => $carId,
-                             'file_name' => $fileName,
-                             'url' => $savedPath,
-                             'photo_type' => 'cover',
-                             'description' => 'Фото автомобиля',
-                             'uploaded_by' => $userId
-                         ]);
-                         
-                         if ($photoResult['success']) {
-                             $photoData = $photoResult['data'];
-                             Logger::info("Photo saved successfully: car_id=$carId, photo_id=" . $photoData['id']);
-                         } else {
-                             Logger::error("Failed to create photo record: " . json_encode($photoResult['error']));
-                         }
+                     if ($photoResult['success']) {
+                         $photoData = $photoResult['data'];
+                         Logger::info("Photo saved successfully: car_id=$carId, photo_id=" . $photoData['id']);
                      } else {
-                         Logger::error("Failed to copy photo file to upload directory");
-                     }
-                     
-                     // Удаляем временный файл
-                     if (file_exists($tempFileData['tmp_name'])) {
-                         unlink($tempFileData['tmp_name']);
+                         Logger::error("Failed to create photo record: " . json_encode($photoResult['error']));
                      }
                      
                  } catch (Exception $e) {

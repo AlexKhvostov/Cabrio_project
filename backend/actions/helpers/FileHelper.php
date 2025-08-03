@@ -55,6 +55,54 @@ class FileHelper {
     }
     
     /**
+     * 📸 Сохранение фотографии из base64 данных
+     * 
+     * @param string $base64Data - Base64 кодированное изображение
+     * @param string $entityType - Тип сущности (cars, users, events, etc.)
+     * @param int $entityId - ID сущности
+     * @param int $photoId - ID записи в таблице photos
+     * @param string $originalName - Оригинальное имя файла
+     * @return string - Относительный путь к сохраненному файлу
+     * @throws Exception - Если не удалось сохранить файл
+     */
+    public static function savePhotoFromBase64($base64Data, $entityType, $entityId, $photoId, $originalName = 'photo.jpg') {
+        try {
+            // Создаем временный файл из base64
+            $tempFileData = self::createTempFileFromBase64($base64Data, $originalName);
+            
+            // Создание директории если не существует
+            $uploadDir = self::getUploadDir($entityType);
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Генерация имени файла с photoId
+            $fileName = self::generateFileName($tempFileData, $entityType, $entityId, $photoId);
+            $filePath = $uploadDir . '/' . $fileName;
+            
+            // Сохранение файла
+            if (!copy($tempFileData['tmp_name'], $filePath)) {
+                throw new Exception('Не удалось сохранить файл: ' . $tempFileData['name']);
+            }
+            
+            // Удаляем временный файл
+            if (file_exists($tempFileData['tmp_name'])) {
+                unlink($tempFileData['tmp_name']);
+            }
+            
+            // Логирование
+            Logger::info("Photo saved from base64: $filePath");
+            
+            // Возврат относительного пути для БД
+            return self::getRelativePath($filePath);
+            
+        } catch (Exception $e) {
+            Logger::error('FileHelper::savePhotoFromBase64 failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    /**
      * ✅ Валидация фотографии
      * 
      * @param array $fileData - Данные файла из $_FILES

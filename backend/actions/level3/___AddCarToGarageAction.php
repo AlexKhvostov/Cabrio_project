@@ -94,7 +94,8 @@ class ___AddCarToGarageAction {
             }
             
             $addResult = __AddCarToUserAction::handle([
-                'plate_number' => $plateNumber // может быть null
+                'plate_number' => $plateNumber, // может быть null
+                'photo' => $data['photo'] ?? null // Передаем фото в L2 Action
             ]);
             
             if (!$addResult['success']) {

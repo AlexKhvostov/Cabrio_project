@@ -97,7 +97,8 @@ class ___LeaveBusinessCardAction {
             }
             
             $cardResult = __DropBusinessCardAction::handle([
-                'plate_number' => $plateNumber
+                'plate_number' => $plateNumber,
+                'photo' => $data['photo'] ?? null // Передаем фото в L2 Action
             ]);
             
             if (!$cardResult['success']) {
