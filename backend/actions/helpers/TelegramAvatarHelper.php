@@ -1,0 +1,194 @@
+<?php
+/**
+ * TelegramAvatarHelper — получение аватаров пользователей из Telegram
+ */
+
+require_once __DIR__ . '/../../utils/load_env.php';
+require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
+require_once __DIR__ . '/FileHelper.php';
+require_once __DIR__ . '/../../models/Photo.php';
+require_once __DIR__ . '/../../models/User.php';
+
+class TelegramAvatarHelper {
+    
+    /**
+     * Получить аватар пользователя из Telegram
+     */
+    public static function getUserAvatar($telegramId, $userId) {
+        try {
+            $botToken = getenv('BOT_TOKEN');
+            if (!$botToken) {
+                Logger::warning('TelegramAvatarHelper: BOT_TOKEN not found');
+                return null;
+            }
+            
+            // 1. Получаем информацию о пользователе
+            $userInfo = self::getUserInfo($botToken, $telegramId);
+            if (!$userInfo || !isset($userInfo['photo'])) {
+                Logger::info("TelegramAvatarHelper: No avatar for telegram_id=$telegramId");
+                return null;
+            }
+            
+            // 2. Получаем file_id аватара
+            $fileId = self::getFileId($userInfo['photo']);
+            if (!$fileId) {
+                Logger::info("TelegramAvatarHelper: No file_id for telegram_id=$telegramId");
+                return null;
+            }
+            
+            Logger::info("TelegramAvatarHelper: Found avatar file_id=$fileId");
+            
+            // 3. Проверяем, изменился ли аватар
+            $currentUser = User::findById($userId);
+            if ($currentUser && $currentUser->telegram_photo_id === $fileId) {
+                Logger::info("TelegramAvatarHelper: Avatar unchanged for user_id=$userId");
+                return self::getExistingAvatar($userId);
+            }
+            
+            // 4. Получаем file_path
+            $filePath = self::getFilePath($botToken, $fileId);
+            if (!$filePath) {
+                Logger::warning("TelegramAvatarHelper: Failed to get file_path for file_id=$fileId");
+                return null;
+            }
+            
+            // 5. Скачиваем файл
+            $imageData = self::downloadFile($botToken, $filePath);
+            if (!$imageData) {
+                Logger::warning("TelegramAvatarHelper: Failed to download file");
+                return null;
+            }
+            
+            // 6. Сохраняем аватар
+            $avatarData = self::saveAvatar($imageData, $userId, $filePath);
+            if (!$avatarData) {
+                Logger::warning("TelegramAvatarHelper: Failed to save avatar");
+                return null;
+            }
+            
+            // 7. Обновляем ссылку в БД
+            self::updateAvatarLink($userId, $fileId);
+            
+            Logger::info("TelegramAvatarHelper: Avatar saved for user_id=$userId");
+            return $avatarData;
+            
+        } catch (Exception $e) {
+            Logger::error('TelegramAvatarHelper: Error', [
+                'telegram_id' => $telegramId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+    
+    /**
+     * Получить информацию о пользователе
+     */
+    private static function getUserInfo($botToken, $telegramId) {
+        $url = "https://api.telegram.org/bot{$botToken}/getChat?chat_id={$telegramId}";
+        $response = @file_get_contents($url);
+        
+        if (!$response) return null;
+        
+        $data = json_decode($response, true);
+        return ($data && $data['ok']) ? $data['result'] : null;
+    }
+    
+    /**
+     * Извлечь file_id из данных фото
+     */
+    private static function getFileId($photoData) {
+        if (isset($photoData['big_file_id'])) {
+            return $photoData['big_file_id']; // Лучшее качество
+        }
+        if (isset($photoData['small_file_id'])) {
+            return $photoData['small_file_id']; // Fallback
+        }
+        return null;
+    }
+    
+    /**
+     * Получить file_path
+     */
+    private static function getFilePath($botToken, $fileId) {
+        $url = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$fileId}";
+        $response = @file_get_contents($url);
+        
+        if (!$response) return null;
+        
+        $data = json_decode($response, true);
+        return ($data && $data['ok']) ? $data['result']['file_path'] : null;
+    }
+    
+    /**
+     * Скачать файл
+     */
+    private static function downloadFile($botToken, $filePath) {
+        $url = "https://api.telegram.org/file/bot{$botToken}/{$filePath}";
+        return @file_get_contents($url);
+    }
+    
+    /**
+     * Сохранить аватар
+     */
+    private static function saveAvatar($imageData, $userId, $filePath) {
+        try {
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION) ?: 'jpg';
+            $photoId = Photo::getNextId();
+            $fileName = FileHelper::generateCorrectFileName('user', $userId, $photoId, $extension);
+            
+            // Конвертируем бинарные данные в base64
+            $base64Data = base64_encode($imageData);
+            
+            // Сохраняем файл используя savePhotoFromBase64
+            $savedPath = FileHelper::savePhotoFromBase64($base64Data, 'user', $userId, $photoId, $fileName);
+            
+            if (!$savedPath) return null;
+            
+            // Создаем запись в БД
+            $result = _CreatePhotoAction::handle([
+                'entity_type' => 'user',
+                'entity_id' => $userId,
+                'file_name' => $fileName,
+                'url' => $savedPath,
+                'photo_type' => 'avatar',
+                'description' => 'Аватар из Telegram',
+                'uploaded_by' => $userId
+            ]);
+            
+            return $result['success'] ? $result['data'] : null;
+            
+        } catch (Exception $e) {
+            Logger::error('TelegramAvatarHelper: Save error', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+    
+    /**
+     * Получить существующий аватар
+     */
+    private static function getExistingAvatar($userId) {
+        try {
+            $pdo = \Database::getInstance();
+            $stmt = $pdo->prepare('SELECT * FROM photos WHERE entity_type = "user" AND entity_id = ? AND photo_type = "avatar" ORDER BY id DESC LIMIT 1');
+            $stmt->execute([$userId]);
+            return $stmt->fetch();
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Обновить ссылку на аватар в БД
+     */
+    private static function updateAvatarLink($userId, $fileId) {
+        try {
+            $pdo = \Database::getInstance();
+            $stmt = $pdo->prepare('UPDATE users SET telegram_photo_id = ?, updated_at = NOW() WHERE id = ?');
+            $stmt->execute([$fileId, $userId]);
+        } catch (Exception $e) {
+            Logger::error('TelegramAvatarHelper: Update error', ['error' => $e->getMessage()]);
+        }
+    }
+} 

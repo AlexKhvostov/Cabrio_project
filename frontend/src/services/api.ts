@@ -4,7 +4,7 @@ import { useTelegramStore } from '@/stores/telegram'
 const API_BASE_URL = 'https://contributed-cm-component-consideration.trycloudflare.com/app/backend/test_data.php'
 
 // Базовый URL для загрузки файлов
-const UPLOADS_BASE_URL = 'https://contributed-cm-component-consideration.trycloudflare.com/app'
+const UPLOADS_BASE_URL = import.meta.env.VITE_UPLOADS_BASE_URL || 'https://contributed-cm-component-consideration.trycloudflare.com/app'
 
 // Типы ответов API
 export interface ApiResponse<T = any> {

@@ -255,7 +255,7 @@ class User {
                  ORDER BY id DESC LIMIT 1
              )'
         );
-        $rows = $stmt->fetchAll();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $users = [];
         foreach ($rows as $row) {
             $user = $row;

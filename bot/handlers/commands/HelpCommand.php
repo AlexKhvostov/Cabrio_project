@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../config.php';
 
 class HelpCommand {
     /** @var BotService */
@@ -65,7 +66,7 @@ class HelpCommand {
      * Получает URL WebApp
      */
     private function getWebAppUrl() {
-        // Используем туннельный домен для WebApp
-        return $_ENV['APP_URL'] ?? 'https://contributed-cm-component-consideration.trycloudflare.com/app/frontend/dist/';
+        // Используем функцию getConfig для получения APP_URL из .env
+        return getConfig('APP_URL', 'https://virtually-initially-wool-runtime.trycloudflare.com/app/frontend/dist');
     }
 } 

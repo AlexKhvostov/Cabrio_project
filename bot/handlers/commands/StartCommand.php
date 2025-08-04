@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../config.php';
 
 class StartCommand {
     /** @var BotService */
@@ -44,7 +45,7 @@ class StartCommand {
      */
     private function getStartMessage($user) {
         $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
-        $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
+        $botUsername = getConfig('BOT_USERNAME', 'CabrioRideBot');
         
         return "🎉 <b>Привет, $username!</b>\n\n" .
                "Я бот клуба CabrioRide.\n\n" .
@@ -56,7 +57,7 @@ class StartCommand {
      * Получает URL WebApp
      */
     private function getWebAppUrl() {
-        // Используем туннельный домен для WebApp
-        return $_ENV['APP_URL'] ?? 'https://contributed-cm-component-consideration.trycloudflare.com/app/frontend/dist/';
+        // Используем функцию getConfig для получения APP_URL из .env
+        return getConfig('APP_URL', 'https://virtually-initially-wool-runtime.trycloudflare.com/app/frontend/dist/');
     }
 } 

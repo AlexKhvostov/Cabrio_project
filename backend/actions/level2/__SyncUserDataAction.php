@@ -41,11 +41,13 @@
  *   - FileHelper — сохранение файла на сервер
  */
 
+require_once __DIR__ . '/../../utils/load_env.php';
 require_once __DIR__ . '/../level1/_CheckUserByTelegramIdAction.php';
 require_once __DIR__ . '/../level1/_CreateUserAction.php';
 require_once __DIR__ . '/../level1/_UpdateUserAction.php';
 require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
+require_once __DIR__ . '/../helpers/TelegramAvatarHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
 
@@ -162,6 +164,20 @@ class __SyncUserDataAction {
                     Logger::error('Photo upload failed: ' . $e->getMessage());
                     // Не прерываем выполнение, только логируем ошибку
                 }
+            } else {
+                // Если фото не передано, пробуем получить аватар из Telegram
+                try {
+                    $photoData = TelegramAvatarHelper::getUserAvatar($telegramId, $userId);
+                    if ($photoData) {
+                        Logger::info("TelegramAvatarHelper: Successfully got avatar for telegram_id=$telegramId");
+                    }
+                } catch (Exception $e) {
+                    Logger::warning('TelegramAvatarHelper: Failed to get avatar from Telegram', [
+                        'telegram_id' => $telegramId,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Не прерываем выполнение, только логируем ошибку
+                }
             }
             
             // 3. Формируем ответ
@@ -194,6 +210,14 @@ class __SyncUserDataAction {
                     'updated_at' => $photoData['updated_at'] ?? null
                 ];
                 $response['data']['photo'] = $photoInfo;
+                
+                // Добавляем аватар в глобальный контекст
+                AppContext::setUserAvatar($photoInfo);
+                
+                Logger::info("Avatar added to global context", [
+                    'user_id' => $userId,
+                    'avatar_id' => $photoData['id'] ?? null
+                ]);
             }
             
             Logger::info("User sync completed: telegram_id=$telegramId, action=$action");

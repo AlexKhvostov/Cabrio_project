@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
   readonly VITE_BOT_TOKEN: string
+  readonly VITE_UPLOADS_BASE_URL: string
 }
 
 interface ImportMeta {

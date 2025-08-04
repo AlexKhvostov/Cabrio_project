@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "npm run generate-env && run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
-    "dev": "vite"
+    "dev": "vite",
+    "generate-env": "node scripts/generate-env.cjs",
+    "prebuild": "npm run generate-env"
   },
   "dependencies": {
     "@telegram-apps/sdk": "^1.1.3",
