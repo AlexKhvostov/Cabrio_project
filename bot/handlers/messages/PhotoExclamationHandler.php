@@ -200,10 +200,15 @@ class PhotoExclamationHandler {
         $plateNumber = strtoupper($cardData['plate_number'] ?? 'НЕ РАСПОЗНАН');
         $message .= "🔢 <b>Номер авто:</b> <code>$plateNumber</code>\n\n";
         
-        // Статус автомобиля
-        $carStatus = $cardData['status']['name'] ?? 'Неизвестен';
-        $carStatusDescription = $cardData['status']['description'] ?? 'Нет описания';
-        $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
+        // Статус автомобиля - получаем из car данных
+        $carData = $data['car'] ?? null;
+        if ($carData && isset($carData['status'])) {
+            $carStatus = $carData['status']['name'] ?? 'Неизвестен';
+            $carStatusDescription = $carData['status']['description'] ?? 'Нет описания';
+            $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
+        } else {
+            $message .= "📊 <b>Статус авто:</b> Неизвестен\n\n";
+        }
         
         // Кто оставил визитку
         $message .= "👤 <b>Кто оставил визитку:</b> $username\n\n";
