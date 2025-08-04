@@ -22,6 +22,9 @@ class AppContext
     /** @var array|null Данные из Telegram */
     private static $telegramData = null;
     
+    /** @var array|null Аватар пользователя */
+    private static $userAvatar = null;
+    
     /** @var string|null Уникальный ID запроса */
     private static $requestId = null;
     
@@ -71,6 +74,51 @@ class AppContext
     public static function clearCurrentUser()
     {
         self::$currentUser = null;
+    }
+
+    // ========================================
+    // МЕТОДЫ УПРАВЛЕНИЯ АВАТАРОМ ПОЛЬЗОВАТЕЛЯ
+    // ========================================
+
+    /**
+     * Установить аватар пользователя
+     * 
+     * @param array $avatar Данные аватара
+     * @return void
+     */
+    public static function setUserAvatar($avatar)
+    {
+        self::$userAvatar = $avatar;
+    }
+
+    /**
+     * Получить аватар пользователя
+     * 
+     * @return array|null Данные аватара или null
+     */
+    public static function getUserAvatar()
+    {
+        return self::$userAvatar;
+    }
+
+    /**
+     * Проверить, есть ли аватар пользователя
+     * 
+     * @return bool
+     */
+    public static function hasUserAvatar()
+    {
+        return self::$userAvatar !== null;
+    }
+
+    /**
+     * Очистить аватар пользователя
+     * 
+     * @return void
+     */
+    public static function clearUserAvatar()
+    {
+        self::$userAvatar = null;
     }
 
     // ========================================
@@ -246,6 +294,7 @@ class AppContext
         self::$currentUser = null;
         self::$sessionId = null;
         self::$telegramData = null;
+        self::$userAvatar = null;
         self::$requestId = null;
         self::$startTime = null;
     }

@@ -246,7 +246,7 @@ class PhotoPlusPlusHandler {
         //  $message .= "Этот автомобиль уже принадлежит другому участнику клуба.\n";
             $message .= "Если вы считаете, что это ошибка, обратитесь к администратору.";
         } else {
-            $message .= "😔 $errorMsg";
+        $message .= "😔 $errorMsg";
         }
         
         $this->botService->sendMessage($chatId, $message);

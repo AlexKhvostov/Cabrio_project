@@ -139,13 +139,13 @@ class __AddCarToUserAction {
                             ];
                         } else {
                             Logger::info('L2 Action: Car owned by another user');
-                            return [
-                                'success' => false,
-                                'error' => [
+                        return [
+                            'success' => false,
+                            'error' => [
                                     'code' => 'CAR_OWNED_BY_OTHER',
                                     'message' => 'Автомобиль принадлежит другому участнику клуба'
-                                ]
-                            ];
+                            ]
+                        ];
                         }
                     } else {
                         Logger::info('L2 Action: Car has no owner, calling _UpdateOwnerToCarAction');

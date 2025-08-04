@@ -41,11 +41,7 @@ onMounted(() => {
 
 .app-content {
   flex: 1;
-  padding-top: 0; /* Remove padding for map view */
+  padding-top: 0; /* No padding needed since header is absolute */
   padding-bottom: 80px; /* Space for bottom navigation */
-}
-
-.app-content:not(.map-view) {
-  padding-top: 60px; /* Space for header on other pages */
 }
 </style>

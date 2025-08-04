@@ -1,0 +1,7 @@
+2025-08-04T14:43:43+02:00 [ERROR] FileHelper::savePhoto failed: Файл не был загружен
+2025-08-04T14:43:43+02:00 [ERROR] TelegramAvatarHelper: Save error | Context: {"error":"Файл не был загружен"}
+2025-08-04T14:48:34+02:00 [ERROR] FileHelper::createTempFileFromBase64 failed: Неверный формат base64 данных
+2025-08-04T14:48:34+02:00 [ERROR] FileHelper::savePhotoFromBase64 failed: Неверный формат base64 данных
+2025-08-04T14:48:34+02:00 [ERROR] TelegramAvatarHelper: Save error | Context: {"error":"Неверный формат base64 данных"}
+2025-08-04T14:59:26+02:00 [ERROR] UserController: getList error | Context: {"error":"Illegal offset type","user_id":635}
+2025-08-04T14:59:56+02:00 [ERROR] UserController: getList error | Context: {"error":"Illegal offset type","user_id":635}

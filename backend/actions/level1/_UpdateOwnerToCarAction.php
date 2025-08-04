@@ -74,13 +74,13 @@ class _UpdateOwnerToCarAction {
                         ]
                     ];
                 } else {
-                    return [
-                        'success' => false,
-                        'error' => [
+                return [
+                    'success' => false,
+                    'error' => [
                             'code' => 'CAR_OWNED_BY_OTHER',
                             'message' => 'Автомобиль принадлежит другому участнику клуба'
-                        ]
-                    ];
+                    ]
+                ];
                 }
             }
             

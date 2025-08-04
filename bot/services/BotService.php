@@ -306,7 +306,7 @@ class BotService {
                         throw new Exception("Invalid JSON response: " . json_last_error_msg());
                     }
                 } else {
-                    throw new Exception("Invalid JSON response: " . json_last_error_msg());
+                throw new Exception("Invalid JSON response: " . json_last_error_msg());
                 }
             }
             
