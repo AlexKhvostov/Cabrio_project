@@ -129,10 +129,21 @@ class PhotoPlusPlusHandler {
                 'raw_response' => json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             ]);
             
-            if ($result['success']) {
-                $this->sendSuccessMessage($chatId, $username, $result['data']);
+            // Проверяем успешность операции по данным ответа, а не по HTTP коду
+            if (isset($result['data']['success']) && $result['data']['success']) {
+                $this->sendSuccessMessage($chatId, $user, $result['data']);
             } else {
-                $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                // Получаем ошибку из данных ответа
+                $errorData = $result['data'] ?? [];
+                $errorCode = $errorData['error']['code'] ?? 'UNKNOWN_ERROR';
+                $errorMsg = $errorData['error']['message'] ?? 'Неизвестная ошибка';
+                
+                writeToLog("PhotoPlusPlusHandler: Backend error", [
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMsg,
+                    'user_id' => $user['id']
+                ]);
+                
                 $this->sendErrorMessage($chatId, $errorMsg);
             }
             
@@ -189,7 +200,7 @@ class PhotoPlusPlusHandler {
     /**
      * Отправляет сообщение об успешном результате
      */
-    private function sendSuccessMessage($chatId, $username, $data) {
+    private function sendSuccessMessage($chatId, $user, $data) {
         // Извлекаем данные из вложенной структуры ответа
         $carData = $data['data'] ?? $data;
         
@@ -204,8 +215,9 @@ class PhotoPlusPlusHandler {
         $carStatusDescription = $carData['status']['description'] ?? 'Нет описания';
         $message .= "📊 <b>Статус авто:</b> $carStatus ($carStatusDescription)\n\n";
         
-        // Владелец
-        $message .= "👤 <b>Владелец:</b> $username\n\n";
+        // Владелец - формируем кликабельный ник
+        $ownerDisplay = $user['username'] ? '@' . $user['username'] : ($user['first_name'] ?? 'Участник');
+        $message .= "👤 <b>Владелец:</b> $ownerDisplay\n\n";
         
         // Сообщение от сервера
         $serverMessage = $carData['message'] ?? 'Автомобиль добавлен в гараж';
@@ -219,7 +231,23 @@ class PhotoPlusPlusHandler {
      */
     private function sendErrorMessage($chatId, $errorMsg) {
         $message = "❌ <b>Ошибка добавления авто</b>\n\n";
-        $message .= "😔 $errorMsg";
+        
+        // Специальные сообщения для разных типов ошибок
+        if (strpos($errorMsg, 'уже добавлен в ваш гараж') !== false || strpos($errorMsg, 'уже в вашем гараже') !== false) {
+            $message .= "✅ <b>Автомобиль уже принадлежит вам!</b>\n\n";
+        //  $message .= "Этот автомобиль уже добавлен в ваш гараж.\n";
+            $message .= "Вы можете просмотреть его в своем профиле.";
+        } elseif (strpos($errorMsg, 'принадлежит другому участнику') !== false) {
+            $message .= "🚫 <b>Автомобиль принадлежит другому участнику!</b>\n\n";
+        //  $message .= "Этот автомобиль уже зарегистрирован другим участником клуба.\n";
+            $message .= "Если вы считаете, что это ошибка, обратитесь к администратору.";
+        } elseif (strpos($errorMsg, 'уже имеет владельца') !== false) {
+            $message .= "🚫 <b>Автомобиль уже зарегистрирован!</b>\n\n";
+        //  $message .= "Этот автомобиль уже принадлежит другому участнику клуба.\n";
+            $message .= "Если вы считаете, что это ошибка, обратитесь к администратору.";
+        } else {
+            $message .= "😔 $errorMsg";
+        }
         
         $this->botService->sendMessage($chatId, $message);
     }

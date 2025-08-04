@@ -265,21 +265,30 @@ class BotService {
                 'X-Telegram-Last-Name: ' . ($userData['last_name'] ?? '')
             ];
             
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => implode("\r\n", $headers),
-                    'content' => json_encode($data),
-                    'timeout' => 30
-                ]
-            ]);
+            // Используем cURL вместо file_get_contents для лучшей обработки ошибок
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             
-            $response = file_get_contents($url, false, $context);
-            $httpCode = $http_response_header[0] ?? 'Unknown';
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            if ($curlError) {
+                throw new Exception("cURL error: " . $curlError);
+            }
             
             writeToLog("BotService: API response received", [
                 'http_code' => $httpCode,
-                'response_length' => strlen($response)
+                'response_length' => strlen($response),
+                'response_content' => $response
             ]);
             
             if ($response === false) {
@@ -288,11 +297,24 @@ class BotService {
             
             $result = json_decode($response, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Invalid JSON response: " . json_last_error_msg());
+                // Пытаемся извлечь JSON из ответа, если есть HTML предупреждения
+                $jsonStart = strpos($response, '{');
+                if ($jsonStart !== false) {
+                    $jsonPart = substr($response, $jsonStart);
+                    $result = json_decode($jsonPart, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new Exception("Invalid JSON response: " . json_last_error_msg());
+                    }
+                } else {
+                    throw new Exception("Invalid JSON response: " . json_last_error_msg());
+                }
             }
             
+            // Проверяем, есть ли валидный JSON в ответе (даже при HTTP 400)
+            $isValidResponse = is_array($result) && (isset($result['success']) || isset($result['error']));
+            
             return [
-                'success' => strpos($httpCode, '200') !== false,
+                'success' => $isValidResponse,
                 'http_code' => $httpCode,
                 'data' => $result,
                 'raw_response' => $response

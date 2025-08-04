@@ -93,12 +93,26 @@ class ___AddCarToGarageAction {
                 }
             }
             
+            Logger::info('L3 Action: Calling L2 Action', [
+                'plate_number' => $plateNumber,
+                'has_photo' => isset($data['photo']) && !empty($data['photo']),
+                'user_id' => $userId
+            ]);
+            
             $addResult = __AddCarToUserAction::handle([
                 'plate_number' => $plateNumber, // может быть null
                 'photo' => $data['photo'] ?? null // Передаем фото в L2 Action
             ]);
             
+            Logger::info('L3 Action: L2 Action result', [
+                'success' => $addResult['success'],
+                'error' => $addResult['error'] ?? null,
+                'data' => $addResult['data'] ?? null
+            ]);
+            
             if (!$addResult['success']) {
+                // Логируем ошибку от L2 Action
+                Logger::warning('L2 Action failed: ' . json_encode($addResult['error']));
                 return $addResult;
             }
             

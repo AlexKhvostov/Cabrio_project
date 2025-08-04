@@ -23,7 +23,10 @@ try {
     Logger::info('API Router: Request received', [
         'uri' => $uri,
         'method' => $method,
-        'route' => $route ?? 'null'
+        'route' => $route ?? 'null',
+        'headers' => getallheaders(),
+        'query_params' => $_GET,
+        'post_data' => $_POST
     ]);
 
     // Сначала проверяем, существует ли маршрут
@@ -198,12 +201,15 @@ try {
     }
     // Маршруты для L3 Actions (с OCR)
     elseif ($route === '/api/actions/check-car-in-club' && $method === 'POST') {
+        Logger::info('API Router: Routing to checkCarInClub');
         require_once __DIR__ . '/../controllers/CarController.php';
         (new CarController())->checkCarInClub();
     } elseif ($route === '/api/actions/leave-business-card' && $method === 'POST') {
+        Logger::info('API Router: Routing to leaveBusinessCard');
         require_once __DIR__ . '/../controllers/CarController.php';
         (new CarController())->leaveBusinessCard();
     } elseif ($route === '/api/actions/add-car-to-garage' && $method === 'POST') {
+        Logger::info('API Router: Routing to addCarToGarage');
         require_once __DIR__ . '/../controllers/CarController.php';
         (new CarController())->addCarToGarage();
     }

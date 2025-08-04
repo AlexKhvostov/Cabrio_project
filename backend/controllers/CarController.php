@@ -329,6 +329,14 @@ class CarController extends BaseController
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true) ?? [];
             
+            // Логируем входящий запрос
+            Logger::info('CarController: Incoming request', [
+                'method' => 'POST',
+                'endpoint' => '/api/actions/add-car-to-garage',
+                'input_data' => $input,
+                'headers' => getallheaders()
+            ]);
+            
             // Логируем действие
             $this->logUserAction('add_car_to_garage', [
                 'input_data' => $input
@@ -338,15 +346,31 @@ class CarController extends BaseController
             $result = ___AddCarToGarageAction::handle($input);
             
             if ($result['success']) {
-                $this->json([
+                $response = [
                     'success' => true,
                     'data' => $result['data']
+                ];
+                
+                // Логируем успешный ответ
+                Logger::info('CarController: Success response', [
+                    'http_code' => 200,
+                    'response' => $response
                 ]);
+                
+                $this->json($response);
             } else {
-                $this->json([
+                $response = [
                     'success' => false,
                     'error' => $result['error']
-                ], 400);
+                ];
+                
+                // Логируем ответ с ошибкой
+                Logger::info('CarController: Error response', [
+                    'http_code' => 400,
+                    'response' => $response
+                ]);
+                
+                $this->json($response, 400);
             }
             
         } catch (Throwable $e) {

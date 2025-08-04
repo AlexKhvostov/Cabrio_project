@@ -136,9 +136,9 @@ class ___CheckCarInClubAction {
     private static function getActionMessage($action) {
         switch ($action) {
             case 'found':
-                return 'Автомобиль найден в клубе';
+                return 'Автомобиль найден в базе данных';
             case 'created':
-                return 'Автомобиль добавлен в клуб';
+                return 'Автомобиль добавлен в базу данных';
             default:
                 return 'Проверка выполнена';
         }

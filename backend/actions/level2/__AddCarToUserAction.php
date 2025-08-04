@@ -62,6 +62,11 @@ class __AddCarToUserAction {
     
     public static function handle($data) {
         try {
+            Logger::info('L2 Action: Starting', [
+                'plate_number' => $data['plate_number'] ?? null,
+                'has_photo' => isset($data['photo']) && !empty($data['photo'])
+            ]);
+            
             // Получаем пользователя из глобального контекста
             $user = AppContext::getCurrentUser();
             if (!$user) {
@@ -86,7 +91,17 @@ class __AddCarToUserAction {
             
             // 1. Проверяем существование автомобиля (только если есть номер)
             if ($plateNumber) {
+                Logger::info('L2 Action: Checking car in DB', ['plate_number' => $plateNumber]);
+                
                 $checkResult = _CheckCarInDbAction::handle(['plate_number' => $plateNumber]);
+                
+                Logger::info('L2 Action: Car check result', [
+                    'success' => $checkResult['success'],
+                    'found' => $checkResult['data'] !== null,
+                    'car_data' => $checkResult['data'] ?? null,
+                    'owner_user_id' => $checkResult['data']['owner_user_id'] ?? null,
+                    'owner_user_id_type' => gettype($checkResult['data']['owner_user_id'] ?? null)
+                ]);
                 
                 if ($checkResult['success'] && $checkResult['data'] !== null) {
                     // Автомобиль найден
@@ -94,14 +109,46 @@ class __AddCarToUserAction {
                     $carId = $carData['id'];
                     
                     // Проверяем есть ли владелец
-                    if (isset($carData['owner_user_id']) && $carData['owner_user_id'] !== null) {
-                        return [
-                            'success' => false,
-                            'error' => [
-                                'code' => 'CAR_ALREADY_OWNED',
-                                'message' => 'Автомобиль уже имеет владельца'
-                            ]
-                        ];
+                    $ownerUserId = $carData['owner_user_id'] ?? null;
+                    
+                    Logger::info('L2 Action: Checking owner', [
+                        'owner_user_id' => $ownerUserId,
+                        'owner_user_id_type' => gettype($ownerUserId),
+                        'isset_owner' => isset($carData['owner_user_id']),
+                        'not_null_owner' => $ownerUserId !== null,
+                        'condition_result' => $ownerUserId !== null
+                    ]);
+                    
+                    if ($ownerUserId !== null) {
+                        Logger::info('L2 Action: Car has owner', [
+                            'car_id' => $carId,
+                            'owner_user_id' => $ownerUserId,
+                            'current_user_id' => $userId,
+                            'is_same_owner' => $ownerUserId == $userId
+                        ]);
+                        
+                        // Проверяем, является ли текущий пользователь владельцем
+                        if ($ownerUserId == $userId) {
+                            Logger::info('L2 Action: User already owns this car');
+                            return [
+                                'success' => false,
+                                'error' => [
+                                    'code' => 'CAR_ALREADY_IN_GARAGE',
+                                    'message' => 'Автомобиль уже добавлен в ваш гараж'
+                                ]
+                            ];
+                        } else {
+                            Logger::info('L2 Action: Car owned by another user');
+                            return [
+                                'success' => false,
+                                'error' => [
+                                    'code' => 'CAR_OWNED_BY_OTHER',
+                                    'message' => 'Автомобиль принадлежит другому участнику клуба'
+                                ]
+                            ];
+                        }
+                    } else {
+                        Logger::info('L2 Action: Car has no owner, calling _UpdateOwnerToCarAction');
                     }
                     
                     // Назначаем пользователя владельцем
@@ -209,9 +256,9 @@ class __AddCarToUserAction {
                     'model' => $carData['model'],
                     'color' => $carData['color'],
                     'year' => $carData['year'],
-                    'status_id' => $carData['status_id'] ?? $carData['status']['id'] ?? null,
+                    'status_id' => $carData['status']['id'] ?? null,
                     'status' => $carData['status'] ?? null,
-                    'owner_user_id' => $carData['owner_user_id'] ?? null,
+                    'owner_user_id' => $carData['owner']['id'] ?? null,
                     'create_user_id' => $carData['create_user_id'] ?? $userId,
                     'message' => self::getActionMessage($action)
                 ]

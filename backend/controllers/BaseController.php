@@ -28,6 +28,13 @@ class BaseController
      */
     protected function json($data, $status = 200)
     {
+        // Логируем отправляемый ответ
+        Logger::info('BaseController: Sending JSON response', [
+            'http_code' => $status,
+            'response' => $data,
+            'endpoint' => $_SERVER['REQUEST_URI'] ?? 'unknown'
+        ]);
+        
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data, JSON_UNESCAPED_UNICODE);

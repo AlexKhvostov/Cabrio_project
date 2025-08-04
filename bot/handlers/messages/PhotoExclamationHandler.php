@@ -131,7 +131,7 @@ class PhotoExclamationHandler {
             ]);
             
             if ($result['success']) {
-                $this->sendSuccessMessage($chatId, $username, $result['data']);
+                $this->sendSuccessMessage($chatId, $user, $result['data']);
             } else {
                 $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
                 $this->sendErrorMessage($chatId, $errorMsg);
@@ -190,7 +190,7 @@ class PhotoExclamationHandler {
     /**
      * Отправляет сообщение об успешном результате
      */
-    private function sendSuccessMessage($chatId, $username, $data) {
+    private function sendSuccessMessage($chatId, $user, $data) {
         // Извлекаем данные из вложенной структуры ответа
         $cardData = $data['data'] ?? $data;
         
@@ -210,8 +210,9 @@ class PhotoExclamationHandler {
             $message .= "📊 <b>Статус авто:</b> Неизвестен\n\n";
         }
         
-        // Кто оставил визитку
-        $message .= "👤 <b>Кто оставил визитку:</b> $username\n\n";
+        // Кто оставил визитку - формируем кликабельный ник
+        $ownerDisplay = $user['username'] ? '@' . $user['username'] : ($user['first_name'] ?? 'Участник');
+        $message .= "👤 <b>Новая визитка от:</b> $ownerDisplay\n\n";
         
         // Сообщение от сервера
         $serverMessage = $cardData['message'] ?? 'Визитка сохранена в базу данных';

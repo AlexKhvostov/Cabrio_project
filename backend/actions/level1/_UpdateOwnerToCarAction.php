@@ -58,13 +58,30 @@ class _UpdateOwnerToCarAction {
             
             // Проверяем, есть ли уже владелец у автомобиля
             if ($car->owner_user_id !== null) {
-                return [
-                    'success' => false,
-                    'error' => [
-                        'code' => 'CAR_ALREADY_OWNED',
-                        'message' => 'Автомобиль уже имеет владельца'
-                    ]
-                ];
+                Logger::info('_UpdateOwnerToCarAction: Car already has owner', [
+                    'car_id' => $data['car_id'],
+                    'owner_user_id' => $car->owner_user_id,
+                    'requested_user_id' => $data['user_id']
+                ]);
+                
+                // Проверяем, является ли текущий пользователь владельцем
+                if ($car->owner_user_id == $data['user_id']) {
+                    return [
+                        'success' => false,
+                        'error' => [
+                            'code' => 'CAR_ALREADY_IN_GARAGE',
+                            'message' => 'Автомобиль уже принадлежит вам'
+                        ]
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'error' => [
+                            'code' => 'CAR_OWNED_BY_OTHER',
+                            'message' => 'Автомобиль принадлежит другому участнику клуба'
+                        ]
+                    ];
+                }
             }
             
             // Обновляем владельца автомобиля и устанавливаем статус "Активный"
@@ -96,14 +113,18 @@ class _UpdateOwnerToCarAction {
                 // Не прерываем выполнение, только логируем
             }
             
-            // Получаем обновленный автомобиль
+            // Получаем обновленный автомобиль с развернутыми данными
             $updatedCar = Car::findById($data['car_id']);
+            
+            // Развертываем данные автомобиля
+            require_once __DIR__ . '/../../utils/ExpandHelper.php';
+            $carData = ExpandHelper::expandCarData($updatedCar->toArray());
             
             Logger::info("Car owner updated: car_id={$data['car_id']}, user_id={$data['user_id']}");
             
             return [
                 'success' => true,
-                'data' => $updatedCar->toArray()
+                'data' => $carData
             ];
             
         } catch (Exception $e) {
