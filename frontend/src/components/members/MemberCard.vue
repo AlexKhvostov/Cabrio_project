@@ -2,8 +2,8 @@
   <div class="member-card" @click="$emit('select', member)">
     <div class="member-avatar">
       <img
-        v-if="member.photo_url"
-        :src="member.photo_url"
+        v-if="member.photo?.url"
+        :src="member.photo.url"
         :alt="member.first_name"
         class="avatar-image"
       />
@@ -12,17 +12,17 @@
       </span>
       
       <!-- Статус (кружочек) -->
-      <div :class="['status-indicator', `status-${getStatusColor(member.status)}`]">
+      <div :class="['status-indicator', `status-${getStatusColor(member.role.code)}`]">
         ●
       </div>
       
       <!-- Роль (звездочка) -->
-      <div :class="['role-indicator', `role-${getRoleColor(member.role)}`]">
+      <div :class="['role-indicator', `role-${getRoleColor(member.role.code)}`]">
         ★
       </div>
       
       <!-- Почётный участник (кристалл) -->
-      <div v-if="member.flags.includes('почётный участник')" class="honor-indicator">
+      <div v-if="member.weight > 100" class="honor-indicator">
         ♦
       </div>
     </div>
@@ -32,8 +32,8 @@
         <h3 class="member-name">
           {{ member.first_name }} {{ member.last_name }}
         </h3>
-        <span v-if="member.nickname" class="member-nickname">
-          @{{ member.nickname }}
+        <span v-if="member.username" class="member-nickname">
+          @{{ member.username }}
         </span>
       </div>
       
@@ -41,15 +41,15 @@
         <div v-if="member.cars.length > 0" class="member-car">
           <div class="car-photo-mini">
             <img
-              v-if="member.cars[0].photos && member.cars[0].photos.length > 0"
-              :src="member.cars[0].photos[0]"
-              :alt="`${member.cars[0].brand} ${member.cars[0].model}`"
+              v-if="member.cars[0].photo?.url"
+              :src="member.cars[0].photo.url"
+              :alt="`${member.cars[0].brand.name} ${member.cars[0].model}`"
               class="car-mini-image"
             />
             <Car v-else :size="12" />
           </div>
           <span class="car-info">
-            {{ member.cars[0].brand }} {{ member.cars[0].model }} ({{ member.cars[0].year }})
+            {{ member.cars[0].brand.name }} {{ member.cars[0].model }} ({{ member.cars[0].year }})
           </span>
           <span v-if="member.cars.length > 1" class="cars-count">
             +{{ member.cars.length - 1 }}
@@ -83,29 +83,31 @@ defineProps<Props>()
 defineEmits<{
   select: (member: Member) => void
 }>()
+
 function getInitials(firstName: string, lastName: string) {
   const first = firstName?.charAt(0)?.toUpperCase() || ''
   const last = lastName?.charAt(0)?.toUpperCase() || ''
   return first + last
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'активный': return 'active'
-    case 'зарегистрирован': return 'registered'
-    case 'новый': return 'new'
-    case 'вышедший': return 'left'
-    default: return 'new'
+const getStatusColor = (roleCode: string) => {
+  switch (roleCode) {
+    case 'admin': return 'admin'
+    case 'moderator': return 'moderator'
+    case 'member': return 'member'
+    case 'registered': return 'registered'
+    case 'new': return 'new'
+    case 'guest': return 'guest'
+    default: return 'guest'
   }
 }
 
-const getRoleColor = (role: string) => {
-  switch (role) {
-    case 'участник': return 'member'
-    case 'модератор': return 'moderator'
-    case 'администратор': return 'admin'
-    case 'root': return 'root'
-    default: return 'member'
+const getRoleColor = (roleCode: string) => {
+  switch (roleCode) {
+    case 'admin': return 'admin'
+    case 'moderator': return 'moderator'
+    case 'member': return 'member'
+    default: return 'guest'
   }
 }
 

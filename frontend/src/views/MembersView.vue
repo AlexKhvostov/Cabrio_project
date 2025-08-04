@@ -16,6 +16,14 @@
         <div class="spinner"></div>
       </div>
 
+      <div v-else-if="dataStore.error" class="error-state">
+        <h3>Ошибка загрузки</h3>
+        <p>{{ dataStore.error }}</p>
+        <button @click="retryLoad" class="retry-button">
+          Попробовать снова
+        </button>
+      </div>
+
       <div v-else-if="filteredMembers.length === 0" class="empty-state">
         <Users :size="48" />
         <h3>Участники не найдены</h3>
@@ -67,11 +75,14 @@ const cities = computed(() => {
 
 const filterOptions = computed(() => [
   {
-    placeholder: 'Все статусы',
+    placeholder: 'Все роли',
     options: [
-      { value: 'активный', label: 'Активный' },
-      { value: 'зарегистрирован', label: 'Зарегистрирован' },
-      { value: 'новый', label: 'Новый' }
+      { value: 'admin', label: 'Администратор' },
+      { value: 'moderator', label: 'Модератор' },
+      { value: 'member', label: 'Участник' },
+      { value: 'registered', label: 'Зарегистрирован' },
+      { value: 'new', label: 'Новый' },
+      { value: 'guest', label: 'Гость' }
     ]
   },
   {
@@ -96,12 +107,12 @@ const filteredMembers = computed(() => {
     filtered = filtered.filter(member => 
       member.first_name.toLowerCase().includes(query) ||
       member.last_name?.toLowerCase().includes(query) ||
-      member.nickname?.toLowerCase().includes(query)
+      member.username?.toLowerCase().includes(query)
     )
   }
 
   if (statusFilter.value) {
-    filtered = filtered.filter(member => member.status === statusFilter.value)
+    filtered = filtered.filter(member => member.role.code === statusFilter.value)
   }
 
   if (cityFilter.value) {
@@ -128,8 +139,20 @@ const selectCar = (car: any) => {
   console.log('Selected car:', car)
 }
 
-onMounted(() => {
-  dataStore.fetchMembers()
+const retryLoad = async () => {
+  try {
+    await dataStore.fetchMembers()
+  } catch (error) {
+    console.error('Failed to retry loading members:', error)
+  }
+}
+
+onMounted(async () => {
+  try {
+    await dataStore.fetchMembers()
+  } catch (error) {
+    console.error('Failed to load members:', error)
+  }
 })
 </script>
 
@@ -144,26 +167,45 @@ onMounted(() => {
   gap: var(--spacing-sm);
 }
 
-.empty-state {
+.empty-state,
+.error-state {
   text-align: center;
   padding: var(--spacing-xl);
   color: var(--tg-theme-hint-color);
 }
 
-.empty-state svg {
+.empty-state svg,
+.error-state svg {
   margin-bottom: var(--spacing-md);
   opacity: 0.5;
 }
 
-.empty-state h3 {
+.empty-state h3,
+.error-state h3 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-sm);
   color: var(--tg-theme-hint-color);
 }
 
-.empty-state p {
+.empty-state p,
+.error-state p {
   font-size: var(--font-size-sm);
   margin: 0;
+}
+
+.retry-button {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.retry-button:hover {
+  background: var(--primary-color-hover);
 }
 </style>

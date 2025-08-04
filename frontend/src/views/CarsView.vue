@@ -16,6 +16,14 @@
         <div class="spinner"></div>
       </div>
 
+      <div v-else-if="dataStore.error" class="error-state">
+        <h3>Ошибка загрузки</h3>
+        <p>{{ dataStore.error }}</p>
+        <button @click="retryLoad" class="retry-button">
+          Попробовать снова
+        </button>
+      </div>
+
       <div v-else-if="filteredCars.length === 0" class="empty-state">
         <Car :size="48" />
         <h3>Автомобили не найдены</h3>
@@ -62,7 +70,7 @@ const showCarModal = ref(false)
 const selectedCar = ref<CarType | null>(null)
 
 const brands = computed(() => {
-  const allBrands = dataStore.cars.map(car => car.brand)
+  const allBrands = dataStore.cars.map(car => car.brand.name)
   return [...new Set(allBrands)].sort()
 })
 
@@ -85,15 +93,16 @@ const filteredCars = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(car => 
-      car.brand.toLowerCase().includes(query) ||
+      car.brand.name.toLowerCase().includes(query) ||
       car.model.toLowerCase().includes(query) ||
       car.reg_number.toLowerCase().includes(query) ||
-      car.owner_name?.toLowerCase().includes(query)
+      car.owner?.first_name?.toLowerCase().includes(query) ||
+      car.owner?.last_name?.toLowerCase().includes(query)
     )
   }
 
   if (brandFilter.value) {
-    filtered = filtered.filter(car => car.brand === brandFilter.value)
+    filtered = filtered.filter(car => car.brand.name === brandFilter.value)
   }
 
   if (yearFilter.value) {
@@ -114,8 +123,20 @@ const closeCarModal = () => {
   selectedCar.value = null
 }
 
-onMounted(() => {
-  dataStore.fetchCars()
+const retryLoad = async () => {
+  try {
+    await dataStore.fetchCars()
+  } catch (error) {
+    console.error('Failed to retry loading cars:', error)
+  }
+}
+
+onMounted(async () => {
+  try {
+    await dataStore.fetchCars()
+  } catch (error) {
+    console.error('Failed to load cars:', error)
+  }
 })
 </script>
 
@@ -136,27 +157,46 @@ onMounted(() => {
   gap: var(--spacing-md);
 }
 
-.empty-state {
+.empty-state,
+.error-state {
   text-align: center;
   padding: var(--spacing-xl);
   color: var(--tg-theme-hint-color);
 }
 
-.empty-state svg {
+.empty-state svg,
+.error-state svg {
   margin-bottom: var(--spacing-md);
   opacity: 0.5;
 }
 
-.empty-state h3 {
+.empty-state h3,
+.error-state h3 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-sm);
   color: var(--tg-theme-hint-color);
 }
 
-.empty-state p {
+.empty-state p,
+.error-state p {
   font-size: var(--font-size-sm);
   margin: 0;
+}
+
+.retry-button {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.retry-button:hover {
+  background: var(--primary-color-hover);
 }
 
 @media (max-width: 768px) {

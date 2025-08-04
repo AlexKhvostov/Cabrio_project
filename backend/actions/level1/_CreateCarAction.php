@@ -41,7 +41,7 @@ class _CreateCarAction {
             
             // Подготавливаем данные для создания
             $carData = [
-                'car_brand_id' => $data['car_brand_id'] ?? 1, // по умолчанию
+                'car_brand_id' => $data['car_brand_id'] ?? null, // не обязательное поле
                 'model' => $data['model'] ?? null,
                 'color' => $data['color'] ?? null,
                 'year' => $data['year'] ?? null,

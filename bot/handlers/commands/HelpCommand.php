@@ -31,9 +31,9 @@ class HelpCommand {
         ]);
         
         $text = $this->getHelpMessage();
-        $buttons = $this->getHelpButtons();
+        $webAppUrl = $this->getWebAppUrl();
         
-        $this->botService->sendInlineKeyboard($chat_id, $text, $buttons);
+        $this->botService->sendWebAppButton($chat_id, $text, '🌐 Открыть приложение', $webAppUrl);
         
         writeToLog("HelpCommand: Help message sent successfully");
     }
@@ -58,17 +58,14 @@ class HelpCommand {
                "3. Отправьте в группу\n" .
                "4. Получите результат\n\n" .
                
-               "🌐 <b>Больше полезной информации в приложении</b> (в разработке)";
+               "🌐 <b>Больше полезной информации в приложении</b>";
     }
     
     /**
-     * Формирует кнопки для команды help
+     * Получает URL WebApp
      */
-    private function getHelpButtons() {
-        return [
-            [
-                ['text' => '🌐 Открыть приложение', 'url' => $_ENV['APP_URL'] ?? 'https://cabrioride.ru']
-            ]
-        ];
+    private function getWebAppUrl() {
+        // Используем туннельный домен для WebApp
+        return $_ENV['APP_URL'] ?? 'https://contributed-cm-component-consideration.trycloudflare.com/app/frontend/dist/';
     }
 } 

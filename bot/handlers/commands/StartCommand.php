@@ -32,9 +32,9 @@ class StartCommand {
         ]);
         
         $text = $this->getStartMessage($user);
-        $buttons = $this->getStartButtons();
+        $webAppUrl = $this->getWebAppUrl();
         
-        $this->botService->sendInlineKeyboard($chat_id, $text, $buttons);
+        $this->botService->sendWebAppButton($chat_id, $text, '🌐 Открыть приложение', $webAppUrl);
         
         writeToLog("StartCommand: Start message sent successfully");
     }
@@ -49,17 +49,14 @@ class StartCommand {
         return "🎉 <b>Привет, $username!</b>\n\n" .
                "Я бот клуба CabrioRide.\n\n" .
                "💡 <b>Напишите @$botUsername</b> чтобы узнать как работать с фото в группе\n\n" .
-               "🌐 <b>Больше полезной информации в приложении</b> (в разработке)";
+               "🌐 <b>Больше полезной информации в приложении</b>";
     }
     
     /**
-     * Формирует кнопки для команды start
+     * Получает URL WebApp
      */
-    private function getStartButtons() {
-        return [
-            [
-                ['text' => '🌐 Открыть приложение', 'url' => $_ENV['APP_URL'] ?? 'https://cabrioride.ru']
-            ]
-        ];
+    private function getWebAppUrl() {
+        // Используем туннельный домен для WebApp
+        return $_ENV['APP_URL'] ?? 'https://contributed-cm-component-consideration.trycloudflare.com/app/frontend/dist/';
     }
 } 

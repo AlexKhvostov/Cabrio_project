@@ -5,6 +5,7 @@
       <RouterView />
     </div>
     <BottomNavigation v-if="showNavigation" />
+    <DebugInfo />
   </div>
 </template>
 
@@ -13,6 +14,7 @@ import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from './components/common/AppHeader.vue'
 import BottomNavigation from './components/common/BottomNavigation.vue'
+import DebugInfo from './components/common/DebugInfo.vue'
 import { useTelegramStore } from './stores/telegram'
 
 const route = useRoute()

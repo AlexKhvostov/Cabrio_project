@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebApp Fetch Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h1>WebApp Fetch Test</h1>
+    <div id="status">Loading...</div>
+    <button onclick="testFetch()">Test Fetch</button>
+    <div id="result"></div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            document.getElementById('status').innerHTML = 'Telegram WebApp initialized';
+        } else {
+            document.getElementById('status').innerHTML = 'Telegram WebApp not available';
+        }
+
+        async function testFetch() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing fetch...';
+            
+            try {
+                // Тест 1: Простой GET запрос
+                console.log('Testing simple GET request...');
+                const response1 = await fetch('https://contributed-cm-component-consideration.trycloudflare.com/app/backend/test_cors.php');
+                const data1 = await response1.json();
+                
+                resultDiv.innerHTML += `<h3>Test 1 - Simple GET:</h3><pre>${JSON.stringify(data1, null, 2)}</pre>`;
+                
+                // Тест 2: GET запрос с параметрами
+                console.log('Testing GET with parameters...');
+                const response2 = await fetch('https://contributed-cm-component-consideration.trycloudflare.com/app/backend/test_data.php?route=/api/users');
+                const data2 = await response2.json();
+                
+                resultDiv.innerHTML += `<h3>Test 2 - GET with params:</h3><pre>${JSON.stringify(data2, null, 2)}</pre>`;
+                
+                // Тест 3: POST запрос
+                console.log('Testing POST request...');
+                const response3 = await fetch('https://contributed-cm-component-consideration.trycloudflare.com/app/backend/test_cors.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ test: 'data' })
+                });
+                const data3 = await response3.json();
+                
+                resultDiv.innerHTML += `<h3>Test 3 - POST:</h3><pre>${JSON.stringify(data3, null, 2)}</pre>`;
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultDiv.innerHTML += `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        // Автоматически запускаем тест при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(testFetch, 1000);
+        });
+    </script>
+</body>
+</html> 

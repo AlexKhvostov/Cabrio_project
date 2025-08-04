@@ -2,9 +2,9 @@
   <div class="car-card-compact" @click="$emit('select', car)">
     <div class="car-image-container">
       <img
-        v-if="car.photos.length > 0"
-        :src="car.photos[0]"
-        :alt="`${car.brand} ${car.model}`"
+        v-if="car.photo?.url"
+        :src="car.photo.url"
+        :alt="`${car.brand.name} ${car.model}`"
         class="car-image"
       />
       <div v-else class="car-placeholder">
@@ -19,14 +19,14 @@
       
       <!-- Статус автомобиля -->
       <div class="car-status-overlay">
-        <span :class="['status-badge', `status-${getStatusColor(car.status)}`]">
-          {{ getStatusIcon(car.status) }}
+        <span :class="['status-badge', `status-${getStatusColor(car.status.code)}`]">
+          {{ getStatusIcon(car.status.code) }}
         </span>
       </div>
     </div>
     
     <div class="car-info-compact">
-      <h3 class="car-title-compact">{{ car.brand }} {{ car.model }}</h3>
+      <h3 class="car-title-compact">{{ car.brand.name }} {{ car.model }}</h3>
       <div class="car-specs-compact">
         <span>{{ car.year }}, {{ car.engine_volume }}L</span>
       </div>
@@ -35,9 +35,9 @@
       <div class="car-owner-compact">
         <div class="owner-avatar-small">
           <img
-            v-if="ownerData?.photo_url"
-            :src="ownerData.photo_url"
-            :alt="car.owner_name"
+            v-if="ownerData?.photo?.url"
+            :src="ownerData.photo.url"
+            :alt="getOwnerName()"
             class="avatar-image"
           />
           <span v-else class="avatar-initials">
@@ -68,37 +68,41 @@ defineEmits<{
 const dataStore = useDataStore()
 
 const ownerData = computed(() => {
-  return dataStore.members.find(member => 
-    member.first_name + ' ' + member.last_name === props.car.owner_name ||
-    member.nickname === props.car.owner_nickname
-  )
+  return dataStore.members.find(member => member.id === props.car.owner_user_id)
 })
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'активный': return 'success'
-    case 'потенциальный': return 'warning'
-    case 'в ожидании': return 'primary'
+const getStatusColor = (statusCode: string) => {
+  switch (statusCode) {
+    case 'active': return 'success'
+    case 'pending': return 'warning'
+    case 'noticed': return 'primary'
     default: return 'error'
   }
 }
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'активный': return '✓'
-    case 'потенциальный': return '?'
-    case 'в ожидании': return '⏳'
+const getStatusIcon = (statusCode: string) => {
+  switch (statusCode) {
+    case 'active': return '✓'
+    case 'pending': return '?'
+    case 'noticed': return '⏳'
     default: return '✗'
   }
 }
 
 const getOwnerInitials = () => {
-  const names = props.car.owner_name?.split(' ') || ['', '']
-  return (names[0]?.charAt(0) + (names[1]?.charAt(0) || '')).toUpperCase()
+  if (!props.car.owner) return 'В'
+  const firstName = props.car.owner.first_name || ''
+  const lastName = props.car.owner.last_name || ''
+  return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase()
 }
 
 const getOwnerFirstName = () => {
-  return props.car.owner_name?.split(' ')[0] || 'Владелец'
+  return props.car.owner?.first_name || 'Владелец'
+}
+
+const getOwnerName = () => {
+  if (!props.car.owner) return 'Владелец'
+  return `${props.car.owner.first_name} ${props.car.owner.last_name || ''}`.trim()
 }
 </script>
 

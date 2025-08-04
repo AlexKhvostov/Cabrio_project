@@ -88,6 +88,39 @@ class BotService {
         writeToLog("BotService: Inline keyboard sent successfully");
         return $result;
     }
+
+    /**
+     * Отправляет сообщение с WebApp кнопкой
+     */
+    public function sendWebAppButton($chat_id, $text, $buttonText, $webAppUrl) {
+        writeToLog("BotService: Sending WebApp button", [
+            'chat_id' => $chat_id,
+            'text' => $text,
+            'button_text' => $buttonText,
+            'web_app_url' => $webAppUrl
+        ]);
+        
+        $inline_keyboard = [
+            'inline_keyboard' => [
+                [
+                    [
+                        'text' => $buttonText,
+                        'web_app' => ['url' => $webAppUrl]
+                    ]
+                ]
+            ]
+        ];
+        
+        $result = $this->makeRequest('sendMessage', [
+            'chat_id' => $chat_id,
+            'text' => $text,
+            'parse_mode' => 'HTML',
+            'reply_markup' => json_encode($inline_keyboard)
+        ]);
+        
+        writeToLog("BotService: WebApp button sent successfully");
+        return $result;
+    }
     
     /**
      * Проверяет членство пользователя в чате

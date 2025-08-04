@@ -81,9 +81,22 @@ export const useTelegramStore = defineStore('telegram', () => {
         }
       }
       
+      // Отладочная информация
+      console.log('🔧 Telegram WebApp Debug:', {
+        webAppAvailable: true,
+        user: user.value,
+        initData: webApp.value.initData ? 'available' : 'not available',
+        initDataLength: webApp.value.initData?.length || 0,
+        platform: webApp.value.platform,
+        version: webApp.value.version,
+        colorScheme: webApp.value.colorScheme,
+        themeParams: webApp.value.themeParams
+      })
+      
       isInitialized.value = true
     } else {
       // Fallback for development
+      console.log('⚠️ Telegram WebApp not available, using fallback')
       setTimeout(() => {
         user.value = {
           id: 287536885,
@@ -93,6 +106,7 @@ export const useTelegramStore = defineStore('telegram', () => {
           language_code: 'ru'
         }
         isInitialized.value = true
+        console.log('🔧 Fallback user set:', user.value)
       }, 1000)
     }
   }
