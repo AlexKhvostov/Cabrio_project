@@ -94,7 +94,7 @@ class __AddCarToUserAction {
                     $carId = $carData['id'];
                     
                     // Проверяем есть ли владелец
-                    if ($carData['owner_user_id'] !== null) {
+                    if (isset($carData['owner_user_id']) && $carData['owner_user_id'] !== null) {
                         return [
                             'success' => false,
                             'error' => [
@@ -210,7 +210,7 @@ class __AddCarToUserAction {
                     'color' => $carData['color'],
                     'year' => $carData['year'],
                     'status_id' => $carData['status_id'] ?? $carData['status']['id'] ?? null,
-                    'owner_user_id' => $carData['owner_user_id'],
+                    'owner_user_id' => $carData['owner_user_id'] ?? null,
                     'create_user_id' => $carData['create_user_id'] ?? $userId,
                     'message' => self::getActionMessage($action)
                 ]
