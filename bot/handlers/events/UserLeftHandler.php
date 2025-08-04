@@ -163,14 +163,8 @@ class UserLeftHandler {
     private function sendFarewellMessage($chatId, $user) {
         $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
         
-        $message = "😔 <b>Участник покинул клуб</b>\n\n";
-        $message .= "К сожалению, <b>$username</b> покинул наш клуб.\n\n";
-        $message .= "💭 <b>Надеемся, что:</b>\n";
-        $message .= "• У него всё хорошо\n";
-        $message .= "• Он вернётся к нам в будущем\n";
-        $message .= "• Мы встретимся на дорогах\n\n";
-        $message .= "🚗 <b>Дорогие участники!</b>\n";
-        $message .= "Продолжайте делиться опытом и поддерживать дружескую атмосферу в клубе.";
+        $message = "😔 <b>$username покинул клуб</b>\n\n";
+        $message .= "Надеемся на скорую встречу на дорогах! 🚗";
         
         $this->botService->sendMessage($chatId, $message);
     }

@@ -255,10 +255,12 @@ class MessageHandler {
     private function handleCommands($message) {
         $text = $message['text'] ?? '';
         $chat_id = $message['chat']['id'];
+        $chat_type = $message['chat']['type'] ?? 'private';
         
         writeToLog("MessageHandler: Processing command", [
             'text' => $text,
-            'chat_id' => $chat_id
+            'chat_id' => $chat_id,
+            'chat_type' => $chat_type
         ]);
         
         switch ($text) {
@@ -268,8 +270,14 @@ class MessageHandler {
                 break;
                 
             case '/help':
-                $helpCommand = new HelpCommand($this->botService);
-                $helpCommand->execute($message);
+                if ($chat_type === 'private') {
+                    // В личном чате - показываем справку
+                    $helpCommand = new HelpCommand($this->botService);
+                    $helpCommand->execute($message);
+                } else {
+                    // В группе - перенаправляем в личный диалог
+                    $this->redirectToPrivateChat($message);
+                }
                 break;
                 
             default:
@@ -279,5 +287,23 @@ class MessageHandler {
                 );
                 break;
         }
+    }
+    
+    /**
+     * Перенаправляет пользователя в личный диалог с ботом
+     */
+    private function redirectToPrivateChat($message) {
+        $chat_id = $message['chat']['id'];
+        $user = $message['from'];
+        $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+        
+        $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
+        
+        $message = "💡 <b>Привет, $username!</b>\n\n";
+        $message .= "Для получения справки напишите мне в личку:\n";
+        $message .= "👉 @$botUsername\n\n";
+        $message .= "Или используйте команду /help в нашем диалоге";
+        
+        $this->botService->sendMessage($chat_id, $message);
     }
 } 

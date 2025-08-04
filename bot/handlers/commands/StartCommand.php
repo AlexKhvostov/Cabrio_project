@@ -44,16 +44,12 @@ class StartCommand {
      */
     private function getStartMessage($user) {
         $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+        $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
         
-        return "🎉 <b>Добро пожаловать в CabrioRide!</b>\n\n" .
-               "Привет, <b>$username</b>! 👋\n\n" .
-               "Я бот клуба CabrioRide - вашего сообщества любителей кабриолетов.\n\n" .
-               "🔧 <b>Что я умею:</b>\n" .
-               "• Проверять членство в клубе\n" .
-               "• Помогать с регистрацией\n" .
-               "• Отвечать на вопросы\n" .
-               "• Связывать с администрацией\n\n" .
-               "💡 <b>Используйте /help для списка команд</b>";
+        return "🎉 <b>Привет, $username!</b>\n\n" .
+               "Я бот клуба CabrioRide.\n\n" .
+               "💡 <b>Напишите @$botUsername</b> чтобы узнать как работать с фото в группе\n\n" .
+               "🌐 <b>Больше полезной информации в приложении</b> (в разработке)";
     }
     
     /**
@@ -62,12 +58,7 @@ class StartCommand {
     private function getStartButtons() {
         return [
             [
-                ['text' => '📋 Помощь', 'callback_data' => 'help'],
-                ['text' => '💬 Клубный чат', 'url' => $_ENV['CHAT_INVITE_LINK'] ?? 'https://t.me/+Iwe_Bi1rZWI5Yjcy']
-            ],
-            [
-                ['text' => '👥 Профиль', 'callback_data' => 'profile'],
-                ['text' => '🚗 Мои авто', 'callback_data' => 'my_cars']
+                ['text' => '🌐 Открыть приложение', 'url' => $_ENV['APP_URL'] ?? 'https://cabrioride.ru']
             ]
         ];
     }

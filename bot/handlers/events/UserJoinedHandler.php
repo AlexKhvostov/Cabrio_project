@@ -161,25 +161,19 @@ class UserJoinedHandler {
     private function sendWelcomeMessage($chatId, $user, $syncData) {
         $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
         $action = $syncData['action'] ?? 'joined';
+        $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
         
-        $message = "🎉 <b>Добро пожаловать в CabrioRide!</b>\n\n";
-        $message .= "Привет, <b>$username</b>! 👋\n\n";
+        $message = "🎉 <b>Добро пожаловать, $username!</b>\n\n";
         
         if ($action === 'created') {
-            $message .= "✅ Вы успешно присоединились к клубу!\n";
-            $message .= "📝 Для полного доступа заполните профиль в боте.\n\n";
+            $message .= "✅ Вы присоединились к клубу CabrioRide\n\n";
+            $message .= "📝 <b>Расскажите пару слов о себе</b>\n";
+            $message .= "📸 <b>Покажите фото авто</b> с <code>++</code>\n\n";
         } else {
             $message .= "✅ С возвращением в клуб!\n\n";
         }
         
-        $message .= "🚗 <b>Что дальше?</b>\n";
-        $message .= "• Напишите боту @CabrioRideBot для регистрации\n";
-        $message .= "• Добавьте свой автомобиль в гараж\n";
-        $message .= "• Участвуйте в событиях клуба\n\n";
-        $message .= "💬 <b>Правила клуба:</b>\n";
-        $message .= "• Уважайте других участников\n";
-        $message .= "• Делитесь опытом и знаниями\n";
-        $message .= "• Поддерживайте дружескую атмосферу";
+        $message .= "💡 <b>Напишите @$botUsername</b> /help чтобы узнать как работать с фото в группе";
         
         $this->botService->sendMessage($chatId, $message);
     }
