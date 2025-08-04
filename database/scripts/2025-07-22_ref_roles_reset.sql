@@ -1,2 +1,0 @@
--- После выполнения скрипта роли будут полностью соответствовать документации CabrioRide.
--- Новая структура: external → guest → user → member → moderator → admin 
