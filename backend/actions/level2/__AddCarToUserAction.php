@@ -216,9 +216,22 @@ class __AddCarToUserAction {
                 ]
             ];
             
-            // Добавляем информацию о фото если загружали
+            // Добавляем информацию о фото если загружали (без base64 данных)
             if ($photoData) {
-                $response['data']['photo'] = $photoData;
+                // Исключаем base64 данные из ответа, оставляем только метаданные
+                $photoInfo = [
+                    'id' => $photoData['id'],
+                    'entity_type' => $photoData['entity_type'],
+                    'entity_id' => $photoData['entity_id'],
+                    'file_name' => $photoData['file_name'],
+                    'url' => $photoData['url'],
+                    'photo_type' => $photoData['photo_type'],
+                    'description' => $photoData['description'],
+                    'uploaded_by' => $photoData['uploaded_by'],
+                    'created_at' => $photoData['created_at'] ?? null,
+                    'updated_at' => $photoData['updated_at'] ?? null
+                ];
+                $response['data']['photo'] = $photoInfo;
             }
             
             Logger::info("Car added to user: plate_number=$plateNumber, user_id=$userId, action=$action");
