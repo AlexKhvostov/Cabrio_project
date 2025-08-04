@@ -50,9 +50,9 @@ class _CreateUserAction {
             
             // Подготавливаем данные для создания
             $userData = [
-                'first_name_tg' => $data['first_name'] ?? null,
-                'last_name_tg' => $data['last_name'] ?? null,
                 'telegram_id' => $data['telegram_id'],
+                'first_name' => $data['first_name'] ?? null,  // Передаем как first_name для модели
+                'last_name' => $data['last_name'] ?? null,    // Передаем как last_name для модели
                 'username' => $data['username'] ?? null,
                 'role_id' => $data['role_id'] ?? 2, // guest по умолчанию
                 'city' => $data['city'] ?? null,

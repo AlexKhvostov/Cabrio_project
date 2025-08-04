@@ -101,7 +101,7 @@ class PhotoExclamationHandler {
             // Отправляем начальное сообщение
             $initialMessage = "💼 <b>Сохраняю визитку...</b>";
             
-            $this->botService->sendMessage($chatId, $initialMessage);
+ // $this->botService->sendMessage($chatId, $initialMessage);
             
             // Получаем фото в base64
             $photoData = end($photo);

@@ -101,7 +101,7 @@ class PhotoQuestionHandler {
             // Отправляем начальное сообщение
             $initialMessage = "🔍 <b>Проверяю авто...</b>";
             
-            $this->botService->sendMessage($chatId, $initialMessage);
+   //         $this->botService->sendMessage($chatId, $initialMessage);
             
             // Получаем фото в base64 (берем самое большое фото)
             $photoData = end($photo); // Последний элемент - самое большое фото

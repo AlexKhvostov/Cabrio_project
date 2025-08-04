@@ -58,7 +58,8 @@ class _UpdateUserAction {
                 'city' => 'city',
                 'email' => 'email',
                 'join_date' => 'join_date',
-                'left_date' => 'left_date'
+                'left_date' => 'left_date',
+                'telegram_photo_id' => 'telegram_photo_id'
             ];
             
             foreach ($fieldMapping as $inputField => $dbField) {

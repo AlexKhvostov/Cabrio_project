@@ -123,8 +123,8 @@ class User {
         $values = [
             $data['telegram_id'],
             $data['username'] ?? null,
-            $data['first_name'] ?? null,
-            $data['last_name'] ?? null,
+            $data['first_name'] ?? null,  // Сохраняем в поле first_name_tg
+            $data['last_name'] ?? null,   // Сохраняем в поле last_name_tg
             $data['role_id'] ?? 2 // guest по умолчанию
         ];
         
@@ -163,7 +163,7 @@ class User {
         $values = [];
         
         // Подготавливаем поля для обновления
-        $fields = ['username', 'first_name_tg', 'last_name_tg', 'first_name_app', 'last_name_app', 'email', 'phone', 'city', 'about'];
+        $fields = ['username', 'first_name_tg', 'last_name_tg', 'first_name_app', 'last_name_app', 'email', 'phone', 'city', 'about', 'telegram_photo_id'];
         
         foreach ($fields as $field) {
             if (isset($data[$field])) {

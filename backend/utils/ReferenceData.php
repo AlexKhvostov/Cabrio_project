@@ -233,8 +233,8 @@ class ReferenceData
         }
         
         $names = [
-            'noticed' => 'Замечен',
-            'business_card' => 'Визитка',
+            'noticed' => 'НЕ в клубе (Замечен)',
+            'business_card' => 'НЕ в клубе (Визитка)',
             'deleted' => 'Удалён',
             'archived' => 'В архиве',
             'blocked' => 'Заблокирован',
@@ -255,7 +255,7 @@ class ReferenceData
         return [
             'id' => $statusId,
             'code' => $code,
-            'name' => $names[$code]."\n" ?? 'Неизвестный статус',
+            'name' => $names[$code]."\n\n" ?? 'Неизвестный статус',
             'description' => $descriptions[$code] ?? ''
         ];
     }
