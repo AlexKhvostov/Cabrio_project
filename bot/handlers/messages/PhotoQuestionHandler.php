@@ -129,10 +129,28 @@ class PhotoQuestionHandler {
                 'raw_response' => json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             ]);
             
-            if ($result['success']) {
-                $this->sendSuccessMessage($chatId, $username, $result['data']);
+            // Проверяем HTTP код и содержимое ответа
+            if ($result['success'] && $result['http_code'] === 200) {
+                // Проверяем, что API действительно вернул успех
+                $apiData = $result['data'];
+                if (isset($apiData['success']) && $apiData['success'] === true) {
+                    $this->sendSuccessMessage($chatId, $username, $apiData);
+                } else {
+                    // API вернул ошибку
+                    $errorMsg = $apiData['error']['message'] ?? 'Неизвестная ошибка API';
+                    $this->sendErrorMessage($chatId, $errorMsg);
+                }
             } else {
-                $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                // HTTP ошибка или невалидный ответ
+                if ($result['http_code'] === 403) {
+                    $errorMsg = 'Недостаточно прав для выполнения действия';
+                } elseif ($result['http_code'] === 404) {
+                    $errorMsg = 'Эндпоинт не найден';
+                } elseif ($result['http_code'] === 500) {
+                    $errorMsg = 'Внутренняя ошибка сервера';
+                } else {
+                    $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                }
                 $this->sendErrorMessage($chatId, $errorMsg);
             }
             

@@ -98,7 +98,21 @@ class ReferenceData
      */
     public static function getCarStatusCode($statusId)
     {
-        return self::$carStatusMap[$statusId] ?? null;
+        Logger::info('ReferenceData: getCarStatusCode called', [
+            'status_id' => $statusId,
+            'status_id_type' => gettype($statusId),
+            'car_status_map' => self::$carStatusMap
+        ]);
+        
+        $result = self::$carStatusMap[$statusId] ?? null;
+        
+        Logger::info('ReferenceData: getCarStatusCode result', [
+            'status_id' => $statusId,
+            'result' => $result,
+            'result_type' => gettype($result)
+        ]);
+        
+        return $result;
     }
     
     /**
@@ -227,8 +241,22 @@ class ReferenceData
      */
     public static function getCarStatusDetails($statusId)
     {
+        Logger::info('ReferenceData: getCarStatusDetails called', [
+            'status_id' => $statusId,
+            'status_id_type' => gettype($statusId)
+        ]);
+        
         $code = self::getCarStatusCode($statusId);
+        Logger::info('ReferenceData: getCarStatusCode result', [
+            'status_id' => $statusId,
+            'code' => $code,
+            'code_type' => gettype($code)
+        ]);
+        
         if (!$code) {
+            Logger::warning('ReferenceData: No code found for status_id', [
+                'status_id' => $statusId
+            ]);
             return null;
         }
         
@@ -252,12 +280,20 @@ class ReferenceData
             'active' => 'Активный автомобиль участника'
         ];
         
-        return [
+        $result = [
             'id' => $statusId,
             'code' => $code,
-            'name' => $names[$code]."\n\n" ?? 'Неизвестный статус',
+            'name' => ($names[$code] ?? 'Неизвестный статус') . "\n\n",
             'description' => $descriptions[$code] ?? ''
         ];
+        
+        Logger::info('ReferenceData: getCarStatusDetails result', [
+            'status_id' => $statusId,
+            'result' => $result,
+            'result_type' => gettype($result)
+        ]);
+        
+        return $result;
     }
     
     /**

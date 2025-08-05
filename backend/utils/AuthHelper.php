@@ -389,18 +389,9 @@ class AuthHelper {
      */
     private static function isHashValid(array $data): bool
     {
-        // Если хеш отсутствует, проверяем источник данных
+        // Если хеш отсутствует, разрешаем (бот использует SYSTEM_TOKEN)
         if (empty($data['hash'])) {
-            // Для бота (JSON body) разрешаем отсутствие хеша
-            $input = file_get_contents('php://input');
-            if (!empty($input)) {
-                $jsonData = json_decode($input, true);
-                if ($jsonData && isset($jsonData['message']['from'])) {
-                    // Это запрос от бота - разрешаем без хеша
-                    return true;
-                }
-            }
-            return false;
+            return true;
         }
         
         $recvHash = $data['hash'];

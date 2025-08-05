@@ -36,10 +36,21 @@ require_once __DIR__ . '/../../utils/AppContext.php';
 class ___CheckCarInClubAction {
     
     public static function handle($data) {
+        Logger::info('___CheckCarInClubAction: Starting', [
+            'input_data' => $data,
+            'files' => isset($_FILES) ? array_keys($_FILES) : 'no_files'
+        ]);
+        
         try {
             // Получаем пользователя из глобального контекста
             $user = AppContext::getCurrentUser();
+            Logger::info('___CheckCarInClubAction: User from context', [
+                'user' => $user,
+                'user_type' => gettype($user)
+            ]);
+            
             if (!$user) {
+                Logger::warning('___CheckCarInClubAction: No user in context');
                 return [
                     'success' => false,
                     'error' => [
@@ -49,6 +60,11 @@ class ___CheckCarInClubAction {
                 ];
             }
             $userId = $user['id'];
+            
+            Logger::info('___CheckCarInClubAction: User found', [
+                'user_id' => $userId,
+                'user_data' => $user
+            ]);
             
             // Проверяем наличие фото (base64 или файл)
             if ((!isset($data['photo']) || empty($data['photo'])) && 
@@ -63,18 +79,32 @@ class ___CheckCarInClubAction {
             }
             
             // 1. OCR распознавание номера
+            Logger::info('___CheckCarInClubAction: Starting OCR recognition');
+            
             try {
                 // Проверяем, есть ли base64 данные в data
                 if (isset($data['photo']) && !empty($data['photo'])) {
+                    Logger::info('___CheckCarInClubAction: Using base64 photo data');
                     // Используем base64 данные
                     $plateNumber = RecognizeCarNumberFromPhotoAction::handleFromBase64($data['photo']);
                 } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                    Logger::info('___CheckCarInClubAction: Using file photo data');
                     // Используем файл из $_FILES
                     $plateNumber = RecognizeCarNumberFromPhotoAction::handle($_FILES['photo']);
                 } else {
+                    Logger::warning('___CheckCarInClubAction: No photo provided');
                     throw new Exception('Фото не предоставлено ни в base64, ни в файле');
                 }
+                
+                Logger::info('___CheckCarInClubAction: OCR recognition successful', [
+                    'plate_number' => $plateNumber
+                ]);
+                
             } catch (Exception $e) {
+                Logger::error('___CheckCarInClubAction: OCR recognition failed', [
+                    'error' => $e->getMessage()
+                ]);
+                
                 return [
                     'success' => false,
                     'error' => [
@@ -96,9 +126,21 @@ class ___CheckCarInClubAction {
                 }
             }
             
+            Logger::info('___CheckCarInClubAction: Calling __SearchCarAction', [
+                'plate_number' => $plateNumber,
+                'user_id' => $userId,
+                'has_photo' => isset($data['photo'])
+            ]);
+            
             $searchResult = __SearchCarAction::handle([
                 'plate_number' => $plateNumber,
                 'photo' => $data['photo'] ?? null // Передаем фото в L2 Action
+            ]);
+            
+            Logger::info('___CheckCarInClubAction: __SearchCarAction result', [
+                'search_success' => $searchResult['success'] ?? false,
+                'search_data' => $searchResult['data'] ?? null,
+                'search_error' => $searchResult['error'] ?? null
             ]);
             
             if (!$searchResult['success']) {

@@ -56,10 +56,21 @@ require_once __DIR__ . '/../../models/Photo.php';
 class __SearchCarAction {
     
     public static function handle($data) {
+        Logger::info('__SearchCarAction: Starting', [
+            'input_data' => $data,
+            'files' => isset($_FILES) ? array_keys($_FILES) : 'no_files'
+        ]);
+        
         try {
             // Получаем пользователя из глобального контекста
             $user = AppContext::getCurrentUser();
+            Logger::info('__SearchCarAction: User from context', [
+                'user' => $user,
+                'user_type' => gettype($user)
+            ]);
+            
             if (!$user) {
+                Logger::warning('__SearchCarAction: No user in context');
                 return [
                     'success' => false,
                     'error' => [
@@ -71,6 +82,11 @@ class __SearchCarAction {
             
             $createUserId = $user['id'];
             
+            Logger::info('__SearchCarAction: User found', [
+                'user_id' => $createUserId,
+                'user_data' => $user
+            ]);
+            
             // Валидация обязательных полей
             ValidationHelper::requireFields($data, ['plate_number']);
             
@@ -79,16 +95,32 @@ class __SearchCarAction {
             $carData = null;
             
             // 1. Проверяем существование автомобиля
+            Logger::info('__SearchCarAction: Checking car in database', [
+                'plate_number' => $plateNumber
+            ]);
+            
             $checkResult = _CheckCarInDbAction::handle(['plate_number' => $plateNumber]);
+            
+            Logger::info('__SearchCarAction: Check result', [
+                'check_success' => $checkResult['success'] ?? false,
+                'check_data' => $checkResult['data'] ?? null,
+                'check_error' => $checkResult['error'] ?? null
+            ]);
             
             if ($checkResult['success'] && $checkResult['data'] !== null) {
                 // Автомобиль найден
+                Logger::info('__SearchCarAction: Car found in database', [
+                    'car_data' => $checkResult['data']
+                ]);
+                
                 $carData = $checkResult['data'];
                 $action = 'found';
                 $carId = $carData['id'];
                 
             } else {
                 // Автомобиль не найден - создаём новый
+                Logger::info('__SearchCarAction: Car not found, creating new one');
+                
                 $createData = [
                     'reg_number' => $plateNumber,
                     'create_user_id' => $createUserId,
@@ -99,13 +131,31 @@ class __SearchCarAction {
                     'status_id' => 1 // "замечена" по умолчанию
                 ];
                 
+                Logger::info('__SearchCarAction: Creating car with data', [
+                    'create_data' => $createData
+                ]);
+                
                 $createResult = _CreateCarAction::handle($createData);
+                
+                Logger::info('__SearchCarAction: Create result', [
+                    'create_success' => $createResult['success'] ?? false,
+                    'create_data' => $createResult['data'] ?? null,
+                    'create_error' => $createResult['error'] ?? null
+                ]);
                 
                 if ($createResult['success']) {
                     $action = 'created';
                     $carData = $createResult['data'];
                     $carId = $carData['id'];
+                    
+                    Logger::info('__SearchCarAction: Car created successfully', [
+                        'car_id' => $carId,
+                        'car_data' => $carData
+                    ]);
                 } else {
+                    Logger::error('__SearchCarAction: Failed to create car', [
+                        'create_error' => $createResult['error']
+                    ]);
                     return $createResult;
                 }
             }

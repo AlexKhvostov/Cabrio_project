@@ -238,48 +238,66 @@ class BotService {
     }
     
     /**
-     * Выполняет запрос к backend API
+     * 🔗 Выполняет запрос к backend API
      * 
-     * @param string $endpoint Эндпоинт API
-     * @param array $data Данные для отправки
-     * @param array $userData Данные пользователя для авторизации
-     * @return array Результат запроса
+     * Этот метод отправляет запросы к backend API.
+     * Для локальных запросов использует только проверку IP.
+     * Для внешних запросов может использовать SYSTEM_TOKEN.
+     * 
+     * @param string $endpoint Эндпоинт API (например, '/api/health', '/api/users')
+     * @param array $data Данные для отправки в теле запроса
+     * @param array $userData Данные пользователя Telegram для заголовков
+     * @param string $method HTTP метод (GET, POST, PUT, DELETE)
+     * @return array Результат запроса с полями:
+     *               - success: bool - успешность запроса
+     *               - http_code: int - HTTP код ответа
+     *               - data: array - данные ответа
+     *               - error: string - сообщение об ошибке (если есть)
      */
-    public function callBackendApi($endpoint, $data, $userData) {
+    public function callBackendApi($endpoint, $data, $userData, $method = 'POST') {
         try {
-            $apiUrl = $_ENV['BACKEND_API_URL'] ?? 'http://localhost/app/backend';
-            $url = $apiUrl . '/routes/api.php?route=' . urlencode($endpoint);
+            // 🏠 Используем локальный URL для безопасности
+            // В продакшене бот и backend находятся на одном сервере
+            $localApiUrl = 'http://localhost/app/backend';
+            $url = $localApiUrl . '/routes/api.php?route=' . urlencode($endpoint);
             
             writeToLog("BotService: Calling backend API", [
                 'endpoint' => $endpoint,
+                'method' => $method,
                 'url' => $url,
-                'user_id' => $userData['id'] ?? 'unknown'
+                'user_id' => $userData['id'] ?? 'unknown',
+                'is_local' => true
             ]);
             
-            // Генерируем auth_date для бота (если не передан)
+            // ⏰ Генерируем auth_date для бота (если не передан)
             $authDate = $userData['auth_date'] ?? time();
             
-            // Создаем заголовки с Telegram данными
+            // 📋 Создаем заголовки с Telegram данными
+            // Для локальных запросов SYSTEM_TOKEN не нужен
             $headers = [
                 'Content-Type: application/json',
                 'X-Telegram-User-Id: ' . ($userData['id'] ?? ''),
                 'X-Telegram-Username: ' . ($userData['username'] ?? ''),
                 'X-Telegram-First-Name: ' . ($userData['first_name'] ?? ''),
                 'X-Telegram-Last-Name: ' . ($userData['last_name'] ?? ''),
-                'X-Telegram-Auth-Date: ' . $authDate,
-                'X-Telegram-Hash: ' . ($userData['hash'] ?? '')
+                'X-Telegram-Auth-Date: ' . $authDate
             ];
             
-            // Используем cURL вместо file_get_contents для лучшей обработки ошибок
+            // 📡 Используем cURL для HTTP запроса
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); // 🔧 Поддержка разных HTTP методов
+            
+            // 📦 Отправляем данные только для POST/PUT запросов
+            if (in_array($method, ['POST', 'PUT']) && !empty($data)) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            }
+            
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // 🔓 Отключаем SSL для локальных запросов
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -293,13 +311,14 @@ class BotService {
             writeToLog("BotService: API response received", [
                 'http_code' => $httpCode,
                 'response_length' => strlen($response),
-                'response_content' => $response
+                'response_preview' => substr($response, 0, 200) . '...'
             ]);
             
             if ($response === false) {
                 throw new Exception("Failed to make API request");
             }
             
+            // 🔍 Парсим JSON ответ
             $result = json_decode($response, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 // Пытаемся извлечь JSON из ответа, если есть HTML предупреждения
@@ -315,7 +334,7 @@ class BotService {
                 }
             }
             
-            // Проверяем, есть ли валидный JSON в ответе (даже при HTTP 400)
+            // ✅ Проверяем, есть ли валидный JSON в ответе (даже при HTTP 400)
             $isValidResponse = is_array($result) && (isset($result['success']) || isset($result['error']));
             
             return [
@@ -328,7 +347,9 @@ class BotService {
         } catch (Exception $e) {
             writeToLog("BotService: API call failed", [
                 'endpoint' => $endpoint,
-                'error' => $e->getMessage()
+                'method' => $method,
+                'error' => $e->getMessage(),
+                'url' => $url ?? 'unknown'
             ]);
             
             return [

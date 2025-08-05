@@ -2,7 +2,7 @@
 /**
  * test_api_call.php
  * 
- * Тест для проверки работы бота с новыми заголовками
+ * Тест для проверки работы бота с локальными запросами к backend
  */
 
 require_once __DIR__ . '/config.php';
@@ -14,8 +14,7 @@ $userData = [
     'username' => 'testuser',
     'first_name' => 'Test',
     'last_name' => 'User',
-    'auth_date' => time(),
-    'hash' => '' // Пустой хеш для бота
+    'auth_date' => time()
 ];
 
 // Создаем экземпляр BotService
@@ -27,27 +26,47 @@ $apiData = [
     'user_id' => $userData['id']
 ];
 
-echo "🧪 Тестируем вызов API с новыми заголовками...\n";
+echo "🧪 Тестируем локальные запросы к backend API...\n";
 echo "📋 Данные пользователя:\n";
 echo "- ID: " . $userData['id'] . "\n";
 echo "- Username: " . $userData['username'] . "\n";
 echo "- Auth Date: " . $userData['auth_date'] . "\n";
-echo "- Hash: " . ($userData['hash'] ?: 'пустой (для бота)') . "\n\n";
+echo "- SYSTEM_TOKEN: " . (substr($_ENV['SYSTEM_TOKEN'] ?? '', 0, 10) . '...') . "\n";
+echo "- Local URL: http://localhost/app/backend/routes/api.php\n\n";
 
-// Вызываем API с правильным эндпоинтом
-$result = $botService->callBackendApi('/api/health', $apiData, $userData);
+// Тестируем разные эндпоинты
+$tests = [
+    ['/api/health', 'GET', []],
+    ['/api/users', 'GET', []],
+    ['/api/cars', 'GET', []],
+    ['/api/events', 'GET', []]
+];
 
-echo "📡 Результат вызова API:\n";
-echo "- Success: " . ($result['success'] ? 'true' : 'false') . "\n";
-echo "- HTTP Code: " . ($result['http_code'] ?? 'unknown') . "\n";
-echo "- URL: " . ($_ENV['BACKEND_API_URL'] ?? 'http://localhost/app/backend') . "/routes/api.php?route=/api/health\n";
-
-if (isset($result['data'])) {
-    echo "- Response: " . json_encode($result['data'], JSON_UNESCAPED_UNICODE) . "\n";
+foreach ($tests as $test) {
+    list($endpoint, $method, $data) = $test;
+    echo "🔗 Тестируем эндпоинт: $endpoint ($method)\n";
+    
+    // Вызываем API
+    $result = $botService->callBackendApi($endpoint, $data, $userData, $method);
+    
+    echo "📡 Результат:\n";
+    echo "- Success: " . ($result['success'] ? 'true' : 'false') . "\n";
+    echo "- HTTP Code: " . ($result['http_code'] ?? 'unknown') . "\n";
+    
+    if (isset($result['data'])) {
+        if (isset($result['data']['success'])) {
+            echo "- API Success: " . ($result['data']['success'] ? 'true' : 'false') . "\n";
+        }
+        if (isset($result['data']['error'])) {
+            echo "- API Error: " . $result['data']['error']['message'] . "\n";
+        }
+    }
+    
+    if (isset($result['error'])) {
+        echo "- Error: " . $result['error'] . "\n";
+    }
+    
+    echo "\n";
 }
 
-if (isset($result['error'])) {
-    echo "- Error: " . $result['error'] . "\n";
-}
-
-echo "\n✅ Тест завершен!\n"; 
+echo "✅ Тест завершен!\n"; 

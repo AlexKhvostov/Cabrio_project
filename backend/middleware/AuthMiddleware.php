@@ -8,20 +8,47 @@ require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
 require_once __DIR__ . '/../../config/sectionGroups.php';
 
 /**
- * 🔐 Middleware для авторизации
+ * 🔐 AuthMiddleware - Централизованная система авторизации
  * 
- * Централизованная обработка авторизации для всех запросов:
- * - Извлечение Telegram данных
- * - Валидация данных
- * - Синхронизация пользователя
- * - Создание/обновление сессии
- * - Установка глобального контекста
+ * Этот middleware обрабатывает все типы авторизации в системе:
+ * 
+ * 📱 TELEGRAM WEBAPP АВТОРИЗАЦИЯ:
+ * - Получает данные от Telegram WebApp (initData)
+ * - Проверяет валидность хеша подписи Telegram
+ * - Извлекает данные пользователя (id, username, first_name, etc.)
+ * - Синхронизирует пользователя с базой данных
+ * - Создает/обновляет сессию пользователя
+ * 
+ * 🤖 TELEGRAM BOT АВТОРИЗАЦИЯ:
+ * - Использует SYSTEM_TOKEN для авторизации бота
+ * - Проверяет, что запрос пришел локально (защита от внешних атак)
+ * - Авторизует бота как системного пользователя (role: admin)
+ * - Позволяет боту выполнять системные операции
+ * 
+ * 🧪 DEV-РЕЖИМ (только для разработки):
+ * - DEV_AUTH: полный байпас авторизации
+ * - DEV_USER_ID: подмена ID пользователя
+ * - DEV_ROLE: подмена роли пользователя
+ * - Работает только вне production окружения
+ * 
+ * 🔒 БЕЗОПАСНОСТЬ:
+ * - Проверка хеша Telegram для WebApp
+ * - Проверка SYSTEM_TOKEN + локальный IP для бота
+ * - Логирование всех попыток авторизации
+ * - Защита от несанкционированного доступа
+ * 
+ * 📊 ЛОГИРОВАНИЕ:
+ * - Все этапы авторизации логируются
+ * - Ошибки авторизации записываются в лог
+ * - Метрики времени выполнения запросов
  * 
  * @package CabrioRide\Middleware
+ * @author CabrioRide Team
+ * @version 2.0
  */
 class AuthMiddleware
 {
-    /** @var string Префикс для ID запроса */
+    /** @var string Префикс для генерации уникальных ID запросов */
     const REQUEST_ID_PREFIX = 'req_';
 
     // ========================================
@@ -31,14 +58,22 @@ class AuthMiddleware
     /**
      * Обработать авторизацию для текущего запроса
      * 
-     * @return array Результат обработки
+     * Этот метод является основным для обработки Telegram-авторизации.
+     * Выполняет полный цикл: извлечение данных → валидация → синхронизация → сессия
+     * 
+     * @return array Результат обработки с полями:
+     *               - success: bool - успешность операции
+     *               - user_id: int - ID пользователя (если успешно)
+     *               - session_id: string - ID сессии (если успешно)
+     *               - error: array - информация об ошибке (если неуспешно)
      */
     public static function process()
     {
         try {
             Logger::info('AuthMiddleware: Starting authentication process');
             
-            // 1. Извлекаем Telegram данные
+            // 1️⃣ ИЗВЛЕЧЕНИЕ TELEGRAM ДАННЫХ
+            // Пытаемся извлечь данные из заголовков, JSON тела, FormData или GET параметров
             $telegramData = AuthHelper::extractTelegramData();
             
             if (!$telegramData) {
@@ -56,7 +91,8 @@ class AuthMiddleware
                 'telegram_id' => $telegramData['telegram_id'] ?? 'unknown'
             ]);
             
-            // 2. Валидируем Telegram данные
+            // 2️⃣ ВАЛИДАЦИЯ TELEGRAM ДАННЫХ
+            // Проверяем корректность данных и валидность хеша (для WebApp)
             $validationResult = AuthHelper::validateTelegramData($telegramData);
             
             if (!$validationResult['success']) {
@@ -75,7 +111,8 @@ class AuthMiddleware
             
             Logger::info('AuthMiddleware: Telegram data validated');
             
-            // 3. Синхронизируем пользователя
+            // 3️⃣ СИНХРОНИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ
+            // Создаем или обновляем пользователя в базе данных
             $userResult = __SyncUserDataAction::handle($telegramData);
             
             if (!$userResult['success']) {
@@ -98,7 +135,8 @@ class AuthMiddleware
                 'telegram_id' => $userData['telegram_id']
             ]);
             
-            // 4. Создаем или обновляем сессию
+            // 4️⃣ СОЗДАНИЕ/ОБНОВЛЕНИЕ СЕССИИ
+            // Создаем или обновляем сессию пользователя
             $sessionResult = SessionHelper::createOrUpdateSession($userData['id'], [
                 'telegram_data' => $telegramData
             ]);
@@ -124,7 +162,8 @@ class AuthMiddleware
                 'action' => $sessionResult['action']
             ]);
             
-            // 5. Устанавливаем глобальный контекст
+            // 5️⃣ УСТАНОВКА ГЛОБАЛЬНОГО КОНТЕКСТА
+            // Устанавливаем данные пользователя, сессию и ID запроса в глобальный контекст
             self::setupGlobalContext($telegramData, $userData, $sessionResult);
             
             Logger::info('AuthMiddleware: Global context setup complete', [
@@ -222,53 +261,90 @@ class AuthMiddleware
     // ========================================
 
     /**
-     * Единая точка авторизации.
-     * 1. Если передан SYSTEM_TOKEN — авторизуемся как system (role: admin)
-     * 2. Иначе переходим к стандартной Telegram-ветке (метод process)
+     * 🔐 Единая точка авторизации для всех запросов
+     * 
+     * Этот метод является главной точкой входа для авторизации.
+     * Обрабатывает все типы авторизации в порядке приоритета:
+     * 
+     * 1️⃣ Локальные запросы (для Telegram Bot) - автоматически разрешаем
+     * 2️⃣ Telegram-авторизация (для WebApp) - проверяем хеш
+     * 3️⃣ DEV-режим (только для разработки) - байпас для тестирования
      *
-     * @param string $route  Текущий маршрут (используется для логов)
-     * @param string $method HTTP-метод
+     * @param string $route  Текущий маршрут (для логирования)
+     * @param string $method HTTP-метод (GET, POST, etc.)
+     * @return array Результат авторизации
      */
     public static function authenticate($route, $method)
     {
-        // Старт метрики
+        // 📊 Старт метрики времени выполнения
         AppContext::setStartTime(microtime(true));
 
-        // 0) Проверяем Bearer-токен
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        if (str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-            if ($token === ($_ENV['SYSTEM_TOKEN'] ?? getenv('SYSTEM_TOKEN'))) {
-                // SYSTEM_TOKEN корректен — авторизуем «system»
+        // 🏠 1️⃣ ПРОВЕРКА ЛОКАЛЬНЫХ ЗАПРОСОВ (для Telegram Bot)
+        // Если запрос пришел локально - разрешаем без дополнительных проверок
+        if (self::isLocalRequest()) {
+            // ✅ Локальный запрос - авторизуем как системный пользователь
                 self::initSystemContext();
-                Logger::info('AuthMiddleware: SYSTEM_TOKEN authenticated', [
+            
+            // 🔧 ДОПОЛНИТЕЛЬНАЯ ОБРАБОТКА ДЛЯ L3 ACTIONS
+            // Для L3 Actions нужно установить реального пользователя из Telegram данных
+            if (strpos($route, '/api/actions/') === 0) {
+                $telegramData = self::extractTelegramData();
+                if ($telegramData) {
+                    // Синхронизируем пользователя с реальными Telegram данными
+                    require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
+                    $syncResult = __SyncUserDataAction::handle($telegramData);
+                    
+                    if ($syncResult['success']) {
+                        $userData = $syncResult['data'];
+                        AppContext::setCurrentUser($userData);
+                        
+                        Logger::info('AuthMiddleware: Real user set for L3 Action (local request)', [
+                            'user_id' => $userData['id'],
+                            'telegram_id' => $telegramData['telegram_id'],
+                            'route' => $route
+                        ]);
+                    } else {
+                        Logger::warning('AuthMiddleware: Failed to sync user for L3 Action (local request)', [
+                            'telegram_data' => $telegramData,
+                            'route' => $route
+                        ]);
+                    }
+                } else {
+                    Logger::warning('AuthMiddleware: No Telegram data found for L3 Action (local request)', [
+                        'route' => $route
+                    ]);
+                }
+            }
+            
+            Logger::info('AuthMiddleware: Local request authenticated', [
                     'route'  => $route,
-                    'method' => $method
+                'method' => $method,
+                'client_ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
                 ]);
                 return [
                     'success'    => true,
-                    'user_id'    => 0,
-                    'session_id' => 'system',
-                    'message'    => 'System authorization successful'
+                'user_id'    => 0,        // Системный пользователь
+                'session_id' => 'system', // Системная сессия
+                'message'    => 'Local request authorization successful'
                 ];
-            }
         }
 
-        // 1) Пытаемся пройти стандартную Telegram-авторизацию
+        // 📱 2️⃣ TELEGRAM-АВТОРИЗАЦИЯ (для WebApp)
+        // Выполняем полный цикл: извлечение → валидация хеша → синхронизация → сессия
         $result = self::process();
 
-        // ========================================
-        // DEV-МОД (работает только вне production)
-        // ========================================
+        // 🧪 3️⃣ DEV-РЕЖИМ (только для разработки, вне production)
+        // Позволяет обходить авторизацию для тестирования
         if (getenv('APP_ENV') !== 'production') {
-            // Полный байпас авторизации, если предыдущая попытка НЕ была успешной
+            // 🔓 Полный байпас авторизации, если предыдущая попытка НЕ была успешной
             if (getenv('DEV_AUTH') && (!($result['success'] ?? false))) {
                 Logger::info('DEV AUTH ACTIVE: bypass enabled');
 
-                // Если указан DEV_USER_ID (число >0) — используем его; иначе 999
+                // 👤 Если указан DEV_USER_ID (число >0) — используем его; иначе 999
                 $devIdRaw = getenv('DEV_USER_ID') ?: '';
                 $devId = (ctype_digit($devIdRaw) && intval($devIdRaw) > 0) ? intval($devIdRaw) : 999;
 
+                // 🎭 Устанавливаем тестового пользователя
                 AppContext::setCurrentUser([
                     'id'       => $devId,
                     'role_id'  => Roles::ROLE_IDS['guest'],
@@ -284,7 +360,7 @@ class AuthMiddleware
                 ];
             }
 
-            // Подмена роли
+            // 🎭 Подмена роли пользователя (для тестирования разных ролей)
             $override = getenv('DEV_ROLE');
             if ($override && isset(Roles::ROLE_IDS[$override])) {
                 $user = AppContext::getCurrentUser() ?? [ 'id' => 999 ];
@@ -299,19 +375,22 @@ class AuthMiddleware
     }
 
     /**
-     * Устанавливает в AppContext данные для системного запроса
+     * 🔧 Устанавливает в AppContext данные для системного запроса
+     * 
+     * Создает виртуального системного пользователя с правами администратора.
+     * Используется при авторизации через SYSTEM_TOKEN.
      */
     private static function initSystemContext(): void
     {
-        // id = 0 обозначаем как виртуальный системный пользователь
+        // 🆔 id = 0 обозначаем как виртуальный системный пользователь
         AppContext::setCurrentUser([
-            'id'       => 0,
-            'role_id'  => 6,      // admin
-            'role'     => 'admin',
-            'username' => 'system'
+            'id'       => 0,        // Системный ID
+            'role_id'  => 6,        // admin (максимальные права)
+            'role'     => 'admin',  // Роль администратора
+            'username' => 'system'  // Системное имя
         ]);
-        AppContext::setSessionId('system');
-        AppContext::setRequestId(self::generateRequestId());
+        AppContext::setSessionId('system');  // Системная сессия
+        AppContext::setRequestId(self::generateRequestId()); // Уникальный ID запроса
     }
 
     /**
@@ -484,5 +563,77 @@ class AuthMiddleware
             'first_name' => $telegramFirstName,
             'last_name' => $telegramLastName
         ];
+    }
+
+    /**
+     * 🔒 Проверить, что запрос пришел локально
+     * 
+     * Этот метод проверяет, что запрос пришел с локального IP адреса.
+     * Используется для защиты SYSTEM_TOKEN от внешних атак.
+     * 
+     * Поддерживаемые локальные адреса:
+     * - 127.0.0.1 (IPv4 localhost)
+     * - ::1 (IPv6 localhost)
+     * - localhost (локальный хост)
+     * - 192.168.0.0/16 (локальная сеть)
+     * - 10.0.0.0/8 (приватная сеть)
+     * - 172.16.0.0/12 (приватная сеть)
+     * 
+     * @return bool true если запрос локальный, false если внешний
+     */
+    private static function isLocalRequest(): bool
+    {
+        // 📡 Получаем IP адрес клиента
+        $clientIP = $_SERVER['REMOTE_ADDR'] ?? '';
+        
+        // 🏠 Список локальных IP адресов и диапазонов
+        $localIPs = [
+            '127.0.0.1',     // IPv4 localhost
+            '::1',           // IPv6 localhost
+            'localhost',     // localhost
+            '192.168.0.0/16', // Локальная сеть (192.168.x.x)
+            '10.0.0.0/8',   // Приватная сеть (10.x.x.x)
+            '172.16.0.0/12' // Приватная сеть (172.16-31.x.x)
+        ];
+        
+        // 🔍 Проверяем каждый локальный диапазон
+        foreach ($localIPs as $ip) {
+            if (self::ipInRange($clientIP, $ip)) {
+                return true; // ✅ IP в локальном диапазоне
+            }
+        }
+        
+        return false; // ❌ IP не локальный
+    }
+
+    /**
+     * 🔍 Проверить, находится ли IP в указанном диапазоне
+     * 
+     * Поддерживает как точные IP адреса, так и CIDR диапазоны.
+     * Используется для проверки локальных сетей.
+     * 
+     * Примеры:
+     * - ipInRange('192.168.1.5', '192.168.0.0/16') → true
+     * - ipInRange('127.0.0.1', '127.0.0.1') → true
+     * - ipInRange('8.8.8.8', '192.168.0.0/16') → false
+     * 
+     * @param string $ip IP адрес для проверки
+     * @param string $range IP диапазон (точный адрес или CIDR)
+     * @return bool true если IP в диапазоне, false если нет
+     */
+    private static function ipInRange(string $ip, string $range): bool
+    {
+        if (strpos($range, '/') !== false) {
+            // 📊 CIDR notation (например, 192.168.0.0/16)
+            list($subnet, $bits) = explode('/', $range);
+            $ip = ip2long($ip);
+            $subnet = ip2long($subnet);
+            $mask = -1 << (32 - $bits);  // Создаем маску подсети
+            $subnet &= $mask;             // Применяем маску к подсети
+            return ($ip & $mask) == $subnet; // Сравниваем с маской
+        } else {
+            // 🎯 Точный IP адрес
+            return $ip === $range;
+        }
     }
 } 

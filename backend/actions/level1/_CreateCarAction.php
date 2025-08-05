@@ -30,6 +30,10 @@ require_once __DIR__ . '/../../models/Status.php';
 class _CreateCarAction {
     
     public static function handle($data) {
+        Logger::info('_CreateCarAction: Starting', [
+            'input_data' => $data
+        ]);
+        
         try {
             // Валидация обязательных полей
             ValidationHelper::requireFields($data, ['create_user_id']);
@@ -66,9 +70,19 @@ class _CreateCarAction {
             }
             
             // Создаём автомобиль с развернутыми данными
+            Logger::info('_CreateCarAction: Calling Car::createWithDetails', [
+                'car_data' => $carData
+            ]);
+            
             $carData = Car::createWithDetails($carData);
             
+            Logger::info('_CreateCarAction: Car::createWithDetails result', [
+                'result' => $carData,
+                'result_type' => gettype($carData)
+            ]);
+            
             if (!$carData) {
+                Logger::error('_CreateCarAction: Car creation failed - null result');
                 return [
                     'success' => false,
                     'error' => [

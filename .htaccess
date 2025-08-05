@@ -1,0 +1,9 @@
+# включаем модуль перезаписи URL
+RewriteEngine On
+
+# базовый префикс URL = /app/
+RewriteBase /app/
+
+# всё, что начинается с /app/api/…,
+# перенаправляем на backend/routes/api.php
+RewriteRule ^api/.* backend/routes/api.php [L,QSA]

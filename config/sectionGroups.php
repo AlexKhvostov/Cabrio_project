@@ -158,9 +158,9 @@ class FunctionRoles {
     const API_STATUS = 'external';
     
     // API endpoints - L3 Actions (с OCR)
-    const API_ACTIONS_CHECK_CAR_IN_CLUB = 'member';
-    const API_ACTIONS_LEAVE_BUSINESS_CARD = 'member';
-    const API_ACTIONS_ADD_CAR_TO_GARAGE = 'member';
+    const API_ACTIONS_CHECK_CAR_IN_CLUB = 'user';        // минимальная роль: user
+    const API_ACTIONS_LEAVE_BUSINESS_CARD = 'member';    // минимальная роль: member
+    const API_ACTIONS_ADD_CAR_TO_GARAGE = 'guest';       // минимальная роль: guest
 
     /**
      * Получить массив всех функций с их минимальными ролями
@@ -272,8 +272,17 @@ class AccessUtils {
             return false;
         }
         
-        $userRoleId = $user['role'] ?? 2; // По умолчанию guest
-        $userRoleCode = Roles::getRoleByCode($userRoleId);
+        // Если роль развернута (объект), берем код роли
+        if (isset($user['role']) && is_array($user['role']) && isset($user['role']['code'])) {
+            $userRoleCode = $user['role']['code'];
+        } elseif (isset($user['role_id'])) {
+            // Если роль не развернута (число), конвертируем в код
+            $userRoleId = (int)$user['role_id'];
+            $userRoleCode = Roles::getRoleByCode($userRoleId);
+        } else {
+            // По умолчанию - гость
+            $userRoleCode = 'guest';
+        }
         
         return FunctionRoles::checkAccess($userRoleCode, $function);
     }

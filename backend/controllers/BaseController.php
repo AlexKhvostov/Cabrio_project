@@ -98,7 +98,38 @@ class BaseController
     public function getCurrentUserRole()
     {
         $user = AppContext::getCurrentUser();
-        return $user ? $user['role'] : null;
+        if (!$user) {
+            return null;
+        }
+        
+        Logger::info('BaseController: getCurrentUserRole debugging', [
+            'user' => $user,
+            'has_role' => isset($user['role']),
+            'has_role_id' => isset($user['role_id']),
+            'role_type' => isset($user['role']) ? gettype($user['role']) : 'not_set',
+            'role_id_type' => isset($user['role_id']) ? gettype($user['role_id']) : 'not_set'
+        ]);
+        
+        // Если роль развернута (объект), берем код роли
+        if (isset($user['role']) && is_array($user['role']) && isset($user['role']['code'])) {
+            $roleCode = $user['role']['code'];
+            Logger::info('BaseController: getCurrentUserRole - using expanded role', [
+                'role_code' => $roleCode
+            ]);
+            return $roleCode;
+        }
+        
+        // Если роль не развернута (число), возвращаем как есть
+        if (isset($user['role_id'])) {
+            $roleId = $user['role_id'];
+            Logger::info('BaseController: getCurrentUserRole - using role_id', [
+                'role_id' => $roleId
+            ]);
+            return $roleId;
+        }
+        
+        Logger::warning('BaseController: getCurrentUserRole - no role found');
+        return null;
     }
 
         /**
@@ -198,14 +229,20 @@ class BaseController
      */
     protected function requireAccess($function)
     {
+        Logger::info('BaseController: requireAccess called', [
+            'function' => $function,
+            'user_id' => $this->getCurrentUserId(),
+            'user_role' => $this->getCurrentUserRole(),
+            'is_authenticated' => $this->isAuthenticated()
+        ]);
+        
         if (!$this->checkAccess($function)) {
             $requiredRole = AccessUtils::getRequiredRoleForApi($function);
             $userRole = $this->getCurrentUserRole();
-            $userRoleCode = Roles::getRoleByCode($userRole ?? 2);
             
             Logger::warning("Access denied", [
                 'function' => $function,
-                'user_role' => $userRoleCode,
+                'user_role' => $userRole,
                 'required_role' => $requiredRole,
                 'user_id' => $this->getCurrentUserId()
             ]);
@@ -220,6 +257,11 @@ class BaseController
             
             return false;
         }
+        
+        Logger::info('BaseController: Access granted', [
+            'function' => $function,
+            'user_id' => $this->getCurrentUserId()
+        ]);
         
         return true;
     }

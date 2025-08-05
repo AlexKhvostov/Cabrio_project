@@ -27,22 +27,60 @@ class ExpandHelper
      */
     public static function expandCarData($carData)
     {
+        Logger::info('ExpandHelper: Starting expandCarData', [
+            'input_data' => $carData,
+            'input_type' => gettype($carData),
+            'has_status_id' => isset($carData['status_id']),
+            'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set',
+            'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set'
+        ]);
+        
         if (!$carData) {
+            Logger::warning('ExpandHelper: carData is null or empty');
             return null;
         }
         
         $expanded = $carData;
         
         // Развертываем статус
-        if (isset($carData['status_id'])) {
-            $expanded['status'] = ReferenceData::getCarStatusDetails($carData['status_id']);
+        Logger::info('ExpandHelper: Processing status_id', [
+            'status_id_exists' => isset($carData['status_id']),
+            'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set',
+            'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set',
+            'is_numeric' => isset($carData['status_id']) ? is_numeric($carData['status_id']) : false
+        ]);
+        
+        if (isset($carData['status_id']) && is_numeric($carData['status_id'])) {
+            $statusId = (int)$carData['status_id'];
+            Logger::info('ExpandHelper: Getting status details', [
+                'status_id' => $statusId,
+                'status_id_type' => gettype($statusId)
+            ]);
+            
+            $statusDetails = ReferenceData::getCarStatusDetails($statusId);
+            Logger::info('ExpandHelper: Status details received', [
+                'status_details' => $statusDetails,
+                'status_details_type' => gettype($statusDetails)
+            ]);
+            
+            $expanded['status'] = $statusDetails;
             // Убираем дублирование согласно CONVENTIONS.md
             unset($expanded['status_id']);
+            
+            Logger::info('ExpandHelper: Status expanded successfully', [
+                'final_status' => $expanded['status']
+            ]);
+        } else {
+            Logger::warning('ExpandHelper: status_id not found or not numeric', [
+                'status_id_exists' => isset($carData['status_id']),
+                'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set',
+                'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set'
+            ]);
         }
         
         // Развертываем владельца (если есть)
-        if (isset($carData['owner_user_id']) && $carData['owner_user_id']) {
-            $owner = User::findByIdWithDetails($carData['owner_user_id']);
+        if (isset($carData['owner_user_id']) && is_numeric($carData['owner_user_id']) && $carData['owner_user_id']) {
+            $owner = User::findByIdWithDetails((int)$carData['owner_user_id']);
             if ($owner) {
                 $expanded['owner'] = $owner;
                 // Убираем дублирование
@@ -51,8 +89,8 @@ class ExpandHelper
         }
         
         // Развертываем создателя (если есть)
-        if (isset($carData['create_user_id']) && $carData['create_user_id']) {
-            $creator = User::findByIdWithDetails($carData['create_user_id']);
+        if (isset($carData['create_user_id']) && is_numeric($carData['create_user_id']) && $carData['create_user_id']) {
+            $creator = User::findByIdWithDetails((int)$carData['create_user_id']);
             if ($creator) {
                 $expanded['creator'] = $creator;
                 // Убираем дублирование
@@ -61,8 +99,8 @@ class ExpandHelper
         }
         
         // Развертываем марку (если есть)
-        if (isset($carData['car_brand_id']) && $carData['car_brand_id']) {
-            $brand = self::getCarBrandDetails($carData['car_brand_id']);
+        if (isset($carData['car_brand_id']) && is_numeric($carData['car_brand_id']) && $carData['car_brand_id']) {
+            $brand = self::getCarBrandDetails((int)$carData['car_brand_id']);
             if ($brand) {
                 $expanded['brand'] = $brand;
                 // Убираем дублирование
@@ -71,8 +109,8 @@ class ExpandHelper
         }
         
         // Развертываем фото (если есть)
-        if (isset($carData['photo_id']) && $carData['photo_id']) {
-            $photo = self::getPhotoDetails($carData['photo_id']);
+        if (isset($carData['photo_id']) && is_numeric($carData['photo_id']) && $carData['photo_id']) {
+            $photo = self::getPhotoDetails((int)$carData['photo_id']);
             if ($photo) {
                 $expanded['photo'] = $photo;
                 // Убираем дублирование
@@ -122,15 +160,15 @@ class ExpandHelper
         $expanded = $userData;
         
         // Развертываем роль
-        if (isset($userData['role_id'])) {
-            $expanded['role'] = ReferenceData::getUserRoleDetails($userData['role_id']);
+        if (isset($userData['role_id']) && is_numeric($userData['role_id'])) {
+            $expanded['role'] = ReferenceData::getUserRoleDetails((int)$userData['role_id']);
             // Убираем дублирование
             unset($expanded['role_id']);
         }
         
         // Развертываем фото (если есть)
-        if (isset($userData['photo_id']) && $userData['photo_id']) {
-            $photo = self::getPhotoDetails($userData['photo_id']);
+        if (isset($userData['photo_id']) && is_numeric($userData['photo_id']) && $userData['photo_id']) {
+            $photo = self::getPhotoDetails((int)$userData['photo_id']);
             if ($photo) {
                 $expanded['photo'] = $photo;
                 // Убираем дублирование
@@ -180,8 +218,8 @@ class ExpandHelper
         $expanded = $cardData;
         
         // Развертываем автомобиль
-        if (isset($cardData['car_id']) && $cardData['car_id']) {
-            $car = Car::findByIdWithDetails($cardData['car_id']);
+        if (isset($cardData['car_id']) && is_numeric($cardData['car_id']) && $cardData['car_id']) {
+            $car = Car::findByIdWithDetails((int)$cardData['car_id']);
             if ($car) {
                 $expanded['car'] = $car;
                 // Убираем дублирование
@@ -190,8 +228,8 @@ class ExpandHelper
         }
         
         // Развертываем пользователя
-        if (isset($cardData['user_id']) && $cardData['user_id']) {
-            $user = User::findByIdWithDetails($cardData['user_id']);
+        if (isset($cardData['user_id']) && is_numeric($cardData['user_id']) && $cardData['user_id']) {
+            $user = User::findByIdWithDetails((int)$cardData['user_id']);
             if ($user) {
                 $expanded['user'] = $user;
                 // Убираем дублирование
@@ -200,8 +238,8 @@ class ExpandHelper
         }
         
         // Развертываем фото (если есть)
-        if (isset($cardData['photo_id']) && $cardData['photo_id']) {
-            $photo = self::getPhotoDetails($cardData['photo_id']);
+        if (isset($cardData['photo_id']) && is_numeric($cardData['photo_id']) && $cardData['photo_id']) {
+            $photo = self::getPhotoDetails((int)$cardData['photo_id']);
             if ($photo) {
                 $expanded['photo'] = $photo;
                 // Убираем дублирование
