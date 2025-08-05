@@ -8,16 +8,16 @@
         class="avatar-image"
       />
       <span v-else class="avatar-initials">
-        {{ getInitials(member.first_name, member.last_name) }}
+        {{ getInitials(member.first_name, member.last_name || '') }}
       </span>
       
       <!-- Статус (кружочек) -->
-      <div :class="['status-indicator', `status-${getStatusColor(member.role.code)}`]">
+      <div :class="['status-indicator', `status-${getStatusColor(member.role?.code || member.role)}`]">
         ●
       </div>
       
       <!-- Роль (звездочка) -->
-      <div :class="['role-indicator', `role-${getRoleColor(member.role.code)}`]">
+      <div :class="['role-indicator', `role-${getRoleColor(member.role?.code || member.role)}`]">
         ★
       </div>
       
@@ -90,8 +90,9 @@ function getInitials(firstName: string, lastName: string) {
   return first + last
 }
 
-const getStatusColor = (roleCode: string) => {
-  switch (roleCode) {
+const getStatusColor = (roleCode: any) => {
+  const code = typeof roleCode === 'string' ? roleCode : roleCode?.code || 'guest'
+  switch (code) {
     case 'admin': return 'admin'
     case 'moderator': return 'moderator'
     case 'member': return 'member'
@@ -102,11 +103,15 @@ const getStatusColor = (roleCode: string) => {
   }
 }
 
-const getRoleColor = (roleCode: string) => {
-  switch (roleCode) {
+const getRoleColor = (roleCode: any) => {
+  const code = typeof roleCode === 'string' ? roleCode : roleCode?.code || 'guest'
+  switch (code) {
     case 'admin': return 'admin'
     case 'moderator': return 'moderator'
     case 'member': return 'member'
+    case 'registered': return 'registered'
+    case 'new': return 'new'
+    case 'guest': return 'guest'
     default: return 'guest'
   }
 }

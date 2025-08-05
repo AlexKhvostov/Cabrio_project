@@ -13,14 +13,14 @@
         <div class="event-main-info-mobile">
           <div class="date-time-row">
             <Calendar :size="16" />
-            <span class="date-time-text">{{ formatDate(event.event_date) }}, {{ formatDayOfWeek(event.event_date) }} в {{ event.event_time }}</span>
+            <span class="date-time-text">{{ formatDate(event.event_date || event.date) }}, {{ formatDayOfWeek(event.event_date || event.date) }} в {{ event.event_time || '19:00' }}</span>
           </div>
           
           <div class="event-location">
             <MapPin :size="16" />
             <div class="location-info">
               <div class="location-primary">{{ event.location }}</div>
-              <div class="location-secondary">{{ event.city }}</div>
+              <div class="location-secondary">{{ event.city || event.location }}</div>
             </div>
           </div>
         </div>
@@ -29,8 +29,8 @@
         <div class="event-badges-compact">
           <div class="badge-group">
             <span class="badge-label">Тип события:</span>
-            <span :class="['type-badge', `type-${getTypeColor(event.type)}`]">
-              {{ getTypeIcon(event.type) }} {{ event.type }}
+            <span :class="['type-badge', `type-${getTypeColor(event.type || 'meeting')}`]">
+              {{ getTypeIcon(event.type || 'meeting') }} {{ event.type || 'meeting' }}
             </span>
           </div>
           <div class="badge-group">
@@ -58,7 +58,7 @@
           </h4>
           <div class="participants-info">
             <div class="participants-count">
-              <span class="count-current">{{ event.participants_count }}</span>
+              <span class="count-current">{{ event.participants_count || event.participants }}</span>
               <span class="count-separator">/</span>
               <span class="count-max">{{ event.max_participants }}</span>
               <span class="count-label">участников</span>
@@ -67,11 +67,11 @@
               <div class="progress-bar">
                 <div 
                   class="progress-fill" 
-                  :style="{ width: `${(event.participants_count / event.max_participants) * 100}%` }"
+                  :style="{ width: `${((event.participants_count || event.participants) / event.max_participants) * 100}%` }"
                 ></div>
               </div>
               <span class="progress-percent">
-                {{ Math.round((event.participants_count / event.max_participants) * 100) }}%
+                {{ Math.round(((event.participants_count || event.participants) / event.max_participants) * 100) }}%
               </span>
             </div>
           </div>
@@ -84,7 +84,7 @@
             Стоимость участия
           </h4>
           <div class="price-info">
-            <div v-if="event.price > 0" class="price-paid">
+            <div v-if="event.price && event.price > 0" class="price-paid">
               <span class="price-amount">{{ event.price }} ₽</span>
               <span class="price-label">с участника</span>
             </div>
@@ -108,7 +108,7 @@
               </span>
             </div>
             <div class="organizer-details">
-              <div class="organizer-name">{{ event.organizer_name }}</div>
+              <div class="organizer-name">{{ event.organizer_name || 'Организатор' }}</div>
               <div v-if="event.organizer_nickname" class="organizer-nickname">
                 @{{ event.organizer_nickname }}
               </div>
@@ -119,26 +119,32 @@
         <!-- Фотографии -->
         <div v-if="event.photos && event.photos.length > 0" class="photos-compact">
           <h4>
-            <Camera :size="16" />
-            Фотографии ({{ event.photos.length }})
+            <Image :size="16" />
+            Фотографии
           </h4>
+          <div class="photos-count">
+            Фотографии ({{ event.photos.length }})
+          </div>
           <div class="photos-grid">
-            <img
+            <div 
               v-for="(photo, index) in event.photos"
               :key="index"
-              :src="photo"
-              :alt="`Фото события ${index + 1}`"
-              class="event-photo"
-              @click="openPhotoViewer(photo)"
-            />
+              class="photo-item"
+            >
+              <img :src="photo" :alt="`Фото ${index + 1}`" />
+            </div>
           </div>
         </div>
         
-        <!-- Дополнительная информация -->
-        <div class="additional-info-compact">
-          <div class="info-item">
-            <span class="info-label">Создано:</span>
-            <span class="info-value">{{ formatFullDate(event.created_at) }}</span>
+        <!-- Системная информация -->
+        <div class="system-info-compact">
+          <h4>
+            <Info :size="16" />
+            Системная информация
+          </h4>
+          <div class="system-item">
+            <span class="system-label">Создано:</span>
+            <span class="system-value">{{ formatFullDate(event.created_at || event.date) }}</span>
           </div>
         </div>
       </div>
@@ -193,7 +199,9 @@ import {
   UserPlus,
   Share2,
   Check,
-  HelpCircle
+  HelpCircle,
+  Image,
+  Info
 } from 'lucide-vue-next'
 import type { Event } from '@/stores/data'
 import { useTelegramStore } from '@/stores/telegram'
@@ -280,7 +288,8 @@ const formatFullDate = (dateString: string) => {
 }
 
 const getOrganizerInitials = () => {
-  const names = props.event.organizer_name.split(' ')
+  const organizerName = props.event.organizer_name || 'Организатор'
+  const names = organizerName.split(' ')
   return (names[0]?.charAt(0) + (names[1]?.charAt(0) || '')).toUpperCase()
 }
 
@@ -500,7 +509,8 @@ const openPhotoViewer = (photo: string) => {
 .participants-compact,
 .price-compact,
 .organizer-compact,
-.photos-compact {
+.photos-compact,
+.system-info-compact {
   border-top: 1px solid var(--border-color);
   padding-top: var(--spacing-sm);
 }
@@ -509,7 +519,8 @@ const openPhotoViewer = (photo: string) => {
 .participants-compact h4,
 .price-compact h4,
 .organizer-compact h4,
-.photos-compact h4 {
+.photos-compact h4,
+.system-info-compact h4 {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -523,7 +534,8 @@ const openPhotoViewer = (photo: string) => {
 .participants-compact h4 svg,
 .price-compact h4 svg,
 .organizer-compact h4 svg,
-.photos-compact h4 svg {
+.photos-compact h4 svg,
+.system-info-compact h4 svg {
   color: var(--primary-color);
 }
 
@@ -678,40 +690,46 @@ const openPhotoViewer = (photo: string) => {
   gap: var(--spacing-sm);
 }
 
-.event-photo {
+.photo-item {
   width: 100%;
   height: 60px;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.event-photo:hover {
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-item:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Дополнительная информация */
-.additional-info-compact {
+.system-info-compact {
   border-top: 1px solid var(--border-color);
   padding-top: var(--spacing-sm);
 }
 
-.info-item {
+.system-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-xs) 0;
 }
 
-.info-label {
+.system-label {
   font-size: var(--font-size-xs);
   color: var(--tg-theme-hint-color);
   font-weight: var(--font-weight-medium);
 }
 
-.info-value {
+.system-value {
   font-size: var(--font-size-xs);
   color: var(--tg-theme-text-color);
   font-weight: var(--font-weight-medium);

@@ -5,9 +5,8 @@
       <div class="map-area">
         <MapComponent 
           :members="connectedMembers"
-          :markers="markers"
+          :cars="[]"
           @add-marker="addMarker"
-          @remove-marker="removeMarker"
         />
       </div>
     </div>
@@ -196,10 +195,16 @@ const stopRecording = () => {
 }
 
 // Метки на карте
-const addMarker = (marker: Omit<MapMarker, 'id' | 'author' | 'createdAt'>) => {
+const addMarker = (data: { type: string; id: number; coordinates: [number, number] }) => {
   const newMarker: MapMarker = {
-    ...marker,
     id: `marker-${Date.now()}`,
+    type: data.type as any,
+    location: {
+      lat: data.coordinates[0],
+      lng: data.coordinates[1]
+    },
+    title: `Метка ${data.type}`,
+    description: `Добавлена ${new Date().toLocaleTimeString()}`,
     author: {
       id: telegramStore.user?.id || 0,
       name: `${telegramStore.user?.first_name} ${telegramStore.user?.last_name}`.trim()

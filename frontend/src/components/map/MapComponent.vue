@@ -1,55 +1,12 @@
 <template>
   <div class="map-component">
-    <div class="map-area">
-      <!-- Yandex карта -->
-      <div id="yandex-map" class="yandex-map"></div>
-      
-      <!-- Участники на карте (будут добавлены как метки на Yandex карту) -->
-      <!-- Метки на карте (будут добавлены как метки на Yandex карту) -->
-    </div>
-    
-    <!-- Кнопки управления -->
-    <div class="map-controls">
-      <button 
-        class="control-btn my-location"
-        @click="centerOnMyLocation"
-      >
-        <Navigation :size="20" />
-      </button>
-      
-      <button 
-        class="control-btn add-marker"
-        @click="showAddMarkerDialog"
-      >
-        <Plus :size="20" />
-      </button>
-    </div>
-    
-    <!-- Диалог добавления метки -->
-    <div v-if="showMarkerDialog" class="marker-dialog-overlay" @click="closeMarkerDialog">
-      <div class="marker-dialog" @click.stop>
-        <h3>Добавить метку</h3>
-        <div class="marker-types">
-          <button
-            v-for="type in markerTypes"
-            :key="type.id"
-            class="marker-type-btn"
-            @click="addMarkerOfType(type.id)"
-          >
-            <component :is="type.icon" :size="20" />
-            <span>{{ type.label }}</span>
-          </button>
-        </div>
-        <button class="cancel-btn" @click="closeMarkerDialog">
-          Отмена
-        </button>
-      </div>
-    </div>
+    <div id="yandex-map" ref="mapContainer" class="map-container"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useDataStore } from '@/stores/data'
 import { 
   Plus,
   Navigation,
@@ -61,260 +18,170 @@ import {
   Users
 } from 'lucide-vue-next'
 
-interface ConnectedMember {
-  id: number
-  name: string
-  nickname?: string
-  photo_url?: string
-  location: {
-    lat: number
-    lng: number
-    heading?: number
-    speed?: number
+// Типы для Yandex Maps
+declare global {
+  interface Window {
+    ymaps: {
+      ready(): Promise<void>
+      Map: new (element: string, options: any) => any
+      Placemark: new (coordinates: number[], properties: any, options: any) => any
+      templateLayoutFactory: {
+        createClass(template: string): any
+      }
+    }
   }
-  lastUpdate: Date
-}
-
-interface MapMarker {
-  id: string
-  type: 'police' | 'accident' | 'roadwork' | 'fuel' | 'parking' | 'meeting'
-  location: {
-    lat: number
-    lng: number
-  }
-  title: string
-  description?: string
-  author: {
-    id: number
-    name: string
-  }
-  createdAt: Date
-  expiresAt?: Date
 }
 
 interface Props {
-  members: ConnectedMember[]
-  markers: MapMarker[]
+  members: any[]
+  cars: any[]
+  center?: [number, number]
+  zoom?: number
 }
 
-const props = defineProps<Props>()
-defineEmits<{
-  'add-marker': [marker: Omit<MapMarker, 'id' | 'author' | 'createdAt'>]
-  'remove-marker': [markerId: string]
-  'focus-member': [memberId: number]
+const props = withDefaults(defineProps<Props>(), {
+  center: () => [55.7558, 37.6176], // Москва
+  zoom: () => 10
+})
+
+const emit = defineEmits<{
+  'add-marker': [data: { type: string; id: number; coordinates: [number, number] }]
 }>()
 
-const showMarkerDialog = ref(false)
+const dataStore = useDataStore()
+const mapContainer = ref<HTMLElement>()
 let yandexMap: any = null
-let memberPlacemarks: Map<number, any> = new Map()
-let markerPlacemarks: Map<string, any> = new Map()
+let markers: any[] = []
 
-const markerTypes = [
-  { id: 'police' as const, label: 'ДПС', icon: Shield },
-  { id: 'accident' as const, label: 'ДТП', icon: AlertTriangle },
-  { id: 'roadwork' as const, label: 'Ремонт', icon: Construction },
-  { id: 'fuel' as const, label: 'Заправка', icon: Fuel },
-  { id: 'parking' as const, label: 'Парковка', icon: ParkingCircle },
-  { id: 'meeting' as const, label: 'Встреча', icon: Users }
-]
-
-const initYandexMap = async () => {
+// Функция для загрузки Yandex Maps
+async function loadYandexMaps() {
   if (typeof window.ymaps === 'undefined') {
-    console.warn('Yandex Maps API не загружен')
-    return
+    // Загружаем скрипт Yandex Maps
+    const script = document.createElement('script')
+    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=your-api-key&lang=ru_RU'
+    script.async = true
+    document.head.appendChild(script)
+    
+    await new Promise<void>((resolve) => {
+      script.onload = () => resolve()
+    })
   }
-
+  
   await window.ymaps.ready()
-  
-  yandexMap = new window.ymaps.Map('yandex-map', {
-    center: [53.9045, 27.5615], // Минск
-    zoom: 12,
-    controls: ['zoomControl', 'typeSelector']
-  })
-
-  // Добавляем существующих участников
-  updateMemberPlacemarks()
-  
-  // Добавляем существующие метки
-  updateMarkerPlacemarks()
 }
 
-const updateMemberPlacemarks = () => {
+// Инициализация карты
+async function initMap() {
+  if (!mapContainer.value) return
+  
+  try {
+    await loadYandexMaps()
+    
+    yandexMap = new window.ymaps.Map('yandex-map', {
+      center: props.center,
+      zoom: props.zoom,
+      controls: ['zoomControl', 'fullscreenControl']
+    })
+    
+    // Добавляем обработчики событий
+    yandexMap.events.add('click', (e: any) => {
+      const coords = e.get('coords')
+      emit('add-marker', {
+        type: 'custom',
+        id: Date.now(),
+        coordinates: coords
+      })
+    })
+    
+    updateMarkers()
+  } catch (error) {
+    console.error('Ошибка инициализации карты:', error)
+  }
+}
+
+// Обновление маркеров
+function updateMarkers() {
   if (!yandexMap) return
-
-  // Удаляем старые метки участников
-  memberPlacemarks.forEach(placemark => {
-    yandexMap.geoObjects.remove(placemark)
-  })
-  memberPlacemarks.clear()
-
-  // Добавляем новые метки участников
+  
+  // Очищаем существующие маркеры
+  markers.forEach(marker => yandexMap.geoObjects.remove(marker))
+  markers = []
+  
+  // Добавляем маркеры участников
   props.members.forEach(member => {
-    // Создаем HTML для аватарки с подписью скорости
-    const avatarHtml = `
-      <div style="pointer-events: none;">
-        <div style="
-          width: 32px; 
-          height: 32px; 
-          border-radius: 50%; 
-          overflow: hidden; 
-          border: 3px solid #2ea6ff;
-          background: #2ea6ff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-        ">
-          ${member.photo_url ? 
-            `<img src="${member.photo_url}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;" alt="${member.name}">` :
-            `<span style="color: white; font-weight: bold; font-size: 14px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${member.name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>`
-          }
+    if (member.coordinates) {
+      const avatarHtml = `
+        <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+          <img src="${member.photo_url || '/default-avatar.png'}" 
+               style="width: 100%; height: 100%; object-fit: cover;" 
+               alt="${member.first_name}">
         </div>
-      </div>
-    `
-
-    const placemark = new window.ymaps.Placemark(
-      [member.location.lat, member.location.lng],
-      {
-        balloonContent: `
-          <div style="padding: 8px;">
-            <strong>${member.name}</strong><br>
-            ${member.location.speed ? `Скорость: ${Math.round(member.location.speed)} км/ч` : 'Стоит'}
-          </div>
-        `
-      },
-      {
-        iconLayout: 'default#imageWithContent',
-        iconContentLayout: window.ymaps.templateLayoutFactory.createClass(avatarHtml),
-        iconImageSize: [32, 32],
-        iconImageOffset: [-16, -16]
-      }
-    )
-
-    yandexMap.geoObjects.add(placemark)
-    memberPlacemarks.set(member.id, placemark)
-  })
-}
-
-const updateMarkerPlacemarks = () => {
-  if (!yandexMap) return
-
-  // Удаляем старые метки
-  markerPlacemarks.forEach(placemark => {
-    yandexMap.geoObjects.remove(placemark)
-  })
-  markerPlacemarks.clear()
-
-  // Добавляем новые метки
-  props.markers.forEach(marker => {
-    const colors = {
-      police: '#3b82f6',
-      accident: '#f44336',
-      roadwork: '#ff9800',
-      fuel: '#10b981',
-      parking: '#6366f1',
-      meeting: '#2ea6ff'
+      `
+      
+      const placemark = new window.ymaps.Placemark(
+        member.coordinates,
+        {
+          balloonContent: `
+            <div style="padding: 10px;">
+              <h3>${member.first_name} ${member.last_name || ''}</h3>
+              <p>${member.city}</p>
+            </div>
+          `
+        },
+        {
+          iconLayout: 'default#image',
+          iconImageHref: member.photo_url || '/default-avatar.png',
+          iconImageSize: [40, 40],
+          iconImageOffset: [-20, -20],
+          iconContentLayout: window.ymaps.templateLayoutFactory.createClass(avatarHtml),
+        }
+      )
+      
+      yandexMap.geoObjects.add(placemark)
+      markers.push(placemark)
     }
-
-    const placemark = new window.ymaps.Placemark(
-      [marker.location.lat, marker.location.lng],
-      {
-        balloonContent: `
-          <div style="padding: 8px;">
-            <strong>${marker.title}</strong><br>
-            ${marker.description || ''}<br>
-            <small>Добавил: ${marker.author.name}</small>
-          </div>
-        `
-      },
-      {
-        preset: 'islands#circleIcon',
-        iconColor: colors[marker.type]
-      }
-    )
-
-    yandexMap.geoObjects.add(placemark)
-    markerPlacemarks.set(marker.id, placemark)
+  })
+  
+  // Добавляем маркеры автомобилей
+  props.cars.forEach(car => {
+    if (car.coordinates) {
+      const placemark = new window.ymaps.Placemark(
+        car.coordinates,
+        {
+          balloonContent: `
+            <div style="padding: 10px;">
+              <h3>${car.brand.name} ${car.model}</h3>
+              <p>${car.reg_number}</p>
+              <p>Владелец: ${car.owner?.first_name || 'Неизвестно'}</p>
+            </div>
+          `
+        },
+        {
+          iconLayout: 'default#image',
+          iconImageHref: '/car-marker.png',
+          iconImageSize: [30, 30],
+          iconImageOffset: [-15, -15]
+        }
+      )
+      
+      yandexMap.geoObjects.add(placemark)
+      markers.push(placemark)
+    }
   })
 }
 
-const showAddMarkerDialog = () => {
-  showMarkerDialog.value = true
-}
+// Следим за изменениями данных
+watch(() => [props.members, props.cars], updateMarkers, { deep: true })
 
-const closeMarkerDialog = () => {
-  showMarkerDialog.value = false
-}
-
-const addMarkerOfType = (type: MapMarker['type']) => {
-  // TODO: Получить текущее местоположение или позволить выбрать на карте
-  const center = yandexMap ? yandexMap.getCenter() : [53.9045, 27.5615]
-  const location = {
-    lat: center[0] + (Math.random() - 0.5) * 0.01,
-    lng: center[1] + (Math.random() - 0.5) * 0.01
-  }
-  
-  const markerTitles = {
-    police: 'Пост ДПС',
-    accident: 'ДТП',
-    roadwork: 'Дорожные работы',
-    fuel: 'Заправка',
-    parking: 'Парковка',
-    meeting: 'Место встречи'
-  }
-  
-  closeMarkerDialog()
-  
-  emits('add-marker', {
-    type,
-    location,
-    title: markerTitles[type],
-    description: `Добавлено ${new Date().toLocaleTimeString()}`
-  })
-}
-
-const centerOnMyLocation = () => {
-  if (navigator.geolocation && yandexMap) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = [position.coords.latitude, position.coords.longitude]
-        yandexMap.setCenter(coords, 15)
-      },
-      (error) => {
-        console.warn('Не удалось получить местоположение:', error)
-        // Центрируем на Минске по умолчанию
-        yandexMap.setCenter([53.9045, 27.5615], 12)
-      }
-    )
-  }
-}
-
-onMounted(async () => {
-  await nextTick()
-  initYandexMap()
+onMounted(() => {
+  initMap()
 })
 
 onUnmounted(() => {
   if (yandexMap) {
     yandexMap.destroy()
-    yandexMap = null
   }
 })
-
-// Следим за изменениями участников и меток через watch
-import { watch } from 'vue'
-
-watch(() => props.members, () => {
-  if (yandexMap) {
-    updateMemberPlacemarks()
-  }
-}, { deep: true })
-
-watch(() => props.markers, () => {
-  if (yandexMap) {
-    updateMarkerPlacemarks()
-  }
-}, { deep: true })
 </script>
 
 <style scoped>

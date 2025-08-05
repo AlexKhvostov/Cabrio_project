@@ -3,15 +3,15 @@
     <!-- Левая часть: картинка события -->
     <div class="event-image-container">
       <img
-        :src="getEventImage(event.type)"
+        :src="getEventImage(event.type || 'meeting')"
         :alt="event.title"
         class="event-image"
       />
       
       <!-- Дата поверх картинки -->
       <div class="event-date-overlay">
-        <div class="date-day">{{ formatDay(event.event_date) }}</div>
-        <div class="date-month">{{ formatMonth(event.event_date) }}</div>
+        <div class="date-day">{{ formatDay(event.event_date || event.date) }}</div>
+        <div class="date-month">{{ formatMonth(event.event_date || event.date) }}</div>
       </div>
       
       <!-- Статус события -->
@@ -25,29 +25,29 @@
       <!-- Заголовок и статус -->
       <div class="event-header-compact">
         <h3 class="event-title-compact">{{ event.title }}</h3>
-        <span :class="['type-badge-compact', `type-${getTypeColor(event.type)}`]">
-          {{ getTypeIcon(event.type) }} {{ getTypeShortLabel(event.type) }}
+        <span :class="['type-badge-compact', `type-${getTypeColor(event.type || 'meeting')}`]">
+          {{ getTypeIcon(event.type || 'meeting') }} {{ getTypeShortLabel(event.type || 'meeting') }}
         </span>
       </div>
       
       <!-- Дата и время текстом -->
       <div class="event-datetime-text">
         <Calendar :size="10" />
-        <span>{{ formatDateText(event.event_date) }} в {{ event.event_time }}</span>
+        <span>{{ formatDateText(event.event_date || event.date) }} в {{ event.event_time || '19:00' }}</span>
       </div>
       
       <!-- Детали -->
       <div class="event-details-compact">
         <div class="detail-item-compact">
           <MapPin :size="10" />
-          <span>{{ event.city }}</span>
+          <span>{{ event.city || event.location }}</span>
         </div>
         <div class="detail-item-compact">
           <Users :size="10" />
-          <span>{{ event.participants_count }}/{{ event.max_participants }}</span>
+          <span>{{ event.participants_count || event.participants }}/{{ event.max_participants }}</span>
         </div>
         <div class="detail-item-compact price-compact">
-          <span v-if="event.price > 0" class="price-value">{{ event.price }}₽</span>
+          <span v-if="event.price && event.price > 0" class="price-value">{{ event.price }}₽</span>
           <span v-else class="price-free">Free</span>
         </div>
       </div>

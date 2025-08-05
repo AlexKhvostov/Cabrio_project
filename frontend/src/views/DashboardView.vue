@@ -92,7 +92,14 @@ import { useTelegramStore } from '@/stores/telegram'
 const dataStore = useDataStore()
 const telegramStore = useTelegramStore()
 
-const stats = computed(() => dataStore.stats)
+// Вычисляемые свойства для статистики
+const stats = computed(() => ({
+  total_members: dataStore.members.length,
+  total_cars: dataStore.cars.length,
+  total_events: dataStore.events.length,
+  total_guide_objects: dataStore.services.length,
+  total_reviews: 0 // Пока не реализовано
+}))
 
 const findCarAction = () => {
   telegramStore.hapticFeedback('impact')
@@ -101,7 +108,11 @@ const findCarAction = () => {
 }
 
 onMounted(() => {
-  dataStore.fetchStats()
+  // Загружаем данные при монтировании
+  dataStore.fetchMembers()
+  dataStore.fetchCars()
+  dataStore.fetchEvents()
+  dataStore.fetchServices()
 })
 </script>
 

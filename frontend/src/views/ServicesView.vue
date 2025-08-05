@@ -35,6 +35,7 @@
   
   <!-- Guide Object Detail Modal -->
   <GuideObjectDetailModal
+    v-if="selectedGuideObject"
     :show="showGuideModal"
     :guide-object="selectedGuideObject"
     @close="closeGuideModal"
@@ -141,10 +142,10 @@ const filteredServices = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(service => 
       service.name.toLowerCase().includes(query) ||
-      service.city.toLowerCase().includes(query) ||
-      service.category.toLowerCase().includes(query) ||
+      (service.city || service.location || '').toLowerCase().includes(query) ||
+      (service.category || service.type || '').toLowerCase().includes(query) ||
       service.type.toLowerCase().includes(query) ||
-      service.services.some(s => s.toLowerCase().includes(query))
+      (service.services || []).some(s => s.toLowerCase().includes(query))
     )
   }
 
@@ -168,6 +169,12 @@ const selectService = (service: Service) => {
 const closeGuideModal = () => {
   showGuideModal.value = false
   selectedGuideObject.value = null
+}
+
+const addReview = (service: Service) => {
+  telegramStore.hapticFeedback('impact')
+  // TODO: Implement add review functionality
+  console.log('Adding review for service:', service)
 }
 
 onMounted(() => {

@@ -4,8 +4,8 @@
     <div class="service-info">
       <!-- Тип сервиса -->
       <div class="service-type">
-        <component :is="getServiceIcon(service.category)" :size="12" />
-        <span>{{ getServiceCategory(service.category) }}</span>
+        <component :is="getServiceIcon(service.category || service.type)" :size="12" />
+        <span>{{ getServiceCategory(service.category || service.type) }}</span>
       </div>
       
       <!-- Название -->
@@ -14,18 +14,18 @@
       <!-- Виды услуг -->
       <div class="service-services">
         <span
-          v-for="(serviceItem, index) in getMainServices(service.services)"
+          v-for="(serviceItem, index) in getMainServices(service.services || [])"
           :key="serviceItem"
           class="service-tag"
         >
-          {{ serviceItem }}{{ index < getMainServices(service.services).length - 1 ? ',' : '' }}
+          {{ serviceItem }}{{ index < getMainServices(service.services || []).length - 1 ? ',' : '' }}
         </span>
       </div>
       
       <!-- Местоположение -->
       <div class="service-location">
         <MapPin :size="10" />
-        <span>{{ service.city }}</span>
+        <span>{{ service.city || service.location }}</span>
         <span v-if="service.address" class="address-separator">•</span>
         <span v-if="service.address" class="service-address">{{ service.address }}</span>
       </div>
@@ -41,13 +41,13 @@
       </div>
       
       <img
-        v-if="getServiceImage(service.category)"
-        :src="getServiceImage(service.category)"
+        v-if="getServiceImage(service.category || service.type)"
+        :src="getServiceImage(service.category || service.type) || undefined"
         :alt="service.name"
         class="service-photo"
       />
       <div v-else class="service-placeholder">
-        <component :is="getServiceIcon(service.category)" :size="20" />
+        <component :is="getServiceIcon(service.category || service.type)" :size="20" />
       </div>
     </div>
   </div>

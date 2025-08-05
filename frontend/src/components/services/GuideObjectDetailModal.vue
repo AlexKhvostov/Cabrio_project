@@ -117,7 +117,7 @@
           <div class="added-by-info-compact">
             <div class="member-avatar-compact">
               <span class="avatar-initials">
-                {{ getAddedByInitials() }}
+                {{ getOrganizerInitials() }}
               </span>
             </div>
             <div class="member-details-compact">
@@ -210,7 +210,13 @@ import {
   Coffee,
   Wrench,
   ShoppingBag,
-  ParkingCircle
+  ParkingCircle,
+  Sparkles,
+  Circle,
+  Zap,
+  Droplets,
+  Package,
+  Utensils
 } from 'lucide-vue-next'
 import type { Service } from '@/stores/data'
 import { useTelegramStore } from '@/stores/telegram'
@@ -228,37 +234,52 @@ defineEmits<{
 
 const telegramStore = useTelegramStore()
 
-const getCategoryIcon = (category: string) => {
+const getCategoryColor = (category: string | undefined) => {
+  if (!category) return 'default'
   switch (category) {
-    case 'фотосессии': return Camera
-    case 'питание': return Coffee
-    case 'ремонт': return Wrench
-    case 'обслуживание': return ShoppingBag
-    case 'отдых': return ParkingCircle
+    case 'автосервис': return 'service'
+    case 'детейлинг': return 'detailing'
+    case 'шиномонтаж': return 'tire'
+    case 'электрик': return 'electric'
+    case 'автомойка': return 'wash'
+    case 'кафе': return 'cafe'
+    case 'средство': return 'product'
+    case 'парковка': return 'parking'
+    case 'ресторан': return 'restaurant'
+    default: return 'default'
+  }
+}
+
+const getCategoryIcon = (category: string | undefined) => {
+  if (!category) return Wrench
+  switch (category) {
+    case 'автосервис': return Wrench
+    case 'детейлинг': return Sparkles
+    case 'шиномонтаж': return Circle
+    case 'электрик': return Zap
+    case 'автомойка': return Droplets
+    case 'кафе': return Coffee
+    case 'средство': return Package
+    case 'парковка': return ParkingCircle
+    case 'ресторан': return Utensils
     default: return Wrench
   }
 }
 
-const getCategoryLabel = (category: string) => {
+const getCategoryLabel = (category: string | undefined) => {
+  if (!category) return 'Сервис'
   const labels = {
-    'фотосессии': 'Фотосессии',
-    'питание': 'Питание',
-    'ремонт': 'Ремонт',
-    'обслуживание': 'Обслуживание',
-    'отдых': 'Отдых'
+    'автосервис': 'Сервис',
+    'детейлинг': 'Детейлинг',
+    'шиномонтаж': 'Шиномонтаж',
+    'электрик': 'Электрик',
+    'автомойка': 'Автомойка',
+    'кафе': 'Кафе',
+    'средство': 'Средство',
+    'парковка': 'Парковка',
+    'ресторан': 'Ресторан'
   }
   return labels[category as keyof typeof labels] || category
-}
-
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'фотосессии': return 'photo'
-    case 'питание': return 'food'
-    case 'ремонт': return 'repair'
-    case 'обслуживание': return 'service'
-    case 'отдых': return 'rest'
-    default: return 'repair'
-  }
 }
 
 const getTypeLabel = (type: string) => {
@@ -279,16 +300,29 @@ const getTypeColor = (type: string) => {
   return 'default'
 }
 
-const getRecommendationColor = (recommendation: string) => {
-  return recommendation === 'рекомендуется' ? 'positive' : 'negative'
+const getRecommendationColor = (recommendation: string | undefined) => {
+  if (!recommendation) return 'neutral'
+  switch (recommendation) {
+    case 'рекомендую': return 'positive'
+    case 'не рекомендую': return 'negative'
+    case 'нейтрально': return 'neutral'
+    default: return 'neutral'
+  }
 }
 
-const getRecommendationIcon = (recommendation: string) => {
-  return recommendation === 'рекомендуется' ? '👍' : '👎'
+const getRecommendationIcon = (recommendation: string | undefined) => {
+  if (!recommendation) return '🤔'
+  switch (recommendation) {
+    case 'рекомендую': return '👍'
+    case 'не рекомендую': return '👎'
+    case 'нейтрально': return '🤔'
+    default: return '🤔'
+  }
 }
 
 const getAddedByInitials = () => {
-  const names = props.guideObject.added_by_name.split(' ')
+  const organizerName = props.guideObject.added_by_name || 'Организатор'
+  const names = organizerName.split(' ')
   return (names[0]?.charAt(0) + (names[1]?.charAt(0) || '')).toUpperCase()
 }
 
@@ -297,13 +331,20 @@ const getReviewerInitials = (name: string) => {
   return (names[0]?.charAt(0) + (names[1]?.charAt(0) || '')).toUpperCase()
 }
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return 'Не указана'
   const date = new Date(dateString)
   return date.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   })
+}
+
+const getOrganizerInitials = () => {
+  const organizerName = props.guideObject.added_by_name || 'Организатор'
+  const names = organizerName.split(' ')
+  return (names[0]?.charAt(0) + (names[1]?.charAt(0) || '')).toUpperCase()
 }
 
 const addReview = () => {

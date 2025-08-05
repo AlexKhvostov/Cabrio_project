@@ -42,6 +42,7 @@
     
     <!-- Member Detail Modal -->
     <MemberDetailModal
+      v-if="selectedMember"
       :show="showMemberModal"
       :member="selectedMember"
       @close="closeMemberModal"

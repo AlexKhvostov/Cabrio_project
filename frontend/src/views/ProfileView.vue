@@ -653,14 +653,14 @@ const loadMemberData = () => {
     // Создаем mock данные с новой структурой
     memberData.value = {
       id: 1,
-      telegram_id: telegramStore.user.id,
-      username: telegramStore.user.username,
-      first_name: telegramStore.user.first_name,
-      last_name: telegramStore.user.last_name,
-      first_name_tg: telegramStore.user.first_name,
-      last_name_tg: telegramStore.user.last_name,
-      first_name_app: telegramStore.user.first_name,
-      last_name_app: telegramStore.user.last_name,
+      telegram_id: telegramStore.user?.id || 123456789,
+      username: telegramStore.user?.username || 'test_user',
+      first_name: telegramStore.user?.first_name || 'Тестовый',
+      last_name: telegramStore.user?.last_name || 'Пользователь',
+      first_name_tg: telegramStore.user?.first_name || 'Тестовый',
+      last_name_tg: telegramStore.user?.last_name || 'Пользователь',
+      first_name_app: 'Тестовый',
+      last_name_app: 'Пользователь',
       birth_date: '1990-01-01',
       city: 'Москва',
       country: 'Россия',
@@ -668,10 +668,7 @@ const loadMemberData = () => {
       phone: '+7 (999) 123-45-67',
       about: 'Люблю кабриолеты и путешествия!',
       created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-03-15T15:30:00Z',
       join_date: '2024-01-15T10:00:00Z',
-      status_id: 1,
-      role_id: 1,
       have_auto: true,
       block: false,
       respect: 150,
@@ -679,6 +676,12 @@ const loadMemberData = () => {
       messages_count: 245,
       last_activity: '2024-03-15T14:30:00Z',
       photo_url: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=64&h=64&dpr=1',
+      status: 'active',
+      role: {
+        id: 3,
+        code: 'member',
+        name: 'Участник'
+      },
       cars: [
         {
           id: 1,

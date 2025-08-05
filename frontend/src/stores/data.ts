@@ -13,6 +13,7 @@ export interface Member {
   status: string // для совместимости
   nickname?: string // для совместимости
   message_count?: number // для совместимости
+  messages_count?: number // для совместимости
   flags?: string[] // для совместимости
   role: {
     id: number
@@ -26,6 +27,24 @@ export interface Member {
   } | null
   cars: any[] // для совместимости
   weight: number
+  // Добавляем недостающие поля
+  telegram_id?: number
+  first_name_tg?: string
+  last_name_tg?: string
+  first_name_app?: string
+  last_name_app?: string
+  birth_date?: string
+  country?: string
+  email?: string
+  phone?: string
+  about?: string
+  created_at?: string
+  join_date?: string
+  left_date?: string
+  last_activity?: string
+  have_auto?: boolean
+  block?: boolean
+  respect?: number
 }
 
 export interface Car {
@@ -69,6 +88,17 @@ export interface Event {
   participants: number
   max_participants: number
   status: string
+  // Добавляем недостающие поля
+  type?: string
+  event_date?: string
+  event_time?: string
+  city?: string
+  organizer_name?: string
+  organizer_nickname?: string
+  price?: number
+  participants_count?: number
+  photos?: any[]
+  created_at?: string
 }
 
 export interface Service {
@@ -79,6 +109,18 @@ export interface Service {
   location: string
   rating: number
   reviews_count: number
+  // Добавляем недостающие поля
+  category?: string
+  recommendation?: string
+  city?: string
+  address?: string
+  phone?: string
+  website?: string
+  services?: string[]
+  added_by_name?: string
+  added_by_nickname?: string
+  created_at?: string
+  reviews?: any[]
 }
 
 // Функции трансформации
@@ -89,18 +131,37 @@ function transformApiMember(apiMember: ApiMember): Member {
     last_name: apiMember.last_name_app || apiMember.last_name_tg,
     username: apiMember.username,
     city: apiMember.city,
-    photo_url: apiService.processPhotoUrl(apiMember.photo?.url),
+    photo_url: apiService.processPhotoUrl(apiMember.photo?.url) || undefined,
     status: apiMember.role?.name || 'Участник', // для совместимости
     nickname: apiMember.username, // для совместимости
     message_count: apiMember.messages_count, // для совместимости
+    messages_count: apiMember.messages_count, // для совместимости
     flags: [], // для совместимости
     role: apiMember.role || { id: 3, code: 'member', name: 'Участник' },
     photo: apiMember.photo ? {
       ...apiMember.photo,
-      url: apiService.processPhotoUrl(apiMember.photo.url)
+      url: apiService.processPhotoUrl(apiMember.photo.url) || ''
     } : null,
     cars: [], // для совместимости
-    weight: apiMember.weight || 0
+    weight: apiMember.weight || 0,
+    // Добавляем недостающие поля
+    telegram_id: apiMember.telegram_id,
+    first_name_tg: apiMember.first_name_tg,
+    last_name_tg: apiMember.last_name_tg,
+    first_name_app: apiMember.first_name_app,
+    last_name_app: apiMember.last_name_app,
+    birth_date: apiMember.birth_date,
+    country: apiMember.country,
+    email: apiMember.email,
+    phone: apiMember.phone,
+    about: apiMember.about,
+    created_at: apiMember.created_at,
+    join_date: apiMember.join_date,
+    left_date: apiMember.left_date,
+    last_activity: apiMember.last_activity,
+    have_auto: apiMember.have_auto,
+    block: apiMember.block,
+    respect: apiMember.respect
   }
 }
 
@@ -117,11 +178,11 @@ function transformApiCar(apiCar: ApiCar): Car {
     status: apiCar.status,
     photo: apiCar.photo ? {
       ...apiCar.photo,
-      url: apiService.processPhotoUrl(apiCar.photo.url)
+      url: apiService.processPhotoUrl(apiCar.photo.url) || ''
     } : null,
     owner_name: apiCar.owner ? `${apiCar.owner.first_name} ${apiCar.owner.last_name || ''}`.trim() : undefined, // для совместимости
     owner_nickname: apiCar.owner?.first_name, // для совместимости
-    photos: apiCar.photo ? [apiService.processPhotoUrl(apiCar.photo.url)] : [], // для совместимости
+    photos: apiCar.photo ? [apiService.processPhotoUrl(apiCar.photo.url) || ''].filter(Boolean) : [], // для совместимости
     member_id: apiCar.owner?.id // для совместимости
   }
 }

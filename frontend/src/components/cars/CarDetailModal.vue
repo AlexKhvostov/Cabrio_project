@@ -10,11 +10,11 @@
       
       <div class="modal-body">
         <!-- Фотографии автомобиля -->
-        <div v-if="car.photos.length > 0" class="car-photos">
+        <div v-if="car.photos && car.photos.length > 0" class="car-photos">
           <div class="main-photo-compact">
             <img
               :src="car.photos[currentPhotoIndex]"
-              :alt="`${car.brand} ${car.model}`"
+              :alt="`${car.brand.name} ${car.model}`"
               class="main-image"
             />
             <div v-if="car.photos.length > 1" class="photo-nav">
@@ -43,7 +43,7 @@
               v-for="(photo, index) in car.photos"
               :key="index"
               :src="photo"
-              :alt="`${car.brand} ${car.model} - фото ${index + 1}`"
+              :alt="`${car.brand.name} ${car.model} - фото ${index + 1}`"
               class="thumbnail-compact"
               :class="{ active: index === currentPhotoIndex }"
               @click="currentPhotoIndex = index"
@@ -55,9 +55,9 @@
         <div class="car-info-section-compact">
           <div class="car-header-compact">
             <div class="car-title-compact">
-              <h3 class="car-name-compact">{{ car.brand }} {{ car.model }}</h3>
+              <h3 class="car-name-compact">{{ car.brand.name }} {{ car.model }}</h3>
               <span :class="['status-badge', `status-${getStatusColor(car.status)}`]">
-                {{ car.status }}
+                {{ car.status?.name || car.status }}
               </span>
             </div>
             <div class="car-number-compact">{{ car.reg_number }}</div>
@@ -104,37 +104,6 @@
             <span>Владелец не найден</span>
           </div>
         </div>
-        
-        <!-- Дополнительные пилоты -->
-        <div v-if="car.second_pilots && car.second_pilots.length > 0" class="pilots-section-compact">
-          <h4>
-            <Users :size="16" />
-            Дополнительные пилоты ({{ car.second_pilots.length }})
-          </h4>
-          <div class="pilots-list-compact">
-            <div
-              v-for="pilot in car.second_pilots"
-              :key="pilot.id"
-              class="pilot-item-compact"
-            >
-              <div class="pilot-avatar-compact">
-                <img
-                  v-if="pilot.photo_url"
-                  :src="pilot.photo_url"
-                  :alt="pilot.first_name"
-                  class="avatar-image"
-                />
-                <span v-else class="avatar-initials">
-                  {{ getInitials(pilot.first_name, pilot.last_name) }}
-                </span>
-              </div>
-              <div class="pilot-info-compact">
-                <span class="pilot-name-compact">{{ pilot.first_name }} {{ pilot.last_name }}</span>
-                <span v-if="pilot.nickname" class="pilot-nickname-compact">@{{ pilot.nickname }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -179,11 +148,12 @@ const ownerData = computed(() => {
   )
 })
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'активный': return 'success'
-    case 'потенциальный': return 'warning'
-    case 'в ожидании': return 'primary'
+const getStatusColor = (statusCode: any) => {
+  const code = typeof statusCode === 'string' ? statusCode : statusCode?.code || 'unknown'
+  switch (code) {
+    case 'active': return 'success'
+    case 'pending': return 'warning'
+    case 'noticed': return 'primary'
     default: return 'error'
   }
 }
@@ -235,7 +205,7 @@ const prevPhoto = () => {
 }
 
 const nextPhoto = () => {
-  if (currentPhotoIndex.value < props.car.photos.length - 1) {
+  if (props.car.photos && currentPhotoIndex.value < props.car.photos.length - 1) {
     currentPhotoIndex.value++
   }
 }

@@ -12,15 +12,15 @@
       </div>
       
       <!-- Индикатор количества фото -->
-      <div v-if="car.photos.length > 1" class="photos-count">
+      <div v-if="car.photos && car.photos.length > 1" class="photos-count">
         <Camera :size="10" />
         {{ car.photos.length }}
       </div>
       
       <!-- Статус автомобиля -->
       <div class="car-status-overlay">
-        <span :class="['status-badge', `status-${getStatusColor(car.status.code)}`]">
-          {{ getStatusIcon(car.status.code) }}
+        <span :class="['status-badge', `status-${getStatusColor(car.status?.code || car.status)}`]">
+          {{ getStatusIcon(car.status?.code || car.status) }}
         </span>
       </div>
     </div>
@@ -68,11 +68,12 @@ defineEmits<{
 const dataStore = useDataStore()
 
 const ownerData = computed(() => {
-  return dataStore.members.find(member => member.id === props.car.owner_user_id)
+  return dataStore.members.find(member => member.id === props.car.owner?.id || props.car.member_id)
 })
 
-const getStatusColor = (statusCode: string) => {
-  switch (statusCode) {
+const getStatusColor = (statusCode: any) => {
+  const code = typeof statusCode === 'string' ? statusCode : statusCode?.code || 'unknown'
+  switch (code) {
     case 'active': return 'success'
     case 'pending': return 'warning'
     case 'noticed': return 'primary'
@@ -80,8 +81,9 @@ const getStatusColor = (statusCode: string) => {
   }
 }
 
-const getStatusIcon = (statusCode: string) => {
-  switch (statusCode) {
+const getStatusIcon = (statusCode: any) => {
+  const code = typeof statusCode === 'string' ? statusCode : statusCode?.code || 'unknown'
+  switch (code) {
     case 'active': return '✓'
     case 'pending': return '?'
     case 'noticed': return '⏳'

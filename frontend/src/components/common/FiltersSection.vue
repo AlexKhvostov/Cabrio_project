@@ -3,11 +3,10 @@
     <div class="search-bar">
       <Search :size="20" />
       <input
-        :value="searchQuery"
-        @input="$emit('update:searchQuery', $event.target.value)"
-        type="text"
+        v-model="searchQuery"
         :placeholder="searchPlaceholder"
         class="search-input"
+        @input="(event) => $emit('update:searchQuery', (event.target as HTMLInputElement).value)"
       />
     </div>
     
@@ -15,7 +14,7 @@
       <select 
         v-if="filters.length > 0"
         :value="selectedFilters[0]?.value || ''"
-        @change="$emit('update:filter', { index: 0, value: $event.target.value })"
+        @change="(event) => $emit('update:filter', { index: 0, value: (event.target as HTMLSelectElement).value })"
         class="filter-select"
       >
         <option value="">{{ filters[0]?.placeholder || 'Все' }}</option>
@@ -31,7 +30,7 @@
       <select 
         v-if="filters.length > 1"
         :value="selectedFilters[1]?.value || ''"
-        @change="$emit('update:filter', { index: 1, value: $event.target.value })"
+        @change="(event) => $emit('update:filter', { index: 1, value: (event.target as HTMLSelectElement).value })"
         class="filter-select"
       >
         <option value="">{{ filters[1]?.placeholder || 'Все' }}</option>
@@ -47,7 +46,7 @@
       <input
         v-if="yearFilter"
         :value="yearFilterValue"
-        @input="$emit('update:yearFilter', $event.target.value)"
+        @input="(event) => $emit('update:yearFilter', (event.target as HTMLInputElement).value)"
         type="number"
         placeholder="Год"
         class="filter-input"

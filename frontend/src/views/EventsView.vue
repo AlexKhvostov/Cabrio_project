@@ -35,6 +35,7 @@
   
   <!-- Event Detail Modal -->
   <EventDetailModal
+    v-if="selectedEvent"
     :show="showEventModal"
     :event="selectedEvent"
     @close="closeEventModal"
@@ -97,8 +98,8 @@ const filteredEvents = computed(() => {
     filtered = filtered.filter(event => 
       event.title.toLowerCase().includes(query) ||
       event.description.toLowerCase().includes(query) ||
-      event.city.toLowerCase().includes(query) ||
-      event.organizer_name.toLowerCase().includes(query)
+      (event.city || event.location || '').toLowerCase().includes(query) ||
+      (event.organizer_name || '').toLowerCase().includes(query)
     )
   }
 
@@ -110,7 +111,11 @@ const filteredEvents = computed(() => {
     filtered = filtered.filter(event => event.status === statusFilter.value)
   }
 
-  return filtered.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
+  return filtered.sort((a, b) => {
+    const dateA = new Date(a.event_date || a.date || '')
+    const dateB = new Date(b.event_date || b.date || '')
+    return dateA.getTime() - dateB.getTime()
+  })
 })
 
 const selectEvent = (event: Event) => {
@@ -122,6 +127,12 @@ const selectEvent = (event: Event) => {
 const closeEventModal = () => {
   showEventModal.value = false
   selectedEvent.value = null
+}
+
+const joinEvent = (event: Event) => {
+  telegramStore.hapticFeedback('impact')
+  // TODO: Implement join event functionality
+  console.log('Joining event:', event)
 }
 
 onMounted(() => {

@@ -44,6 +44,7 @@
     
     <!-- Car Detail Modal -->
     <CarDetailModal
+      v-if="selectedCar"
       :show="showCarModal"
       :car="selectedCar"
       @close="closeCarModal"

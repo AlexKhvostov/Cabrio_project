@@ -25,10 +25,10 @@
             <div :class="['status-indicator', `status-${getStatusColor(member.status)}`]">
               ●
             </div>
-            <div :class="['role-indicator', `role-${getRoleColor(member.role)}`]">
+            <div :class="['role-indicator', `role-${getRoleColor(member.role?.code || member.role)}`]">
               ★
             </div>
-            <div v-if="member.flags.includes('почётный участник')" class="honor-indicator">
+            <div v-if="member.flags && member.flags.includes('почётный участник')" class="honor-indicator">
               ♦
             </div>
           </div>
@@ -45,10 +45,10 @@
               <span :class="['badge', `badge-${getStatusColor(member.status)}`]">
                 {{ member.status }}
               </span>
-              <span :class="['badge', `badge-${getRoleColor(member.role)}`]">
-                {{ member.role }}
+              <span :class="['badge', `badge-${getRoleColor(member.role?.code || member.role)}`]">
+                {{ member.role?.name || member.role }}
               </span>
-              <span v-if="member.flags.includes('почётный участник')" class="badge badge-honor">
+              <span v-if="member.flags && member.flags.includes('почётный участник')" class="badge badge-honor">
                 Почётный участник
               </span>
             </div>
@@ -64,7 +64,7 @@
             <div class="detail-grid-compact">
               <div class="detail-item-compact">
                 <span class="detail-label">Telegram ID:</span>
-                <span class="detail-value">{{ member.telegram_id }}</span>
+                <span class="detail-value">{{ member.telegram_id || 'Не указан' }}</span>
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label">Город:</span>
@@ -72,16 +72,16 @@
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label">Дата вступления:</span>
-                <span class="detail-value">{{ formatFullDate(member.join_date) }}</span>
+                <span class="detail-value">{{ formatFullDate(member.join_date || member.created_at) }}</span>
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label">Сообщений:</span>
-                <span class="detail-value">{{ member.message_count }}</span>
+                <span class="detail-value">{{ member.message_count || member.messages_count || 0 }}</span>
               </div>
             </div>
           </div>
           
-          <div v-if="member.cars.length > 0" class="detail-section-compact">
+          <div v-if="member.cars && member.cars.length > 0" class="detail-section-compact">
             <h4>
               <Car :size="16" />
               Автомобили ({{ member.cars.length }})
@@ -96,7 +96,7 @@
             </div>
           </div>
           
-          <div v-if="member.flags.length > 0" class="detail-section-compact">
+          <div v-if="member.flags && member.flags.length > 0" class="detail-section-compact">
             <h4>
               <Flag :size="16" />
               Флаги
@@ -149,13 +149,16 @@ const getStatusColor = (status: string) => {
   }
 }
 
-const getRoleColor = (role: string) => {
-  switch (role) {
-    case 'участник': return 'secondary'
-    case 'модератор': return 'primary'
-    case 'администратор': return 'warning'
-    case 'root': return 'error'
-    default: return 'secondary'
+const getRoleColor = (roleCode: any) => {
+  const code = typeof roleCode === 'string' ? roleCode : roleCode?.code || 'guest'
+  switch (code) {
+    case 'admin': return 'admin'
+    case 'moderator': return 'moderator'
+    case 'member': return 'member'
+    case 'registered': return 'registered'
+    case 'new': return 'new'
+    case 'guest': return 'guest'
+    default: return 'guest'
   }
 }
 
@@ -168,12 +171,15 @@ const getCarStatusColor = (status: string) => {
   }
 }
 
-const formatFullDate = (dateString: string) => {
+const formatFullDate = (dateString: string | undefined) => {
+  if (!dateString) return 'Не указана'
   const date = new Date(dateString)
   return date.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
