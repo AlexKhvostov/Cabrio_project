@@ -131,6 +131,27 @@ class SessionHelper
     }
 
     /**
+     * Унифицированный вход: если user_id = 0 (system) — не создаём/обновляем БД,
+     * а возвращаем фиктивную сессию, иначе вызываем createOrUpdateSession.
+     *
+     * @param int  $userId
+     * @param array $options
+     * @return array [success, session_id, action]
+     */
+    public static function maybeCreateSession($userId, $options = [])
+    {
+        if ($userId === 0) {
+            return [
+                'success'     => true,
+                'session_id'  => 'system',
+                'expires_at'  => null,
+                'action'      => 'system'
+            ];
+        }
+        return self::createOrUpdateSession($userId, $options);
+    }
+
+    /**
      * Валидировать сессию по токену
      * 
      * @param string $sessionToken Токен сессии

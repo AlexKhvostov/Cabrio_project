@@ -5,6 +5,7 @@ require_once __DIR__ . '/../utils/AppContext.php';
 require_once __DIR__ . '/../utils/SessionHelper.php';
 require_once __DIR__ . '/../utils/Logger.php';
 require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
+require_once __DIR__ . '/../../config/sectionGroups.php';
 
 /**
  * 🔐 Middleware для авторизации
@@ -219,6 +220,99 @@ class AuthMiddleware
     // ========================================
     // МЕТОДЫ ДЛЯ СПЕЦИАЛЬНЫХ СЛУЧАЕВ
     // ========================================
+
+    /**
+     * Единая точка авторизации.
+     * 1. Если передан SYSTEM_TOKEN — авторизуемся как system (role: admin)
+     * 2. Иначе переходим к стандартной Telegram-ветке (метод process)
+     *
+     * @param string $route  Текущий маршрут (используется для логов)
+     * @param string $method HTTP-метод
+     */
+    public static function authenticate($route, $method)
+    {
+        // Старт метрики
+        AppContext::setStartTime(microtime(true));
+
+        // 0) Проверяем Bearer-токен
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (str_starts_with($authHeader, 'Bearer ')) {
+            $token = substr($authHeader, 7);
+            if ($token === ($_ENV['SYSTEM_TOKEN'] ?? getenv('SYSTEM_TOKEN'))) {
+                // SYSTEM_TOKEN корректен — авторизуем «system»
+                self::initSystemContext();
+                Logger::info('AuthMiddleware: SYSTEM_TOKEN authenticated', [
+                    'route'  => $route,
+                    'method' => $method
+                ]);
+                return [
+                    'success'    => true,
+                    'user_id'    => 0,
+                    'session_id' => 'system',
+                    'message'    => 'System authorization successful'
+                ];
+            }
+        }
+
+        // 1) Пытаемся пройти стандартную Telegram-авторизацию
+        $result = self::process();
+
+        // ========================================
+        // DEV-МОД (работает только вне production)
+        // ========================================
+        if (getenv('APP_ENV') !== 'production') {
+            // Полный байпас авторизации, если предыдущая попытка НЕ была успешной
+            if (getenv('DEV_AUTH') && (!($result['success'] ?? false))) {
+                Logger::info('DEV AUTH ACTIVE: bypass enabled');
+
+                // Если указан DEV_USER_ID (число >0) — используем его; иначе 999
+                $devIdRaw = getenv('DEV_USER_ID') ?: '';
+                $devId = (ctype_digit($devIdRaw) && intval($devIdRaw) > 0) ? intval($devIdRaw) : 999;
+
+                AppContext::setCurrentUser([
+                    'id'       => $devId,
+                    'role_id'  => Roles::ROLE_IDS['guest'],
+                    'role'     => 'guest',
+                    'username' => 'dev_tester'
+                ]);
+                AppContext::setSessionId('dev');
+                $result = [
+                    'success'    => true,
+                    'user_id'    => $devId,
+                    'session_id' => 'dev',
+                    'message'    => 'DEV AUTH bypass'
+                ];
+            }
+
+            // Подмена роли
+            $override = getenv('DEV_ROLE');
+            if ($override && isset(Roles::ROLE_IDS[$override])) {
+                $user = AppContext::getCurrentUser() ?? [ 'id' => 999 ];
+                $user['role_id'] = Roles::ROLE_IDS[$override];
+                $user['role']    = $override;
+                AppContext::setCurrentUser($user);
+                Logger::info('DEV ROLE OVERRIDE', ['role' => $override]);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Устанавливает в AppContext данные для системного запроса
+     */
+    private static function initSystemContext(): void
+    {
+        // id = 0 обозначаем как виртуальный системный пользователь
+        AppContext::setCurrentUser([
+            'id'       => 0,
+            'role_id'  => 6,      // admin
+            'role'     => 'admin',
+            'username' => 'system'
+        ]);
+        AppContext::setSessionId('system');
+        AppContext::setRequestId(self::generateRequestId());
+    }
 
     /**
      * Обработать запрос без авторизации (для публичных эндпоинтов)

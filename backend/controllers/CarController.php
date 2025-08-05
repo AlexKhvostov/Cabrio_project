@@ -199,10 +199,10 @@ class CarController extends BaseController
     public function checkCarInClub()
     {
         try {
-            // Временно отключаем проверку доступа для тестирования
-            // if (!$this->requireAccess('api.actions.checkCarInClub')) {
-            //     return;
-            // }
+            // Проверка доступа
+            if (!$this->requireAccess('api.actions.checkCarInClub')) {
+                return;
+            }
             
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -266,10 +266,9 @@ class CarController extends BaseController
     public function leaveBusinessCard()
     {
         try {
-            // Временно отключаем проверку доступа для тестирования
-            // if (!$this->requireAccess('api.actions.leaveBusinessCard')) {
-            //     return;
-            // }
+            if (!$this->requireAccess('api.actions.leaveBusinessCard')) {
+                return;
+            }
             
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -321,10 +320,9 @@ class CarController extends BaseController
     public function addCarToGarage()
     {
         try {
-            // Временно отключаем проверку доступа для тестирования
-            // if (!$this->requireAccess('api.actions.addCarToGarage')) {
-            //     return;
-            // }
+            if (!$this->requireAccess('api.actions.addCarToGarage')) {
+                return;
+            }
             
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true) ?? [];

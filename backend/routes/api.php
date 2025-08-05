@@ -17,7 +17,12 @@ require_once __DIR__ . '/../utils/Logger.php';
 try {
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $method = $_SERVER['REQUEST_METHOD'];
-    $route = $_GET['route'] ?? null;
+    $route = $_GET['route'] ?? $uri; // если параметр не передан, берём путь URI
+
+    // Убираем префикс /app если запрос идёт как /app/api/...
+    if (str_starts_with($route, '/app/')) {
+        $route = substr($route, 4); // '/app' -> удаляем 4 символа, остаётся '/api/...'
+    }
     
     // Логируем для отладки
     Logger::info('API Router: Request received', [
@@ -76,46 +81,18 @@ try {
         return;
     }
     
-    // Проверяем, требуется ли авторизация для существующего маршрута
-    $requiresAuth = AuthMiddleware::requiresAuth($route, $method);
-    
-    if ($requiresAuth) {
-        // Обрабатываем авторизацию для защищенных маршрутов
-        $authResult = AuthMiddleware::process();
-        
+    // Здоровье API остаётся полностью публичным
+    if (!($route === '/api/health' && $method === 'GET')) {
+        $authResult = AuthMiddleware::authenticate($route, $method);
         if (!$authResult['success']) {
             Logger::warning('API Router: Authentication failed', [
                 'route' => $route,
-                'error' => $authResult['error']['message']
+                'error' => $authResult['error']['message'] ?? 'unknown'
             ]);
-            
-            http_response_code(401);
-            echo ResponseHelper::error('AUTH_ERROR', $authResult['error']['message']);
+            http_response_code($authResult['error']['code'] === 'INVALID_HASH' ? 401 : 403);
+            echo ResponseHelper::error('AUTH_ERROR', $authResult['error']['message'] ?? 'Auth error');
             exit;
         }
-        
-        Logger::info('API Router: Authentication successful', [
-            'route' => $route,
-            'user_id' => $authResult['user_id'] ?? 'unknown'
-        ]);
-    } else {
-        // Обрабатываем публичные маршруты
-        $authResult = AuthMiddleware::processPublic();
-        
-        if (!$authResult['success']) {
-            Logger::warning('API Router: Public auth failed', [
-                'route' => $route,
-                'error' => $authResult['error']['message']
-            ]);
-            
-            http_response_code(500);
-            echo ResponseHelper::error('PUBLIC_AUTH_ERROR', $authResult['error']['message']);
-            exit;
-        }
-        
-        Logger::info('API Router: Public request processed', [
-            'route' => $route
-        ]);
     }
 
     // Маршрутизация запросов

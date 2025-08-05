@@ -366,10 +366,51 @@ class AuthHelper {
         // TODO: Добавить проверку подписи Telegram (hash)
         // Это требует реализации проверки подписи согласно документации Telegram
         
+        // добавляем проверку подписи Telegram
+        if (!self::isHashValid($telegramData)) {
+            return [
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_HASH',
+                    'message' => 'Подпись Telegram недействительна'
+                ]
+            ];
+        }
+        
         return [
             'success' => true,
             'message' => 'Данные Telegram валидны'
         ];
+    }
+
+    /**
+     * Проверить корректность hash, передаваемого Telegram WebApp / login_url
+     * Алгоритм: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+     */
+    private static function isHashValid(array $data): bool
+    {
+        if (empty($data['hash'])) {
+            return false;
+        }
+        $recvHash = $data['hash'];
+        // удаляем hash из массива
+        $checkData = $data;
+        unset($checkData['hash']);
+
+        // формируем data_check_string
+        ksort($checkData, SORT_STRING);
+        $pairs = [];
+        foreach ($checkData as $k => $v) {
+            $pairs[] = $k . '=' . $v;
+        }
+        $dataCheckString = implode("\n", $pairs);
+
+        $botToken = getenv('BOT_TOKEN');
+        if (!$botToken) return false;
+        $secretKey = hash('sha256', $botToken, true); // binary
+        $calculatedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
+
+        return hash_equals($calculatedHash, $recvHash);
     }
 
     /**
