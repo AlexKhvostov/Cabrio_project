@@ -256,13 +256,18 @@ class BotService {
                 'user_id' => $userData['id'] ?? 'unknown'
             ]);
             
+            // Генерируем auth_date для бота (если не передан)
+            $authDate = $userData['auth_date'] ?? time();
+            
             // Создаем заголовки с Telegram данными
             $headers = [
                 'Content-Type: application/json',
                 'X-Telegram-User-Id: ' . ($userData['id'] ?? ''),
                 'X-Telegram-Username: ' . ($userData['username'] ?? ''),
                 'X-Telegram-First-Name: ' . ($userData['first_name'] ?? ''),
-                'X-Telegram-Last-Name: ' . ($userData['last_name'] ?? '')
+                'X-Telegram-Last-Name: ' . ($userData['last_name'] ?? ''),
+                'X-Telegram-Auth-Date: ' . $authDate,
+                'X-Telegram-Hash: ' . ($userData['hash'] ?? '')
             ];
             
             // Используем cURL вместо file_get_contents для лучшей обработки ошибок
