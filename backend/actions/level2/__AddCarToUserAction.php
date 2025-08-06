@@ -38,9 +38,11 @@
  *   - _CheckCarInDbAction — проверка существования автомобиля
  *   - _CreateCarAction — создание нового автомобиля
  *   - _UpdateOwnerToCarAction — назначение владельца автомобилю
- *   - _CreatePhotoAction — создание записи о фото (если передана фото)
  *   - _GetRoleIdAction — получение ID роли по коду
  *   - _UpdateRoleUserAction — обновление роли пользователя
+ * 
+ * Использует L2 Actions:
+ *   - __AddCarPhotoAction — сохранение фото к автомобилю
  * 
  * Использует Helpers:
  *   - FileHelper — сохранение файла на сервер
@@ -52,6 +54,7 @@ require_once __DIR__ . '/../level1/_UpdateOwnerToCarAction.php';
 require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
 require_once __DIR__ . '/../level1/_GetRoleIdAction.php';
 require_once __DIR__ . '/../level1/_UpdateRoleUserAction.php';
+require_once __DIR__ . '/__AddCarPhotoAction.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
@@ -223,7 +226,13 @@ class __AddCarToUserAction {
                 $roleUpdated = self::checkAndUpdateUserRole($user);
                 
                 // Сохраняем фото к автомобилю если пользователь владелец
-                $photoData = self::saveCarPhoto($data, $carData['id'], $userId);
+                $photoResult = __AddCarPhotoAction::handle([
+                    'car_id' => $carData['id'],
+                    'user_id' => $userId,
+                    'photo' => $data['photo'] ?? null,
+                    'photo_file' => $_FILES['photo'] ?? null
+                ]);
+                $photoData = $photoResult['success'] ? $photoResult['data'] : null;
             } else {
                 Logger::info('L2 Action: User is not owner, role not updated', [
                     'user_id' => $userId,
@@ -338,62 +347,6 @@ class __AddCarToUserAction {
         } catch (Exception $e) {
             Logger::error('Error checking/updating user role: ' . $e->getMessage());
             return false;
-        }
-    }
-    
-    /**
-     * Сохранить фото к автомобилю
-     * 
-     * @param array $data — данные запроса
-     * @param int $carId — ID автомобиля
-     * @param int $userId — ID пользователя
-     * @return array|null — данные сохраненного фото или null
-     */
-    private static function saveCarPhoto($data, $carId, $userId) {
-        try {
-            // Проверяем наличие фото (base64 или файл)
-            $hasBase64Photo = isset($data['photo']) && !empty($data['photo']);
-            $hasFilePhoto = isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK;
-            
-            if (!$hasBase64Photo && !$hasFilePhoto) {
-                Logger::info("No photo provided for car_id=$carId");
-                return null;
-            }
-            
-            // Получаем следующий ID для фото
-            $photoId = Photo::getNextId();
-            $extension = 'jpg';
-            $fileName = FileHelper::generateCorrectFileName('car', $carId, $photoId, $extension);
-            
-            // Сохраняем фото на сервер
-            if ($hasBase64Photo) {
-                $savedPath = FileHelper::savePhotoFromBase64($data['photo'], 'car', $carId, $photoId, 'car_photo.jpg');
-            } else {
-                $savedPath = FileHelper::savePhoto($_FILES['photo'], 'car', $carId, $photoId);
-            }
-            
-            // Создаём запись в БД
-            $photoResult = _CreatePhotoAction::handle([
-                'entity_type' => 'car',
-                'entity_id' => $carId,
-                'file_name' => $fileName,
-                'url' => $savedPath,
-                'photo_type' => 'cover',
-                'description' => 'Фото автомобиля',
-                'uploaded_by' => $userId
-            ]);
-            
-            if ($photoResult['success']) {
-                Logger::info("Car photo saved successfully: car_id=$carId, photo_id=" . $photoResult['data']['id']);
-                return $photoResult['data'];
-            } else {
-                Logger::error("Failed to create car photo record: " . json_encode($photoResult['error']));
-                return null;
-            }
-            
-        } catch (Exception $e) {
-            Logger::error('Car photo upload failed: ' . $e->getMessage());
-            return null;
         }
     }
     
