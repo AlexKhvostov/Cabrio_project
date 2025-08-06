@@ -17,9 +17,7 @@
  *    - Создаём новый автомобиль со статусом "business_card" (ID = 2)
  *    - Создаём визитку для нового автомобиля
  *    - Возвращаем action: "car_and_card_created"
- * 4. Если передана фото:
- *    - Сохраняем файл на сервер
- *    - Создаём запись в БД через L1 Action
+ * 4. Создаём визитку для автомобиля
  * 
  * Входные данные:
  *   - plate_number (string) — номер автомобиля (обязательно)
@@ -41,23 +39,16 @@
  *   - _CreateCarAction — создание нового автомобиля
  *   - _UpdateStatusAction — обновление статуса автомобиля
  *   - _CreateBusinessCardAction — создание визитки
- *   - _CreatePhotoAction — создание записи о фото (если передана фото)
- * 
- * Использует Helpers:
- *   - FileHelper — сохранение файла на сервер
  */
 
 require_once __DIR__ . '/../level1/_CheckCarInDbAction.php';
 require_once __DIR__ . '/../level1/_CreateCarAction.php';
 require_once __DIR__ . '/../level1/_UpdateStatusAction.php';
 require_once __DIR__ . '/../level1/_CreateBusinessCardAction.php';
-require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
-require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
 require_once __DIR__ . '/../../utils/AppContext.php';
 require_once __DIR__ . '/../../models/Car.php';
-require_once __DIR__ . '/../../models/Photo.php';
 
 class __DropBusinessCardAction {
     
@@ -155,72 +146,7 @@ class __DropBusinessCardAction {
                 return $cardResult;
             }
             
-            // 3. Обрабатываем фото если передана
-            $photoData = null;
-            if (isset($data['photo']) && !empty($data['photo'])) {
-                try {
-                    // Получаем следующий ID заранее
-                    $photoId = Photo::getNextId();
-                    $extension = 'jpg'; // Бот отправляет в формате JPEG
-                    $fileName = FileHelper::generateCorrectFileName('business_card', $cardData['id'], $photoId, $extension);
-                    
-                    // Сохраняем файл на сервер используя новый метод для base64
-                    $savedPath = FileHelper::savePhotoFromBase64($data['photo'], 'business_card', $cardData['id'], $photoId, 'business_card_photo.jpg');
-                    
-                    // Создаём запись в БД
-                    $photoResult = _CreatePhotoAction::handle([
-                        'entity_type' => 'business_card',
-                        'entity_id' => $cardData['id'],
-                        'file_name' => $fileName,
-                        'url' => $savedPath,
-                        'photo_type' => 'cover',
-                        'description' => 'Фото приглашенного автомобиля',
-                        'uploaded_by' => $userId
-                    ]);
-                    
-                    if ($photoResult['success']) {
-                        $photoData = $photoResult['data'];
-                        Logger::info("Photo saved successfully: business_card_id=" . $cardData['id'] . ", photo_id=" . $photoData['id']);
-                    } else {
-                        Logger::error("Failed to create photo record: " . json_encode($photoResult['error']));
-                    }
-                    
-                } catch (Exception $e) {
-                    Logger::error('Photo upload failed: ' . $e->getMessage());
-                    // Не прерываем выполнение, только логируем ошибку
-                }
-            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                try {
-                    // Сохраняем файл на сервер
-                    $photoId = Photo::getNextId(); // Получаем следующий ID заранее
-                    $extension = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-                    $fileName = FileHelper::generateCorrectFileName('business_card', $cardData['id'], $photoId, $extension);
-                    
-                    // Сохраняем файл
-                    $savedPath = FileHelper::savePhoto($_FILES['photo'], 'business_card', $cardData['id'], $photoId);
-                    
-                    // Создаём запись в БД
-                    $photoResult = _CreatePhotoAction::handle([
-                        'entity_type' => 'business_card',
-                        'entity_id' => $cardData['id'],
-                        'file_name' => $fileName,
-                        'url' => $savedPath,
-                        'photo_type' => 'cover',
-                        'description' => 'Фото приглашенного автомобиля',
-                        'uploaded_by' => $userId
-                    ]);
-                    
-                    if ($photoResult['success']) {
-                        $photoData = $photoResult['data'];
-                    }
-                    
-                } catch (Exception $e) {
-                    Logger::error('Photo upload failed: ' . $e->getMessage());
-                    // Не прерываем выполнение, только логируем ошибку
-                }
-            }
-            
-            // 4. Формируем ответ
+            // 3. Формируем ответ
             $response = [
                 'success' => true,
                 'data' => [
@@ -231,23 +157,7 @@ class __DropBusinessCardAction {
                 ]
             ];
             
-            // Добавляем информацию о фото если загружали
-            if ($photoData) {
-                // Исключаем base64 данные из ответа, оставляем только метаданные
-                $photoInfo = [
-                    'id' => $photoData['id'],
-                    'entity_type' => $photoData['entity_type'],
-                    'entity_id' => $photoData['entity_id'],
-                    'file_name' => $photoData['file_name'],
-                    'url' => $photoData['url'],
-                    'photo_type' => $photoData['photo_type'],
-                    'description' => $photoData['description'],
-                    'uploaded_by' => $photoData['uploaded_by'],
-                    'created_at' => $photoData['created_at'] ?? null,
-                    'updated_at' => $photoData['updated_at'] ?? null
-                ];
-                $response['data']['photo'] = $photoInfo;
-            }
+
             
             Logger::info("Business card dropped: plate_number=$plateNumber, user_id=$userId, action=$action");
             

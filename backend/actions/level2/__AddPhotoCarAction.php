@@ -1,6 +1,6 @@
 <?php
 /**
- * __AddCarPhotoAction — L2 Action для сохранения фото к автомобилю
+ * __AddPhotoCarAction — L2 Action для сохранения фото к автомобилю
  * 
  * Назначение: Сохраняет фото к автомобилю (файл + запись в БД)
  * Уровень: L2 (бизнес-операция)
@@ -24,18 +24,13 @@
  *   - error (array, опционально) — информация об ошибке
  * 
  * Использует L1 Actions:
- *   - _CreatePhotoAction — создание записи о фото в БД
- * 
- * Использует Helpers:
- *   - FileHelper — сохранение файла на сервер
+ *   - _SavePhotoAction — сохранение фото (файл + запись в БД)
  */
 
-require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
-require_once __DIR__ . '/../helpers/FileHelper.php';
+require_once __DIR__ . '/../level1/_SavePhotoAction.php';
 require_once __DIR__ . '/../../utils/Logger.php';
-require_once __DIR__ . '/../../models/Photo.php';
 
-class __AddCarPhotoAction {
+class __AddPhotoCarAction {
     
     public static function handle($data) {
         try {
@@ -63,58 +58,31 @@ class __AddCarPhotoAction {
                 ];
             }
             
-            Logger::info('L2 Action: Starting car photo save', [
+            Logger::info('L2 Action: Starting photo car save', [
                 'car_id' => $carId,
                 'user_id' => $userId
             ]);
             
-            // Проверяем наличие фото (base64 или файл)
-            $hasBase64Photo = isset($data['photo']) && !empty($data['photo']);
-            $hasFilePhoto = isset($data['photo_file']) && $data['photo_file']['error'] === UPLOAD_ERR_OK;
-            
-            if (!$hasBase64Photo && !$hasFilePhoto) {
-                Logger::info("No photo provided for car_id=$carId");
-                return [
-                    'success' => false,
-                    'error' => [
-                        'code' => 'PHOTO_REQUIRED',
-                        'message' => 'Фото обязательно для сохранения'
-                    ]
-                ];
-            }
-            
-            // Получаем следующий ID для фото
-            $photoId = Photo::getNextId();
-            $extension = 'jpg';
-            $fileName = FileHelper::generateCorrectFileName('car', $carId, $photoId, $extension);
-            
-            // Сохраняем фото на сервер
-            if ($hasBase64Photo) {
-                $savedPath = FileHelper::savePhotoFromBase64($data['photo'], 'car', $carId, $photoId, 'car_photo.jpg');
-            } else {
-                $savedPath = FileHelper::savePhoto($data['photo_file'], 'car', $carId, $photoId);
-            }
-            
-            // Создаём запись в БД
-            $photoResult = _CreatePhotoAction::handle([
+            // Сохраняем фото через L1 Action
+            $photoResult = _SavePhotoAction::handle([
                 'entity_type' => 'car',
                 'entity_id' => $carId,
-                'file_name' => $fileName,
-                'url' => $savedPath,
+                'uploaded_by' => $userId,
+                'photo' => $data['photo'] ?? null,
+                'photo_file' => $_FILES['photo'] ?? null,
                 'photo_type' => 'cover',
-                'description' => 'Фото автомобиля',
-                'uploaded_by' => $userId
+                'description' => 'Фото автомобиля'
             ]);
             
             if ($photoResult['success']) {
-                Logger::info("Car photo saved successfully: car_id=$carId, photo_id=" . $photoResult['data']['id']);
+                Logger::info("Photo car saved successfully: car_id=$carId, photo_id=" . $photoResult['data']['id']);
                 
                 return [
                     'success' => true,
                     'data' => $photoResult['data']
                 ];
             } else {
-                Logger::error("Failed to create car photo record: " . json_encode($photoResult['error']));
+                Logger::error("Failed to create photo car record: " . json_encode($photoResult['error']));
                 
                 return [
                     'success' => false,
@@ -126,7 +94,7 @@ class __AddCarPhotoAction {
             }
             
         } catch (Exception $e) {
-            Logger::error('__AddCarPhotoAction failed: ' . $e->getMessage());
+            Logger::error('__AddPhotoCarAction failed: ' . $e->getMessage());
             return [
                 'success' => false,
                 'error' => [

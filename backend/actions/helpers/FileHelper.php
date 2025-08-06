@@ -38,8 +38,16 @@ class FileHelper {
             $filePath = $uploadDir . '/' . $fileName;
             
             // Сохранение файла
-            if (!move_uploaded_file($fileData['tmp_name'], $filePath)) {
-                throw new Exception('Не удалось сохранить файл: ' . $fileData['name']);
+            if (is_uploaded_file($fileData['tmp_name'])) {
+                // Для загруженных файлов используем move_uploaded_file
+                if (!move_uploaded_file($fileData['tmp_name'], $filePath)) {
+                    throw new Exception('Не удалось сохранить файл: ' . $fileData['name']);
+                }
+            } else {
+                // Для временных файлов используем copy
+                if (!copy($fileData['tmp_name'], $filePath)) {
+                    throw new Exception('Не удалось сохранить файл: ' . $fileData['name']);
+                }
             }
             
             // Логирование
@@ -110,7 +118,12 @@ class FileHelper {
      */
     public static function validatePhotoFile($fileData) {
         // Проверка наличия файла
-        if (!$fileData || !isset($fileData['tmp_name']) || !is_uploaded_file($fileData['tmp_name'])) {
+        if (!$fileData || !isset($fileData['tmp_name'])) {
+            throw new ValidationException('Файл не был загружен');
+        }
+        
+        // Проверяем, является ли это загруженным файлом или временным файлом
+        if (!is_uploaded_file($fileData['tmp_name']) && !file_exists($fileData['tmp_name'])) {
             throw new ValidationException('Файл не был загружен');
         }
         
@@ -260,6 +273,39 @@ class FileHelper {
         }
         
         return file_exists($filePath);
+    }
+    
+    /**
+     * 🔍 Проверка и подготовка фото для сохранения
+     * 
+     * @param array $data - Данные запроса (может содержать 'photo' в base64)
+     * @param array $files - Данные $_FILES (может содержать 'photo')
+     * @return array|null - Подготовленные данные файла или null если фото нет
+     * @throws ValidationException - Если фото не прошло валидацию
+     */
+    public static function preparePhotoForSaving($data = [], $files = []) {
+        // Проверяем наличие фото в base64
+        $hasBase64Photo = isset($data['photo']) && !empty($data['photo']);
+        
+        // Проверяем наличие фото в файле
+        $hasFilePhoto = isset($files['photo']) && $files['photo']['error'] === UPLOAD_ERR_OK;
+        
+        // Если фото нет нигде
+        if (!$hasBase64Photo && !$hasFilePhoto) {
+            return null;
+        }
+        
+        // Если есть base64 фото - конвертируем в файл
+        if ($hasBase64Photo) {
+            return self::createTempFileFromBase64($data['photo'], 'photo.jpg');
+        }
+        
+        // Если есть файл - возвращаем как есть
+        if ($hasFilePhoto) {
+            return $files['photo'];
+        }
+        
+        return null;
     }
     
     /**

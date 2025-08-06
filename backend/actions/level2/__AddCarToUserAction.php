@@ -17,8 +17,8 @@
  *    - Создаём новый автомобиль с пользователем как владельцем
  *    - Возвращаем action: "created"
  * 4. Проверяем, является ли пользователь владельцем автомобиля:
- *    - Если да - обновляем роль пользователя (если необходимо) и сохраняем фото к автомобилю
- *    - Если нет - роль не изменяется и фото к автомобилю не сохраняется
+ *    - Если да - обновляем роль пользователя (если необходимо)
+ *    - Если нет - роль не изменяется
  * 
  * Входные данные:
  *   - plate_number (string) — номер автомобиля (может быть null)
@@ -41,25 +41,17 @@
  *   - _GetRoleIdAction — получение ID роли по коду
  *   - _UpdateRoleUserAction — обновление роли пользователя
  * 
- * Использует L2 Actions:
- *   - __AddCarPhotoAction — сохранение фото к автомобилю
- * 
- * Использует Helpers:
- *   - FileHelper — сохранение файла на сервер
+
  */
 
 require_once __DIR__ . '/../level1/_CheckCarInDbAction.php';
 require_once __DIR__ . '/../level1/_CreateCarAction.php';
 require_once __DIR__ . '/../level1/_UpdateOwnerToCarAction.php';
-require_once __DIR__ . '/../level1/_CreatePhotoAction.php';
 require_once __DIR__ . '/../level1/_GetRoleIdAction.php';
 require_once __DIR__ . '/../level1/_UpdateRoleUserAction.php';
-require_once __DIR__ . '/__AddCarPhotoAction.php';
-require_once __DIR__ . '/../helpers/FileHelper.php';
 require_once __DIR__ . '/../../utils/ValidationHelper.php';
 require_once __DIR__ . '/../../utils/Logger.php';
 require_once __DIR__ . '/../../utils/AppContext.php';
-require_once __DIR__ . '/../../models/Photo.php';
 
 class __AddCarToUserAction {
     
@@ -218,21 +210,12 @@ class __AddCarToUserAction {
             $isOwner = ($finalOwnerId === $userId);
             
             if ($isOwner) {
-                Logger::info('L2 Action: User is owner, checking role update and saving photo', [
+                Logger::info('L2 Action: User is owner, checking role update', [
                     'user_id' => $userId,
                     'car_id' => $carData['id'],
                     'owner_user_id' => $finalOwnerId
                 ]);
                 $roleUpdated = self::checkAndUpdateUserRole($user);
-                
-                // Сохраняем фото к автомобилю если пользователь владелец
-                $photoResult = __AddCarPhotoAction::handle([
-                    'car_id' => $carData['id'],
-                    'user_id' => $userId,
-                    'photo' => $data['photo'] ?? null,
-                    'photo_file' => $_FILES['photo'] ?? null
-                ]);
-                $photoData = $photoResult['success'] ? $photoResult['data'] : null;
             } else {
                 Logger::info('L2 Action: User is not owner, role not updated', [
                     'user_id' => $userId,
@@ -240,7 +223,6 @@ class __AddCarToUserAction {
                     'owner_user_id' => $finalOwnerId
                 ]);
                 $roleUpdated = false;
-                $photoData = null;
             }
             
             // 4. Формируем ответ
@@ -262,23 +244,7 @@ class __AddCarToUserAction {
                 ]
             ];
             
-            // Добавляем информацию о фото если загружали (без base64 данных)
-            if ($photoData) {
-                // Исключаем base64 данные из ответа, оставляем только метаданные
-                $photoInfo = [
-                    'id' => $photoData['id'],
-                    'entity_type' => $photoData['entity_type'],
-                    'entity_id' => $photoData['entity_id'],
-                    'file_name' => $photoData['file_name'],
-                    'url' => $photoData['url'],
-                    'photo_type' => $photoData['photo_type'],
-                    'description' => $photoData['description'],
-                    'uploaded_by' => $photoData['uploaded_by'],
-                    'created_at' => $photoData['created_at'] ?? null,
-                    'updated_at' => $photoData['updated_at'] ?? null
-                ];
-                $response['data']['photo'] = $photoInfo;
-            }
+
             
             Logger::info("Car added to user: plate_number=$plateNumber, user_id=$userId, action=$action");
             

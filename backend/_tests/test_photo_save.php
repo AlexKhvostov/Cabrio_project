@@ -1,66 +1,35 @@
 <?php
 /**
  * Тест сохранения фото
- * Проверяет исправленную логику сохранения фото в __AddCarToUserAction
  */
 
-require_once __DIR__ . '/../actions/helpers/FileHelper.php';
+require_once __DIR__ . '/../actions/level1/_SavePhotoAction.php';
 require_once __DIR__ . '/../utils/Logger.php';
 
-// Создаем тестовое base64 изображение (1x1 пиксель) - только base64 часть
-$testBase64 = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A';
+// Тестовые данные
+$testData = [
+    'entity_type' => 'car',
+    'entity_id' => 999,
+    'uploaded_by' => 643, // Используем существующего пользователя
+    'photo' => '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A',
+    'photo_type' => 'cover',
+    'description' => 'Тестовое фото'
+];
 
-echo "🧪 Тестирование сохранения фото...\n";
+echo "Тестируем сохранение фото...\n";
 
 try {
-    echo "1. Проверка base64 данных...\n";
-    $imageBinary = base64_decode($testBase64, true);
-    if ($imageBinary === false) {
-        throw new Exception('Неверный формат base64 данных');
-    }
-    echo "✅ Base64 декодирован успешно, размер: " . strlen($imageBinary) . " байт\n";
+    $result = _SavePhotoAction::handle($testData);
     
-    // Тестируем создание временного файла из base64
-    echo "\n2. Создание временного файла из base64...\n";
-    $tempFileData = FileHelper::createTempFileFromBase64($testBase64, 'test_photo.jpg');
-    
-    echo "✅ Временный файл создан: " . $tempFileData['tmp_name'] . "\n";
-    echo "   Размер: " . $tempFileData['size'] . " байт\n";
-    echo "   Тип: " . $tempFileData['type'] . "\n";
-    
-    // Проверяем, что файл существует
-    if (file_exists($tempFileData['tmp_name'])) {
-        echo "✅ Временный файл существует\n";
+    if ($result['success']) {
+        echo "✅ Фото успешно сохранено!\n";
+        echo "ID фото: " . $result['data']['id'] . "\n";
+        echo "Путь: " . $result['data']['url'] . "\n";
     } else {
-        echo "❌ Временный файл не существует\n";
+        echo "❌ Ошибка сохранения фото:\n";
+        echo "Код: " . $result['error']['code'] . "\n";
+        echo "Сообщение: " . $result['error']['message'] . "\n";
     }
-    
-    // Тестируем сохранение фото
-    echo "\n3. Тестирование savePhotoFromBase64...\n";
-    $savedPath = FileHelper::savePhotoFromBase64($testBase64, 'car', 999, 999, 'test_photo.jpg');
-    
-    echo "✅ Фото сохранено: $savedPath\n";
-    
-    // Проверяем, что файл существует
-    $fullPath = __DIR__ . '/../../' . $savedPath;
-    if (file_exists($fullPath)) {
-        echo "✅ Сохраненный файл существует: $fullPath\n";
-        echo "   Размер: " . filesize($fullPath) . " байт\n";
-    } else {
-        echo "❌ Сохраненный файл не существует: $fullPath\n";
-    }
-    
-    // Удаляем временный файл
-    if (file_exists($tempFileData['tmp_name'])) {
-        unlink($tempFileData['tmp_name']);
-        echo "✅ Временный файл удален\n";
-    }
-    
-    echo "\n🎉 Тест прошел успешно!\n";
-    
 } catch (Exception $e) {
-    echo "❌ Ошибка: " . $e->getMessage() . "\n";
-    echo "   Файл: " . $e->getFile() . "\n";
-    echo "   Строка: " . $e->getLine() . "\n";
-    echo "   Trace: " . $e->getTraceAsString() . "\n";
+    echo "❌ Исключение: " . $e->getMessage() . "\n";
 } 
