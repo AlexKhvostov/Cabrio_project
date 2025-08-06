@@ -19,6 +19,9 @@
  * 4. Если передана фото:
  *    - Сохраняем файл на сервер
  *    - Создаём запись в БД через L1 Action
+ * 5. Проверяем, является ли пользователь владельцем автомобиля:
+ *    - Если да - обновляем роль пользователя (если необходимо)
+ *    - Если нет - роль не изменяется
  * 
  * Входные данные:
  *   - plate_number (string) — номер автомобиля (может быть null)
@@ -81,8 +84,8 @@ class __AddCarToUserAction {
             
             $userId = $user['id'];
             
-            // 0. Проверяем и обновляем роль пользователя
-            $roleUpdated = self::checkAndUpdateUserRole($user);
+            // Инициализируем флаг обновления роли
+            $roleUpdated = false;
             
             // Получаем номер (может быть null)
             $plateNumber = $data['plate_number'] ?? null;
@@ -246,7 +249,27 @@ class __AddCarToUserAction {
                  }
              }
             
-            // 3. Формируем ответ
+            // 3. Проверяем, является ли пользователь владельцем автомобиля и обновляем роль
+            $finalOwnerId = $carData['owner']['id'] ?? null;
+            $isOwner = ($finalOwnerId === $userId);
+            
+            if ($isOwner) {
+                Logger::info('L2 Action: User is owner, checking role update', [
+                    'user_id' => $userId,
+                    'car_id' => $carData['id'],
+                    'owner_user_id' => $finalOwnerId
+                ]);
+                $roleUpdated = self::checkAndUpdateUserRole($user);
+            } else {
+                Logger::info('L2 Action: User is not owner, role not updated', [
+                    'user_id' => $userId,
+                    'car_id' => $carData['id'],
+                    'owner_user_id' => $finalOwnerId
+                ]);
+                $roleUpdated = false;
+            }
+            
+            // 4. Формируем ответ
             $response = [
                 'success' => true,
                 'data' => [
@@ -260,7 +283,8 @@ class __AddCarToUserAction {
                     'status' => $carData['status'] ?? null,
                     'owner_user_id' => $carData['owner']['id'] ?? null,
                     'create_user_id' => $carData['create_user_id'] ?? $userId,
-                    'message' => self::getActionMessage($action)
+                    'message' => self::getActionMessage($action),
+                    'role_updated' => $roleUpdated
                 ]
             ];
             
