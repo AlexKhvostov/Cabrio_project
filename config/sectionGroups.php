@@ -103,8 +103,9 @@ class Roles {
     
     /**
      * Получить строковый код роли по числовому ID
+     * Переименовано для ясности: ранее называлось getRoleByCode($roleId)
      */
-    public static function getRoleByCode($roleId) {
+    public static function getRoleById($roleId) {
         return self::ID_ROLES[$roleId] ?? self::GUEST;
     }
     
@@ -278,7 +279,7 @@ class AccessUtils {
         } elseif (isset($user['role_id'])) {
             // Если роль не развернута (число), конвертируем в код
             $userRoleId = (int)$user['role_id'];
-            $userRoleCode = Roles::getRoleByCode($userRoleId);
+            $userRoleCode = Roles::getRoleById($userRoleId);
         } else {
             // По умолчанию - гость
             $userRoleCode = 'guest';

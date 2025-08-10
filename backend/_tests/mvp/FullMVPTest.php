@@ -97,7 +97,7 @@ class FullMVPTest {
         
         // Roles
         self::runTest('Система ролей', function() {
-            assert(Roles::getRoleByCode(4) === 'member', 'ID 4 должен быть member');
+            assert(Roles::getRoleById(4) === 'member', 'ID 4 должен быть member');
             assert(Roles::getRoleId('admin') === 6, 'admin должен быть ID 6');
             assert(Roles::hasAccessById(6, 4) === true, 'admin должен иметь доступ к member');
             return true;

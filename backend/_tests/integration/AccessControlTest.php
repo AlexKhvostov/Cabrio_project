@@ -30,9 +30,9 @@ class AccessControlTest {
         echo "📋 Тест маппинга ролей...\n";
         
         // Тест ID -> Code
-        assert(Roles::getRoleByCode(1) === 'external', 'ID 1 должен быть external');
-        assert(Roles::getRoleByCode(4) === 'member', 'ID 4 должен быть member');
-        assert(Roles::getRoleByCode(6) === 'admin', 'ID 6 должен быть admin');
+        assert(Roles::getRoleById(1) === 'external', 'ID 1 должен быть external');
+        assert(Roles::getRoleById(4) === 'member', 'ID 4 должен быть member');
+        assert(Roles::getRoleById(6) === 'admin', 'ID 6 должен быть admin');
         
         // Тест Code -> ID
         assert(Roles::getRoleId('external') === 1, 'external должен быть ID 1');

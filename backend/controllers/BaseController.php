@@ -286,7 +286,7 @@ class BaseController
      */
     protected function getRoleCode($roleId)
     {
-        return Roles::getRoleByCode($roleId);
+        return Roles::getRoleById($roleId);
     }
     
     /**
