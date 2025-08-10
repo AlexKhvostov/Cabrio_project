@@ -88,6 +88,26 @@ export async function initProfilePage() {
       set('first_name_tg', d.first_name_tg || d.first_name)
       set('last_name_tg', d.last_name_tg || d.last_name)
 
+      // Заголовок профиля (аватар, имя, username)
+      const name = (d.first_name_app || d.first_name || d.first_name_tg || '') + (d.last_name_app || d.last_name || d.last_name_tg ? ' ' + (d.last_name_app || d.last_name || d.last_name_tg) : '')
+      const avatarEl = document.getElementById('profileAvatar')
+      const titleNameEl = document.getElementById('profileName')
+      const titleUserEl = document.getElementById('profileUsername')
+      if (titleNameEl) titleNameEl.textContent = name.trim() || 'Профиль'
+      if (titleUserEl) titleUserEl.textContent = d.username ? '@'+d.username : ''
+      if (avatarEl) {
+        avatarEl.innerHTML = ''
+        const url = d.photo?.url
+        if (url) {
+          const img = document.createElement('img')
+          img.src = url
+          img.alt = ''
+          avatarEl.appendChild(img)
+        } else {
+          avatarEl.textContent = (d.first_name_app?.[0] || d.first_name || d.first_name_tg || '?').toString().slice(0,1).toUpperCase()
+        }
+      }
+
       // Автомобили
       const cars = d.cars || []
       if (cars.length && carsSection && carsListEl) {

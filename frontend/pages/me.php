@@ -11,14 +11,20 @@
     <?php include __DIR__ . '/../components/nav.php'; ?>
     <main class="page">
       <h2>Профиль</h2>
-      <section id="profile" class="card" style="display:none; gap:12px">
-        <div id="role" style="font-size:12px;color:#aaa"></div>
-        <form id="profile-form" class="profile-form" autocomplete="off">
-          <h3 style="margin:0 0 6px 0">Личные данные</h3>
-          <div style="display:flex; gap:8px; margin: 0 0 8px 0;">
+      <section id="profile" class="card profile-card" style="display:none;">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar"></div>
+          <div class="profile-title">
+            <div class="profile-name" id="profileName">&nbsp;</div>
+            <div class="profile-username" id="profileUsername">&nbsp;</div>
+          </div>
+          <div class="profile-actions">
             <button type="button" id="editBtn" class="btn-secondary">Редактировать</button>
             <button type="button" id="saveBtn" class="btn-primary" style="display:none;">Сохранить</button>
           </div>
+        </div>
+        <div id="role" style="font-size:12px;color:#aaa"></div>
+        <form id="profile-form" class="profile-form" autocomplete="off">
           <div class="form-grid">
             <label class="form-field">
               <span>Имя (приложение)</span>
@@ -58,7 +64,7 @@
 
         <div class="divider"></div>
 
-        <div class="tg-block">
+        <div class="tg-block card">
           <h3 style="margin:0 0 6px 0">Данные Telegram</h3>
           <div class="form-grid readonly">
             <label class="form-field">
