@@ -1,0 +1,96 @@
+:root{--primary-color:#2a7;--border-color:#2a2a2a;--card-bg:#1e1e1e;--hover-bg:#262626}
+*{box-sizing:border-box}
+*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#111;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;overflow-x:hidden;width:100%;max-width:100%}
+img,video,canvas,svg{max-width:100%;height:auto}
+body{overscroll-behavior-x:none;-webkit-text-size-adjust:100%}
+.page{padding:12px;min-height:calc(var(--app-height, 100vh) - 60px);overflow-x:hidden}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--tg-theme-bg-color,#111);border-top:1px solid var(--border-color);display:flex;padding:6px 0;padding-bottom:calc(6px + env(safe-area-inset-bottom));z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);contain:layout paint}
+.bottom-nav .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px;text-decoration:none;color:#888;min-height:56px;position:relative}
+.bottom-nav .nav-item:hover{color:#fff}
+.bottom-nav .nav-item.active{color:#fff}
+.bottom-nav .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:#fff;border-radius:1px}
+.bottom-nav .nav-icon{font-size:18px;line-height:1}
+.bottom-nav .nav-label{font-size:12px;margin-top:4px}
+.links{display:flex;gap:12px;flex-wrap:wrap}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:10px}
+
+/* Фильтры (адаптация из Frontend Example) */
+.filters-section{margin-bottom:12px}
+.search-bar{position:relative;margin-bottom:12px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.7}
+.search-input{width:100%;padding:10px 12px 10px 40px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:#fff;font-size:14px}
+.search-input:focus{outline:none;border-color:var(--primary-color)}
+.filter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+.filter-select,.filter-input{padding:10px 12px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:#fff;font-size:13px}
+.filter-select:focus,.filter-input:focus{outline:none;border-color:var(--primary-color)}
+.filter-input::placeholder{opacity:.7}
+
+/* MemberCard */
+.member-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;cursor:pointer}
+.member-card:hover{background:var(--hover-bg);border-color:var(--primary-color)}
+.member-avatar{position:relative;width:48px;height:48px;border-radius:50%;overflow:hidden;background:var(--primary-color);display:flex;align-items:center;justify-content:center}
+.member-avatar .avatar-image{width:100%;height:100%;object-fit:cover}
+.member-avatar .avatar-initials{color:#fff;font-weight:700}
+.member-info{flex:1;min-width:0}
+.member-main{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.member-name{font-size:16px;margin:0}
+.member-nickname{font-size:12px;color:var(--primary-color)}
+.member-details{display:flex;flex-direction:column;gap:4px}
+.member-car{display:flex;align-items:center;gap:6px;font-size:12px}
+.member-car.no-car{color:#888}
+.member-actions{color:#888}
+
+/* Мини-список авто в карточке пользователя */
+.cars-mini-list{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cars-mini-item{display:flex;align-items:center;gap:6px}
+.cars-mini-item .car-photo-mini{width:30px;height:30px;border-radius:6px;overflow:hidden;background:var(--border-color);display:flex;align-items:center;justify-content:center}
+.cars-mini-item .car-mini-image{width:30px;height:30px;object-fit:cover;display:block}
+
+/* CarCard (упрощённая) */
+.car-card-compact{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer}
+.car-image-container{position:relative;width:100%;height:120px;overflow:hidden}
+.car-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--border-color) 0%, rgba(255,255,255,.1) 100%);display:flex;align-items:center;justify-content:center;color:#aaa}
+.car-info-compact{padding:10px;display:flex;flex-direction:column;gap:6px}
+.car-title-compact{font-size:16px;margin:0}
+.car-specs-compact{font-size:12px;color:#aaa}
+.car-owner-compact{display:flex;align-items:center;gap:6px;margin-top:auto}
+.owner-avatar-small{width:20px;height:20px;border-radius:50%;background:var(--primary-color)}
+.owner-avatar-small{overflow:hidden}
+.owner-avatar-small .avatar-image{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.owner-name-compact{font-size:12px;color:#aaa}
+
+/* Сетка автомобилей 2 в ряд */
+.cars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:480px){.cars-grid{gap:8px}}
+
+/* Modal (универсальный) */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000;padding:12px}
+.modal-content{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:auto;display:flex;flex-direction:column}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border-color)}
+.modal-title{font-weight:600}
+.modal-close{background:none;border:none;color:#aaa;cursor:pointer;font-size:26px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.modal-body{padding:12px;display:flex;flex-direction:column;gap:12px}
+.profile-avatar-compact{position:relative;width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--primary-color);display:flex;align-items:center;justify-content:center}
+.profile-avatar-compact .avatar-image{width:100%;height:100%;object-fit:cover}
+.avatar-initials{color:#fff;font-weight:700}
+.profile-info-compact .profile-name-compact{margin:0 0 4px 0}
+.profile-nickname-compact{margin:0 0 8px 0;color:var(--primary-color)}
+.detail-grid-compact{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item-compact{display:flex;flex-direction:column;gap:2px}
+.detail-label{font-size:12px;color:#aaa}
+.detail-value{font-size:13px}
+
+/* Dashboard */
+.dashboard h2{margin:8px 0 8px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.stat-value{font-size:20px;font-weight:700}
+.stat-label{font-size:12px;color:#aaa}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.menu-item{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;transition:transform .08s ease, background .12s ease}
+.menu-item:active{transform:scale(0.98);background:rgba(255,255,255,0.04)}
+.menu-icon{font-size:24px}
+.menu-title{font-weight:600}
+.menu-desc{font-size:12px;color:#aaa}
+

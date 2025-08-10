@@ -23,6 +23,7 @@
  *   $newEvent = Event::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/UrlHelper.php';
 class Event {
     public $id;
     public $event_type_id;
@@ -133,7 +134,7 @@ class Event {
 
             $event['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => $row['photo_url'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'description' => $row['photo_description'],
             ] : null;
             unset($event['photo_id'], $event['photo_url'], $event['photo_description']);

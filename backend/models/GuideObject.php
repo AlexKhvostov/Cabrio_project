@@ -25,6 +25,7 @@
  *   $newObj = GuideObject::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/UrlHelper.php';
 class GuideObject {
     public $id;
     public $guide_object_type_id;
@@ -146,7 +147,7 @@ class GuideObject {
 
             $guideObject['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => $row['photo_url'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'description' => $row['photo_description'],
             ] : null;
             unset($guideObject['photo_id'], $guideObject['photo_url'], $guideObject['photo_description']);

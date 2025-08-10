@@ -283,35 +283,27 @@ class AuthMiddleware
         // Если запрос пришел локально - разрешаем без дополнительных проверок
         if (self::isLocalRequest()) {
             // ✅ Локальный запрос - авторизуем как системный пользователь
-                self::initSystemContext();
-            
-            // 🔧 ДОПОЛНИТЕЛЬНАЯ ОБРАБОТКА ДЛЯ L3 ACTIONS
-            // Для L3 Actions нужно установить реального пользователя из Telegram данных
-            if (strpos($route, '/api/actions/') === 0) {
-                $telegramData = self::extractTelegramData();
-                if ($telegramData) {
-                    // Синхронизируем пользователя с реальными Telegram данными
-                    require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
-                    $syncResult = __SyncUserDataAction::handle($telegramData);
-                    
-                    if ($syncResult['success']) {
-                        $userData = $syncResult['data'];
-                        AppContext::setCurrentUser($userData);
-                        
-                        Logger::info('AuthMiddleware: Real user set for L3 Action (local request)', [
-                            'user_id' => $userData['id'],
-                            'telegram_id' => $telegramData['telegram_id'],
-                            'route' => $route
-                        ]);
-                    } else {
-                        Logger::warning('AuthMiddleware: Failed to sync user for L3 Action (local request)', [
-                            'telegram_data' => $telegramData,
-                            'route' => $route
-                        ]);
-                    }
-                } else {
-                    Logger::warning('AuthMiddleware: No Telegram data found for L3 Action (local request)', [
+            self::initSystemContext();
+
+            // 🔄 Пытаемся подставить реального пользователя по Telegram заголовкам
+            // (актуально для WebApp, когда фронт и бэкенд на одном хосте)
+            $telegramData = self::extractTelegramData();
+            if ($telegramData) {
+                require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
+                $syncResult = __SyncUserDataAction::handle($telegramData);
+
+                if ($syncResult['success']) {
+                    $userData = $syncResult['data'];
+                    AppContext::setCurrentUser($userData);
+                    Logger::info('AuthMiddleware: Real user set from Telegram headers (local request)', [
+                        'user_id' => $userData['id'],
+                        'telegram_id' => $telegramData['telegram_id'],
                         'route' => $route
+                    ]);
+                } else {
+                    Logger::warning('AuthMiddleware: Failed to sync user from Telegram headers (local request)', [
+                        'route' => $route,
+                        'error' => $syncResult['error']['message'] ?? 'unknown'
                     ]);
                 }
             }

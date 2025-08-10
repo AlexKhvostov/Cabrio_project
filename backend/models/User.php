@@ -27,6 +27,7 @@
  */
 require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../utils/ExpandHelper.php';
+require_once __DIR__ . '/../utils/UrlHelper.php';
 
 class User {
     public $id;
@@ -293,10 +294,10 @@ class User {
             ];
             unset($user['role_id'], $user['role_code'], $user['role_name']);
 
-            // Формируем объект photo
+            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL)
             $user['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => $row['photo_url'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'description' => $row['photo_description'],
             ] : null;
             unset($user['photo_id'], $user['photo_url'], $user['photo_description']);

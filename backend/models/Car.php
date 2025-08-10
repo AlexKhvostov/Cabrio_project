@@ -24,6 +24,7 @@
  */
 require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../utils/ExpandHelper.php';
+require_once __DIR__ . '/../utils/UrlHelper.php';
 
 class Car {
     public $id;
@@ -112,7 +113,7 @@ class Car {
         $pdo = Database::getInstance();
         
         // Подготовка данных для вставки
-        $fields = ['reg_number', 'car_brand_id', 'model', 'color', 'year', 'owner_user_id', 'status_id', 'create_user_id'];
+        $fields = ['reg_number', 'show_reg_number', 'car_brand_id', 'model', 'color', 'year', 'owner_user_id', 'status_id', 'create_user_id'];
         $placeholders = implode(', ', array_fill(0, count($fields), '?'));
         $fieldNames = implode(', ', $fields);
         
@@ -120,6 +121,7 @@ class Car {
         
         $values = [
             $data['reg_number'] ?? null,
+            ($data['show_reg_number'] ?? 0) ? 1 : 0,
             $data['car_brand_id'] ?? null,
             $data['model'] ?? null,
             $data['color'] ?? null,
@@ -263,6 +265,7 @@ class Car {
                     u.last_name_app as owner_last_name,
                     u.username as owner_username,
                     u.telegram_id as owner_telegram_id,
+                    up.id as owner_photo_id, up.url as owner_photo_url, up.description as owner_photo_description,
                     s.id as status_id, s.code as status_code, s.name as status_name,
                     p.id as photo_id, p.url as photo_url, p.description as photo_description
              FROM cars c
@@ -272,6 +275,11 @@ class Car {
              LEFT JOIN photos p ON p.id = (
                  SELECT id FROM photos 
                  WHERE entity_type = "car" AND entity_id = c.id 
+                 ORDER BY id DESC LIMIT 1
+             )
+             LEFT JOIN photos up ON up.id = (
+                 SELECT id FROM photos
+                 WHERE entity_type = "user" AND entity_id = u.id
                  ORDER BY id DESC LIMIT 1
              )'
         );
@@ -295,13 +303,21 @@ class Car {
                 'last_name' => $row['owner_last_name'],
                 'username' => $row['owner_username'],
                 'telegram_id' => $row['owner_telegram_id'],
+                'photo' => $row['owner_photo_id'] ? [
+                    'id' => $row['owner_photo_id'],
+                    'url' => UrlHelper::buildUploadsUrl($row['owner_photo_url']),
+                    'description' => $row['owner_photo_description'],
+                ] : null,
             ] : null;
             unset(
                 $car['owner_id'],
                 $car['owner_first_name'],
                 $car['owner_last_name'],
                 $car['owner_username'],
-                $car['owner_telegram_id']
+                $car['owner_telegram_id'],
+                $car['owner_photo_id'],
+                $car['owner_photo_url'],
+                $car['owner_photo_description']
             );
 
             // Формируем объект status
@@ -312,13 +328,21 @@ class Car {
             ];
             unset($car['status_id'], $car['status_code'], $car['status_name']);
 
-            // Формируем объект photo
+            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => $row['photo_url'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'description' => $row['photo_description'],
             ] : null;
             unset($car['photo_id'], $car['photo_url'], $car['photo_description']);
+
+            // Маскируем номер при запрете показа (различать пустой и скрытый)
+            if (array_key_exists('show_reg_number', $car)) {
+                $allowed = (int)$car['show_reg_number'] === 1 || strtolower((string)$car['show_reg_number']) === 'true';
+                if (!$allowed && !empty($car['reg_number'])) {
+                    $car['reg_number'] = 'скрыт';
+                }
+            }
 
             $cars[] = $car;
         }
@@ -375,6 +399,7 @@ class Car {
                 'model' => $row['model'] ?? null,
                 'color' => $row['color'] ?? null,
                 'year' => $row['year'] ?? null,
+                'show_reg_number' => (int)($row['show_reg_number'] ?? 0),
             ];
 
             // Бренд
@@ -390,12 +415,17 @@ class Car {
                 'name' => $row['status_name'],
             ];
 
-            // Фото
+            // Фото (склеиваем с UPLOADS_BASE_URL)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => $row['photo_url'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'description' => $row['photo_description'],
             ] : null;
+
+            // Маскируем номер при запрете показа
+            if (!(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
+                $car['reg_number'] = 'скрыт';
+            }
 
             $cars[] = $car;
         }
