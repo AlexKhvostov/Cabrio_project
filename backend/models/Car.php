@@ -258,7 +258,11 @@ class Car {
         $stmt = $pdo->query(
             'SELECT c.*, 
                     cb.id as brand_id, cb.brand as brand_name,
-                    u.id as owner_id, u.first_name_app as owner_first_name, u.last_name_app as owner_last_name,
+                    u.id as owner_id,
+                    u.first_name_app as owner_first_name,
+                    u.last_name_app as owner_last_name,
+                    u.username as owner_username,
+                    u.telegram_id as owner_telegram_id,
                     s.id as status_id, s.code as status_code, s.name as status_name,
                     p.id as photo_id, p.url as photo_url, p.description as photo_description
              FROM cars c
@@ -284,12 +288,21 @@ class Car {
             unset($car['brand_id'], $car['brand_name']);
 
             // Формируем объект owner
+            // Добавляем минимально необходимые данные для UI списка: имя, ник и Telegram ID
             $car['owner'] = $row['owner_id'] ? [
                 'id' => $row['owner_id'],
                 'first_name' => $row['owner_first_name'],
                 'last_name' => $row['owner_last_name'],
+                'username' => $row['owner_username'],
+                'telegram_id' => $row['owner_telegram_id'],
             ] : null;
-            unset($car['owner_id'], $car['owner_first_name'], $car['owner_last_name']);
+            unset(
+                $car['owner_id'],
+                $car['owner_first_name'],
+                $car['owner_last_name'],
+                $car['owner_username'],
+                $car['owner_telegram_id']
+            );
 
             // Формируем объект status
             $car['status'] = [
