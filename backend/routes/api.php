@@ -40,7 +40,7 @@ try {
     // Проверяем существующие маршруты
     $existingRoutes = [
         '/api/users' => ['GET', 'POST'],
-        '/api/users/profile' => ['GET'],
+        '/api/users/profile' => ['GET', 'POST'],
         '/api/users/check-by-telegram' => ['POST'],
         '/api/users/find-by-telegram' => ['POST'],
         '/api/cars' => ['GET', 'POST'],
@@ -164,6 +164,9 @@ try {
     elseif ($route === '/api/users/profile' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/UserController.php';
         (new UserController())->getProfile();
+    } elseif ($route === '/api/users/profile' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/UserController.php';
+        (new UserController())->updateProfile();
     }
     // Системные маршруты (требуют SYSTEM_TOKEN)
     elseif ($route === '/api/system/user-sync' && $method === 'POST') {

@@ -180,4 +180,101 @@ class UserController extends BaseController
             ], 500);
         }
     }
+
+    /**
+     * Обновить профиль текущего пользователя (self)
+     * 
+     * Требует авторизации: Да
+     * Минимальная роль: guest
+     */
+    public function updateProfile()
+    {
+        try {
+            // Проверяем авторизацию и права доступа через централизованную конфигурацию
+            if (!$this->requireAccess('api.users.updateSelf')) {
+                return; // Ответ уже отправлен в requireAccess
+            }
+
+            // Текущий пользователь (ID берём только из контекста)
+            $currentUser = $this->requireUser();
+            $currentUserId = (int)$currentUser['id'];
+
+            // Данные из тела запроса
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+
+            // Разрешённые к редактированию поля
+            $allowedFields = [
+                'first_name_app',
+                'last_name_app',
+                'email',
+                'phone',
+                'city',
+                'country',
+                'about',
+                'notes'
+            ];
+
+            $updateData = ['id' => $currentUserId];
+            foreach ($allowedFields as $field) {
+                if (array_key_exists($field, $input)) {
+                    $updateData[$field] = $input[$field];
+                }
+            }
+
+            // Если нечего обновлять
+            if (count($updateData) === 1) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NO_DATA',
+                        'message' => 'Нет данных для обновления'
+                    ]
+                ], 400);
+                return;
+            }
+
+            // Обновляем и возвращаем развернутые данные
+            $updatedUser = User::updateWithDetails($currentUserId, $updateData);
+
+            if (!$updatedUser) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'UPDATE_FAILED',
+                        'message' => 'Не удалось обновить профиль'
+                    ]
+                ], 400);
+                return;
+            }
+
+            $this->logUserAction('update_profile_self', ['fields' => array_keys($updateData)]);
+
+            $this->json([
+                'success' => true,
+                'data' => $updatedUser,
+                'meta' => $this->getRequestInfo()
+            ]);
+        } catch (Exception $e) {
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => $e->getMessage()
+                ]
+            ], 401);
+        } catch (Throwable $e) {
+            Logger::error('UserController: updateProfile error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId()
+            ]);
+
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
 } 

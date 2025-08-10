@@ -42,7 +42,19 @@ async function apiGet(route){
   return data
 }
 
-window.CabrioAPI = { apiGet }
+async function apiPost(route, payload){
+  const url = `${BASE}/backend/routes/api.php?route=${encodeURIComponent(route)}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...buildTelegramHeaders() },
+    body: JSON.stringify(payload || {})
+  })
+  const data = await res.json().catch(()=>null)
+  if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
+  return data
+}
+
+window.CabrioAPI = { apiGet, apiPost }
 
 // Навигации активный пункт
 function setActiveNav(){

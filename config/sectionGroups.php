@@ -127,12 +127,14 @@ class FunctionRoles {
     // API endpoints - Users
     const API_USERS_GET_LIST = 'member';
     const API_USERS_CREATE = 'admin';
-    const API_USERS_GET_PROFILE = 'member';
+    const API_USERS_GET_PROFILE = 'guest';
+    // Обновление собственного профиля
+    const API_USERS_UPDATE_SELF = 'guest';
     
     // API endpoints - Cars
-    const API_CARS_GET_LIST = 'member';
-    const API_CARS_GET_BY_ID = 'member';
-    const API_CARS_CREATE = 'member';
+    const API_CARS_GET_LIST = 'user';
+    const API_CARS_GET_BY_ID = 'user';
+    const API_CARS_CREATE = 'guest';
     
     // API endpoints - Events
     const API_EVENTS_GET_LIST = 'member';
@@ -175,6 +177,7 @@ class FunctionRoles {
             'api.users.getList' => self::API_USERS_GET_LIST,
             'api.users.create' => self::API_USERS_CREATE,
             'api.users.getProfile' => self::API_USERS_GET_PROFILE,
+            'api.users.updateSelf' => self::API_USERS_UPDATE_SELF,
             
             // API endpoints - Cars
             'api.cars.getList' => self::API_CARS_GET_LIST,

@@ -11,7 +11,81 @@
     <?php include __DIR__ . '/../components/nav.php'; ?>
     <main class="page">
       <h2>Профиль</h2>
-      <div id="me">Загрузка...</div>
+      <section id="profile" class="card" style="display:none; gap:12px">
+        <div id="role" style="font-size:12px;color:#aaa"></div>
+        <form id="profile-form" class="profile-form" autocomplete="off">
+          <h3 style="margin:0 0 6px 0">Личные данные</h3>
+          <div style="display:flex; gap:8px; margin: 0 0 8px 0;">
+            <button type="button" id="editBtn" class="btn-secondary">Редактировать</button>
+            <button type="button" id="saveBtn" class="btn-primary" style="display:none;">Сохранить</button>
+          </div>
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Имя (приложение)</span>
+              <input type="text" id="first_name_app" />
+            </label>
+            <label class="form-field">
+              <span>Фамилия (приложение)</span>
+              <input type="text" id="last_name_app" />
+            </label>
+            <label class="form-field">
+              <span>Город</span>
+              <input type="text" id="city" />
+            </label>
+            <label class="form-field">
+              <span>Страна</span>
+              <input type="text" id="country" />
+            </label>
+            <label class="form-field">
+              <span>Email</span>
+              <input type="email" id="email" inputmode="email" />
+            </label>
+            <label class="form-field">
+              <span>Телефон</span>
+              <input type="tel" id="phone" inputmode="tel" />
+            </label>
+            <label class="form-field form-col">
+              <span>О себе</span>
+              <textarea id="about" rows="3"></textarea>
+            </label>
+            <label class="form-field form-col">
+              <span>Заметки</span>
+              <textarea id="notes" rows="2"></textarea>
+            </label>
+          </div>
+          
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="tg-block">
+          <h3 style="margin:0 0 6px 0">Данные Telegram</h3>
+          <div class="form-grid readonly">
+            <label class="form-field">
+              <span>Telegram ID</span>
+              <input type="text" id="tg_id" disabled />
+            </label>
+            <label class="form-field">
+              <span>Username</span>
+              <input type="text" id="tg_username" disabled />
+            </label>
+            <label class="form-field">
+              <span>Имя (TG)</span>
+              <input type="text" id="first_name_tg" disabled />
+            </label>
+            <label class="form-field">
+              <span>Фамилия (TG)</span>
+              <input type="text" id="last_name_tg" disabled />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section id="my-cars" style="margin-top:12px; display:none;">
+        <h3 style="margin:0 0 6px 0">Мои автомобили</h3>
+        <div id="cars-list" class="cars-grid"></div>
+      </section>
+
       <details id="debug-wrap" style="margin-top:12px;">
         <summary>Диагностика (временная)</summary>
         <pre id="debug" style="white-space:pre-wrap;background:rgba(255,255,255,0.05);padding:8px;border-radius:8px;border:1px solid var(--border-color);"></pre>
@@ -20,7 +94,36 @@
     <?php include __DIR__ . '/../components/footer.php'; ?>
     <script type="module">
       import '/app/frontend/assets/js/app.js'
+      import '/app/frontend/assets/js/components.js'
+      import { initProfilePage } from '/app/frontend/assets/js/components/profile_view.js'
+      // Локальный клиент на случай, если глобальный не инициализировался
+      const BASE = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+      const buildTelegramHeaders = () => {
+        const headers = {}
+        try {
+          const tg = window.Telegram?.WebApp
+          const u = tg?.initDataUnsafe?.user || {}
+          if (u.id) headers['X-Telegram-User-Id'] = String(u.id)
+          if (u.first_name) headers['X-Telegram-First-Name'] = String(u.first_name)
+          if (u.last_name) headers['X-Telegram-Last-Name'] = String(u.last_name)
+          if (u.username) headers['X-Telegram-Username'] = String(u.username)
+          if (tg?.initData) headers['X-Telegram-Init-Data'] = String(tg.initData)
+        } catch {}
+        return headers
+      }
+      const callApi = async (route) => {
+        if (window.CabrioAPI?.apiGet) return window.CabrioAPI.apiGet(route)
+        const url = `${BASE}/backend/routes/api.php?route=${encodeURIComponent(route)}`
+        const res = await fetch(url, { headers: buildTelegramHeaders() })
+        const data = await res.json().catch(()=>null)
+        if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
+        return data
+      }
       const meEl = document.getElementById('me')
+      const profile = document.getElementById('profile')
+      const roleEl = document.getElementById('role')
+      const carsSection = document.getElementById('my-cars')
+      const carsListEl = document.getElementById('cars-list')
       const dbg = document.getElementById('debug')
       const tg = window.Telegram?.WebApp
       const u = tg?.initDataUnsafe?.user
@@ -28,17 +131,8 @@
         telegram_present: !!u,
         telegram_user: u ? { id: u.id, username: u.username, first_name: u.first_name, last_name: u.last_name } : null,
       }
-      fetch(`${(window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')}/backend/routes/api.php?route=${encodeURIComponent('/api/users/profile')}`, { headers: (window.CabrioAPI ? undefined : {}) })
-      CabrioAPI.apiGet('/api/users/profile').then(json=>{
-        if(!json){ meEl.textContent='Нет ответа'; return }
-        if(json.__httpStatus===401){ meEl.textContent='Не авторизован'; }
-        else if(json.__httpStatus===403){ meEl.textContent='Недостаточно прав'; }
-        if(json.success){
-          const u = json.data
-          meEl.innerHTML = `<div class=\"card\">@${u.username||''} — роль: ${u.role?.name||u.role?.code||''}<br/>Машин: ${(u.cars||[]).length}</div>`
-        }
-        dbg.textContent = JSON.stringify({ httpStatus: json.__httpStatus||200, success: json.success, error: json.error||null, clientInfo }, null, 2)
-      }).catch((e)=>{ meEl.textContent='Ошибка загрузки'; dbg.textContent = String(e) })
+      // Инициализация страницы профиля
+      initProfilePage()
     </script>
   </body>
   </html>
