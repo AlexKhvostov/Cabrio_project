@@ -206,7 +206,15 @@ class User {
         $values = [];
         
         // Подготавливаем поля для обновления
-        $fields = ['username', 'first_name_tg', 'last_name_tg', 'first_name_app', 'last_name_app', 'email', 'phone', 'city', 'about', 'telegram_photo_id'];
+        $fields = [
+            'username',
+            'first_name_tg', 'last_name_tg',
+            'first_name_app', 'last_name_app',
+            'email', 'phone',
+            'city', 'country',
+            'about', 'notes',
+            'telegram_photo_id'
+        ];
         
         foreach ($fields as $field) {
             if (isset($data[$field])) {

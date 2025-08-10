@@ -41,6 +41,8 @@ body{overscroll-behavior-x:none;-webkit-text-size-adjust:100%}
 .form-field input:focus,.form-field textarea:focus{outline:none;border-color:var(--primary-color)}
 .form-grid.readonly input,.form-grid.readonly textarea{opacity:.8}
 .form-field input:disabled,.form-field textarea:disabled{opacity:.6}
+/* Визуальный акцент при редактировании */
+.form-field input:not(:disabled),.form-field textarea:not(:disabled){background:#1c1c1c;border-color:#3a3a3a}
 
 h2{margin:8px 0}
 
