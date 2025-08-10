@@ -256,10 +256,35 @@ class User {
              )'
         );
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!$rows) {
+            return [];
+        }
+
+        // 1) Собираем ID пользователей
+        $userIds = [];
+        foreach ($rows as $row) {
+            $userIds[] = (int)$row['id'];
+        }
+
+        // 2) Получаем машины всех владельцев одним запросом и группируем по owner_user_id
+        require_once __DIR__ . '/Car.php';
+        $cars = Car::getByOwnerIds($userIds);
+        $carsByOwnerId = [];
+        foreach ($cars as $car) {
+            $ownerId = (int)$car['owner_user_id'];
+            if (!isset($carsByOwnerId[$ownerId])) {
+                $carsByOwnerId[$ownerId] = [];
+            }
+            $carForOutput = $car;
+            unset($carForOutput['owner_user_id']);
+            $carsByOwnerId[$ownerId][] = $carForOutput;
+        }
+
+        // 3) Формируем пользователей с role, photo и cars
         $users = [];
         foreach ($rows as $row) {
             $user = $row;
-            
+
             // Формируем объект role
             $user['role'] = [
                 'id' => $row['role_id'],
@@ -275,6 +300,10 @@ class User {
                 'description' => $row['photo_description'],
             ] : null;
             unset($user['photo_id'], $user['photo_url'], $user['photo_description']);
+
+            // Прикладываем машины пользователя (если есть)
+            $uid = (int)$row['id'];
+            $user['cars'] = $carsByOwnerId[$uid] ?? [];
 
             $users[] = $user;
         }

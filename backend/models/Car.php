@@ -324,4 +324,82 @@ class Car {
         }
         return $cars;
     }
+
+    /**
+     * Получить список автомобилей по массиву владельцев (owner_user_id)
+     *
+     * Назначение:
+     *  - Используется для массового обогащения списка пользователей их машинами
+     *  - Возвращает минимально необходимые поля автомобиля для UI списка
+     *
+     * ВНИМАНИЕ: В ответе присутствует поле owner_user_id — оно нужно для группировки на уровне вызвавшего кода.
+     *           После группировки рекомендуется убирать owner_user_id из элементов.
+     *
+     * @param array $ownerIds Массив ID пользователей-владельцев
+     * @return array Список автомобилей с ключевыми полями и owner_user_id
+     */
+    public static function getByOwnerIds(array $ownerIds)
+    {
+        if (empty($ownerIds)) {
+            return [];
+        }
+
+        // Готовим плейсхолдеры для IN (...)
+        $placeholders = implode(', ', array_fill(0, count($ownerIds), '?'));
+
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare(
+            'SELECT c.*, 
+                    cb.id as brand_id, cb.brand as brand_name,
+                    s.id as status_id, s.code as status_code, s.name as status_name,
+                    p.id as photo_id, p.url as photo_url, p.description as photo_description
+             FROM cars c
+             LEFT JOIN ref_car_brands cb ON c.car_brand_id = cb.id
+             LEFT JOIN ref_statuses s ON c.status_id = s.id
+             LEFT JOIN photos p ON p.id = (
+                 SELECT id FROM photos 
+                 WHERE entity_type = "car" AND entity_id = c.id 
+                 ORDER BY id DESC LIMIT 1
+             )
+             WHERE c.owner_user_id IN (' . $placeholders . ')'
+        );
+        $stmt->execute(array_map('intval', $ownerIds));
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $cars = [];
+        foreach ($rows as $row) {
+            $car = [
+                'id' => $row['id'],
+                'owner_user_id' => $row['owner_user_id'], // для группировки на уровне вызывающего кода
+                'reg_number' => $row['reg_number'] ?? null,
+                'model' => $row['model'] ?? null,
+                'color' => $row['color'] ?? null,
+                'year' => $row['year'] ?? null,
+            ];
+
+            // Бренд
+            $car['brand'] = [
+                'id' => $row['brand_id'],
+                'name' => $row['brand_name'],
+            ];
+
+            // Статус
+            $car['status'] = [
+                'id' => $row['status_id'],
+                'code' => $row['status_code'],
+                'name' => $row['status_name'],
+            ];
+
+            // Фото
+            $car['photo'] = $row['photo_id'] ? [
+                'id' => $row['photo_id'],
+                'url' => $row['photo_url'],
+                'description' => $row['photo_description'],
+            ] : null;
+
+            $cars[] = $car;
+        }
+
+        return $cars;
+    }
 } 
