@@ -74,7 +74,7 @@ export async function initProfilePage() {
       if (profile) profile.style.display = 'block'
       const d = json.data || {}
       if (roleEl) roleEl.textContent = `Роль: ${d.role?.name || d.role?.code || ''}`
-      const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || '' }
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = (val ?? '') }
       set('first_name_app', d.first_name_app)
       set('last_name_app', d.last_name_app)
       set('city', d.city)
@@ -89,7 +89,7 @@ export async function initProfilePage() {
       set('last_name_tg', d.last_name_tg || d.last_name)
 
       // Заголовок профиля (аватар, имя, username)
-      const name = (d.first_name_app || d.first_name || d.first_name_tg || '') + (d.last_name_app || d.last_name || d.last_name_tg ? ' ' + (d.last_name_app || d.last_name || d.last_name_tg) : '')
+      const name = (d.first_name_app || d.first_name || d.first_name_tg || '') + ((d.last_name_app || d.last_name || d.last_name_tg) ? ' ' + (d.last_name_app || d.last_name || d.last_name_tg) : '')
       const avatarEl = document.getElementById('profileAvatar')
       const titleNameEl = document.getElementById('profileName')
       const titleUserEl = document.getElementById('profileUsername')

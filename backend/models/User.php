@@ -65,16 +65,58 @@ class User {
      */
     public static function findByIdWithDetails($id) {
         $pdo = Database::getInstance();
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+        // Подтягиваем роль и последнее фото пользователя (как в getAll)
+        $stmt = $pdo->prepare(
+            'SELECT u.*, 
+                    r.id as role_id, r.code as role_code, r.name as role_name,
+                    p.id as photo_id, p.url as photo_url, p.description as photo_description
+             FROM users u
+             LEFT JOIN ref_roles r ON u.role_id = r.id
+             LEFT JOIN photos p ON p.id = (
+                 SELECT id FROM photos 
+                 WHERE entity_type = "user" AND entity_id = u.id 
+                 ORDER BY id DESC LIMIT 1
+             )
+             WHERE u.id = ?'
+        );
         $stmt->execute([$id]);
-        $data = $stmt->fetch();
-        
-        if (!$data) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
             return null;
         }
-        
-        // Развертываем данные с помощью ExpandHelper
-        return ExpandHelper::expandUserData($data);
+
+        // Формируем пользователя с role и photo
+        $user = $row;
+
+        // Объект role
+        $user['role'] = [
+            'id' => $row['role_id'],
+            'code' => $row['role_code'],
+            'name' => $row['role_name'],
+        ];
+        unset($user['role_id'], $user['role_code'], $user['role_name']);
+
+        // Объект photo (со склейкой URL)
+        $user['photo'] = $row['photo_id'] ? [
+            'id' => $row['photo_id'],
+            'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+            'description' => $row['photo_description'],
+        ] : null;
+        unset($user['photo_id'], $user['photo_url'], $user['photo_description']);
+
+        // Прикладываем машины пользователя (если есть)
+        require_once __DIR__ . '/Car.php';
+        $cars = Car::getByOwnerIds([(int)$row['id']]);
+        $carsForUser = [];
+        foreach ($cars as $car) {
+            $carForOutput = $car;
+            unset($carForOutput['owner_user_id']);
+            $carsForUser[] = $carForOutput;
+        }
+        $user['cars'] = $carsForUser;
+
+        return $user;
     }
 
     /**
