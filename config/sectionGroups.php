@@ -135,6 +135,8 @@ class FunctionRoles {
     const API_CARS_GET_LIST = 'user';
     const API_CARS_GET_BY_ID = 'user';
     const API_CARS_CREATE = 'guest';
+    // Включение владельца в ответе по авто (приватность)
+    const API_CARS_INCLUDE_OWNER = 'member';
     
     // API endpoints - Events
     const API_EVENTS_GET_LIST = 'member';
@@ -183,6 +185,7 @@ class FunctionRoles {
             'api.cars.getList' => self::API_CARS_GET_LIST,
             'api.cars.getById' => self::API_CARS_GET_BY_ID,
             'api.cars.create' => self::API_CARS_CREATE,
+            'api.cars.includeOwner' => self::API_CARS_INCLUDE_OWNER,
             
             // API endpoints - Events
             'api.events.getList' => self::API_EVENTS_GET_LIST,

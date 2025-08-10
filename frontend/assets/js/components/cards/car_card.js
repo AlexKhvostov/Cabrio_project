@@ -7,7 +7,7 @@ function escapeHtml(str){
 }
 
 export function renderCarCard(car, options = {}){
-  const showOwner = options.showOwner !== false
+  const showOwner = (options.showOwner !== false) && !!car.owner
   const title = `${car.brand?.name||''} ${car.model||''}`.trim()
   const photoUrl = car.photo?.url || ''
   const ownerAvatar = car.owner?.photo?.url || ''
@@ -29,7 +29,7 @@ export function renderCarCard(car, options = {}){
       ${showOwner ? `
       <div class="car-owner-compact">
         <div class="owner-avatar-small">${ownerAvatar ? `<img src="${escapeHtml(ownerAvatar)}" class="avatar-image" alt="${escapeHtml(ownerFirst)}"/>` : ''}</div>
-        <span class="owner-name-compact">@${escapeHtml(car.owner?.username||'')}</span>
+        <span class="owner-name-compact">${car.owner?.username?`@${escapeHtml(car.owner.username)}`:'не задано'}</span>
       </div>` : ''}
     </div>
   </div>`

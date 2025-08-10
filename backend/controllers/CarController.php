@@ -44,6 +44,16 @@ class CarController extends BaseController
 
             // Получаем список автомобилей с развернутыми данными
             $cars = Car::getAll();
+            // Приватность: скрываем владельца, если нет прав на просмотр участников
+            $canIncludeOwner = $this->checkAccess('api.cars.includeOwner');
+            if (!$canIncludeOwner) {
+                foreach ($cars as &$c) {
+                    if (isset($c['owner'])) {
+                        unset($c['owner']);
+                    }
+                }
+                unset($c);
+            }
             
             // Логируем действие
             $this->logUserAction('get_cars_list', [
@@ -97,6 +107,10 @@ class CarController extends BaseController
                     ]
                 ], 404);
                 return;
+            }
+            // Приватность: скрываем владельца, если нет прав на просмотр участников
+            if (!$this->checkAccess('api.cars.includeOwner') && isset($car['owner'])) {
+                unset($car['owner']);
             }
             
             // Логируем действие
