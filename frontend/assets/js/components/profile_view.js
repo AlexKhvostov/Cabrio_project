@@ -117,7 +117,6 @@ export async function initProfilePage() {
 
       // Редактирование/Сохранение
       const editBtn = document.getElementById('editBtn')
-      const cancelBtn = document.getElementById('cancelBtn')
       const saveBtn = document.getElementById('saveBtn')
       const editableIds = ['first_name_app','last_name_app','city','country','email','phone','about','notes']
       const setDisabled = (disabled) => {
@@ -134,7 +133,7 @@ export async function initProfilePage() {
       let initialData = snapshot()
       setDisabled(true)
 
-      if (editBtn && cancelBtn && saveBtn) {
+      if (editBtn && saveBtn) {
         editBtn.addEventListener('click', () => {
           const isEditing = editBtn.dataset.mode === 'editing'
           if (!isEditing) {
