@@ -12,10 +12,13 @@
     <section class="content">
       <p>Добро пожаловать в клуб. Откройте раздел ниже.</p>
     </section>
+    <UiTabBar />
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import UiTabBar from '../components/UiTabBar.vue';
+</script>
 
 <style scoped>
 .view { padding: 12px; }
