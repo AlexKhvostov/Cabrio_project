@@ -203,6 +203,7 @@ class UserController extends BaseController
             $input = json_decode(file_get_contents('php://input'), true) ?: [];
 
             // Разрешённые к редактированию поля
+            // Заметки (notes) исключены из self-редактирования — доступны только админам в админке
             $allowedFields = [
                 'first_name_app',
                 'last_name_app',
@@ -210,8 +211,7 @@ class UserController extends BaseController
                 'phone',
                 'city',
                 'country',
-                'about',
-                'notes'
+                'about'
             ];
 
             $updateData = ['id' => $currentUserId];

@@ -54,10 +54,7 @@
               <span>О себе</span>
               <textarea id="about" rows="3"></textarea>
             </label>
-            <label class="form-field form-col">
-              <span>Заметки</span>
-              <textarea id="notes" rows="2"></textarea>
-            </label>
+            
           </div>
           
         </form>

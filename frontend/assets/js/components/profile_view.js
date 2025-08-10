@@ -118,7 +118,7 @@ export async function initProfilePage() {
       // Редактирование/Сохранение
       const editBtn = document.getElementById('editBtn')
       const saveBtn = document.getElementById('saveBtn')
-      const editableIds = ['first_name_app','last_name_app','city','country','email','phone','about','notes']
+      const editableIds = ['first_name_app','last_name_app','city','country','email','phone','about']
       const setDisabled = (disabled) => {
         editableIds.forEach(id => {
           const el = document.getElementById(id)
