@@ -71,20 +71,14 @@ class UrlHelper {
         $path = self::normalizeDbPath($trimmed) ?? '';
         $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
 
-        // Формируем кандидата для указанного размера
-        $urlSized = self::getUploadsBaseUrlWithSize($size) . '/' . $path;
-        $absSized = self::toAbsoluteUploadsPath($path, $size);
-        if (file_exists($absSized)) {
-            return $urlSized;
+        // Если запрошен не orig, но каталога такого размера нет — возвращаем orig
+        if ($size !== 'orig') {
+            $absDir = self::toAbsoluteUploadsDir($size);
+            if (!is_dir($absDir)) {
+                return self::getUploadsBaseUrlWithSize('orig') . '/' . $path;
+            }
         }
-        // Фоллбек на оригинал
-        $urlOrig = self::getUploadsBaseUrlWithSize('orig') . '/' . $path;
-        $absOrig = self::toAbsoluteUploadsPath($path, 'orig');
-        if (file_exists($absOrig)) {
-            return $urlOrig;
-        }
-        // Легаси фоллбек: uploads/{path} без размера (до миграции файлов в orig/)
-        return self::getUploadsBaseUrl() . '/' . $path;
+        return self::getUploadsBaseUrlWithSize($size) . '/' . $path;
     }
 
     /**
@@ -95,6 +89,12 @@ class UrlHelper {
         $baseDir = __DIR__ . '/../../..'; // до корня проекта
         $relativePath = ltrim($relativePath, '/');
         return $baseDir . '/uploads/' . $size . '/' . $relativePath;
+    }
+
+    private static function toAbsoluteUploadsDir(string $size = 'orig'): string {
+        $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
+        $baseDir = __DIR__ . '/../../..';
+        return $baseDir . '/uploads/' . $size;
     }
 }
 
