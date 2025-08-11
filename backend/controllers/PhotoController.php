@@ -62,8 +62,76 @@ class PhotoController extends BaseController
             $entityType = $_POST['entity_type'] ?? null;
             $entityId = $_POST['entity_id'] ?? null;
             $this->logUserAction('upload_photo', ['entity_type' => $entityType, 'entity_id' => $entityId]);
-            // TODO: Реализовать загрузку фото через модель
-            $this->json(['success' => true, 'data' => ['id' => 1, 'filename' => 'photo.jpg', 'entity_type' => $entityType, 'entity_id' => $entityId, 'uploaded_by' => $this->getCurrentUserId()], 'meta' => $this->getRequestInfo()], 201);
+
+            if (!$entityType || !$entityId) {
+                return $this->json(['success'=>false,'error'=>['code'=>'VALIDATION_ERROR','message'=>'entity_type и entity_id обязательны']], 400);
+            }
+
+            // Дополнительные проверки доступа: модератор и выше всегда может; иначе владелец сущности
+            $currentUser = $this->getCurrentUser();
+            $currentUserId = (int)($currentUser['id'] ?? 0);
+            $currentUserRoleCode = $currentUser['role']['code'] ?? ($currentUser['role_code'] ?? null);
+            $isModeratorOrAbove = in_array($currentUserRoleCode, ['moderator','admin'], true);
+
+            if (!$isModeratorOrAbove) {
+                if ($entityType === 'user') {
+                    if ($currentUserId !== (int)$entityId) {
+                        return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Можно загружать фото только для своего профиля']], 403);
+                    }
+                } elseif ($entityType === 'car') {
+                    require_once __DIR__ . '/../models/Car.php';
+                    $car = Car::findById((int)$entityId);
+                    if (!$car || (int)$car->owner_user_id !== $currentUserId) {
+                        return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Можно загружать фото только для своих автомобилей']], 403);
+                    }
+                } else {
+                    return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Недостаточно прав на загрузку для этой сущности']], 403);
+                }
+            }
+
+            // Подготовка файла
+            require_once __DIR__ . '/../actions/helpers/FileHelper.php';
+            require_once __DIR__ . '/../utils/UrlHelper.php';
+            require_once __DIR__ . '/../models/Photo.php';
+
+            $prepared = FileHelper::preparePhotoForSaving($_POST, $_FILES);
+            if (!$prepared) {
+                return $this->json(['success'=>false,'error'=>['code'=>'VALIDATION_ERROR','message'=>'Файл фото не найден']], 400);
+            }
+
+            // Резервируем ID фото и формируем имя файла
+            $photoId = Photo::getNextId();
+            $fileName = FileHelper::generateCorrectFileName($entityType, (int)$entityId, (int)$photoId, strtolower(pathinfo($prepared['name'], PATHINFO_EXTENSION)) ?: 'jpg');
+
+            // Сохранить оригинал (в uploads/orig/{entity}) и сгенерировать превью
+            $relativePath = FileHelper::savePhoto($prepared, $entityType, (int)$entityId, (int)$photoId);
+
+            // Создать запись в БД
+            $newId = Photo::create([
+                'entity_type' => $entityType,
+                'entity_id' => (int)$entityId,
+                'file_name' => $fileName,
+                'url' => $relativePath, // в БД храним канонический путь без префикса размера
+                'photo_type' => $_POST['photo_type'] ?? 'cover',
+                'description' => $_POST['description'] ?? null,
+                'uploaded_by' => $currentUserId,
+            ]);
+
+            // Формируем ответ с абсолютными URL
+            $resp = [
+                'id' => (int)$newId,
+                'entity_type' => $entityType,
+                'entity_id' => (int)$entityId,
+                'file_name' => $fileName,
+                'url' => UrlHelper::buildUploadsUrlSized($relativePath, 'orig'),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($relativePath, 'medium'),
+                    'mini'   => UrlHelper::buildUploadsUrlSized($relativePath, 'mini'),
+                ],
+                'uploaded_by' => $currentUserId,
+            ];
+
+            return $this->json(['success'=>true,'data'=>$resp,'meta'=>$this->getRequestInfo()], 201);
         } catch (Throwable $e) {
             Logger::error('PhotoController: upload error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);
             $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
