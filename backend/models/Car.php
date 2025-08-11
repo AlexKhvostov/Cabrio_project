@@ -336,7 +336,8 @@ class Car {
             // Формируем объект photo (склеиваем с UPLOADS_BASE_URL и размерами)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                // Базовый URL без проверки наличия — всегда указывает на orig
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'urls' => [
                     'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                     'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
@@ -421,7 +422,8 @@ class Car {
             // Фото (склеиваем с UPLOADS_BASE_URL и размерами)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                // Базовый URL без проверки наличия — всегда указывает на orig
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'urls' => [
                     'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                     'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),

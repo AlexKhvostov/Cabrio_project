@@ -100,7 +100,7 @@ class User {
         // Объект photo (со склейкой URL + размеры)
         $user['photo'] = $row['photo_id'] ? [
             'id' => $row['photo_id'],
-            'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+            'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
             'urls' => [
                 'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                 'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
@@ -354,7 +354,7 @@ class User {
             // Формируем объект photo (склеиваем с UPLOADS_BASE_URL + размеры)
             $user['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
                 'urls' => [
                     'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                     'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
