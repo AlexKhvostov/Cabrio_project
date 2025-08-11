@@ -162,7 +162,12 @@ class Car {
         $values = [];
         
         // Подготавливаем поля для обновления
-        $fields = ['car_brand_id', 'model', 'color', 'year', 'owner_user_id', 'status_id'];
+        $fields = [
+            'car_brand_id', 'model', 'color', 'year',
+            'engine_power', 'engine_volume', 'vin', 'roof_type', 'description',
+            'reg_number', 'show_reg_number',
+            'owner_user_id', 'status_id'
+        ];
         
         foreach ($fields as $field) {
             if (isset($data[$field])) {
@@ -328,21 +333,19 @@ class Car {
             ];
             unset($car['status_id'], $car['status_code'], $car['status_name']);
 
-            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL)
+            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL и размерами)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                    'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                ],
                 'description' => $row['photo_description'],
             ] : null;
             unset($car['photo_id'], $car['photo_url'], $car['photo_description']);
 
-            // Маскируем номер при запрете показа (различать пустой и скрытый)
-            if (array_key_exists('show_reg_number', $car)) {
-                $allowed = (int)$car['show_reg_number'] === 1 || strtolower((string)$car['show_reg_number']) === 'true';
-                if (!$allowed && !empty($car['reg_number'])) {
-                    $car['reg_number'] = 'скрыт';
-                }
-            }
+            // Маскирование номера выполняется на уровне контроллера с учётом владельца
 
             $cars[] = $car;
         }
@@ -362,7 +365,7 @@ class Car {
      * @param array $ownerIds Массив ID пользователей-владельцев
      * @return array Список автомобилей с ключевыми полями и owner_user_id
      */
-    public static function getByOwnerIds(array $ownerIds)
+     public static function getByOwnerIds(array $ownerIds, bool $maskPrivate = true)
     {
         if (empty($ownerIds)) {
             return [];
@@ -415,15 +418,19 @@ class Car {
                 'name' => $row['status_name'],
             ];
 
-            // Фото (склеиваем с UPLOADS_BASE_URL)
+            // Фото (склеиваем с UPLOADS_BASE_URL и размерами)
             $car['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                    'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                ],
                 'description' => $row['photo_description'],
             ] : null;
 
-            // Маскируем номер при запрете показа
-            if (!(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
+            // Маскируем номер при запрете показа (если требуется маскирование)
+            if ($maskPrivate && !(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
                 $car['reg_number'] = 'скрыт';
             }
 

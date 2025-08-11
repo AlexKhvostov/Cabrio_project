@@ -97,21 +97,28 @@ class User {
         ];
         unset($user['role_id'], $user['role_code'], $user['role_name']);
 
-        // Объект photo (со склейкой URL)
+        // Объект photo (со склейкой URL + размеры)
         $user['photo'] = $row['photo_id'] ? [
             'id' => $row['photo_id'],
-            'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+            'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+            'urls' => [
+                'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+            ],
             'description' => $row['photo_description'],
         ] : null;
         unset($user['photo_id'], $user['photo_url'], $user['photo_description']);
 
         // Прикладываем машины пользователя (если есть)
         require_once __DIR__ . '/Car.php';
-        $cars = Car::getByOwnerIds([(int)$row['id']]);
+        // Для профиля текущего пользователя НЕ маскируем номер (maskPrivate=false)
+        $cars = Car::getByOwnerIds([(int)$row['id']], false);
         $carsForUser = [];
         foreach ($cars as $car) {
             $carForOutput = $car;
             unset($carForOutput['owner_user_id']);
+            // Так как это профиль текущего пользователя, он может редактировать свои авто
+            $carForOutput['permissions'] = [ 'canEdit' => true ];
             $carsForUser[] = $carForOutput;
         }
         $user['cars'] = $carsForUser;
@@ -344,10 +351,14 @@ class User {
             ];
             unset($user['role_id'], $user['role_code'], $user['role_name']);
 
-            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL)
+            // Формируем объект photo (склеиваем с UPLOADS_BASE_URL + размеры)
             $user['photo'] = $row['photo_id'] ? [
                 'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+                'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                    'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                ],
                 'description' => $row['photo_description'],
             ] : null;
             unset($user['photo_id'], $user['photo_url'], $user['photo_description']);

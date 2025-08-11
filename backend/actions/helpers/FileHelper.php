@@ -22,13 +22,13 @@ class FileHelper {
      * @return string - Относительный путь к сохраненному файлу
      * @throws Exception - Если не удалось сохранить файл
      */
-    public static function savePhoto($fileData, $entityType, $entityId, $photoId) {
+     public static function savePhoto($fileData, $entityType, $entityId, $photoId) {
         try {
             // Валидация файла
             self::validatePhotoFile($fileData);
             
-            // Создание директории если не существует
-            $uploadDir = self::getUploadDir($entityType);
+            // Создание директории если не существует (оригиналы в uploads/orig/{entity})
+            $uploadDir = self::getUploadDir($entityType, 'orig');
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -50,10 +50,17 @@ class FileHelper {
                 }
             }
             
+            // Генерация миниатюр (medium, mini)
+            try {
+                self::generateThumbnails($filePath, $entityType, basename($filePath));
+            } catch (Exception $thumbEx) {
+                Logger::warning('FileHelper::generateThumbnails warning: ' . $thumbEx->getMessage());
+            }
+
             // Логирование
             Logger::info("Photo saved: $filePath");
             
-            // Возврат относительного пути для БД
+            // Возврат относительного пути ДЛЯ БД (без uploads/ и без размера): например "car/car_1_2.jpg"
             return self::getRelativePath($filePath);
             
         } catch (Exception $e) {
@@ -73,13 +80,13 @@ class FileHelper {
      * @return string - Относительный путь к сохраненному файлу
      * @throws Exception - Если не удалось сохранить файл
      */
-    public static function savePhotoFromBase64($base64Data, $entityType, $entityId, $photoId, $originalName = 'photo.jpg') {
+     public static function savePhotoFromBase64($base64Data, $entityType, $entityId, $photoId, $originalName = 'photo.jpg') {
         try {
             // Создаем временный файл из base64
             $tempFileData = self::createTempFileFromBase64($base64Data, $originalName);
             
-            // Создание директории если не существует
-            $uploadDir = self::getUploadDir($entityType);
+            // Создание директории если не существует (оригиналы в uploads/orig/{entity})
+            $uploadDir = self::getUploadDir($entityType, 'orig');
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -93,6 +100,13 @@ class FileHelper {
                 throw new Exception('Не удалось сохранить файл: ' . $tempFileData['name']);
             }
             
+            // Генерация миниатюр (medium, mini)
+            try {
+                self::generateThumbnails($filePath, $entityType, basename($filePath));
+            } catch (Exception $thumbEx) {
+                Logger::warning('FileHelper::generateThumbnails warning: ' . $thumbEx->getMessage());
+            }
+
             // Удаляем временный файл
             if (file_exists($tempFileData['tmp_name'])) {
                 unlink($tempFileData['tmp_name']);
@@ -101,7 +115,7 @@ class FileHelper {
             // Логирование
             Logger::info("Photo saved from base64: $filePath");
             
-            // Возврат относительного пути для БД
+            // Возврат относительного пути ДЛЯ БД (без uploads/ и без размера): например "car/car_1_2.jpg"
             return self::getRelativePath($filePath);
             
         } catch (Exception $e) {
@@ -153,9 +167,10 @@ class FileHelper {
      * @param string $entityType - Тип сущности
      * @return string - Полный путь к директории
      */
-    public static function getUploadDir($entityType) {
+    public static function getUploadDir($entityType, $size = 'orig') {
         $baseDir = __DIR__ . '/../../../uploads';
-        return $baseDir . '/' . $entityType;
+        $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
+        return $baseDir . '/' . $size . '/' . $entityType;
     }
     
     /**
@@ -210,8 +225,75 @@ class FileHelper {
      * @return string - Относительный путь от корня проекта
      */
     public static function getRelativePath($fullPath) {
-        $projectRoot = __DIR__ . '/../../../';
-        return str_replace($projectRoot, '', $fullPath);
+        $projectRoot = __DIR__ . '/../../../uploads/orig/';
+        $normalized = str_replace('\\', '/', $fullPath);
+        $relative = str_replace($projectRoot, '', $normalized);
+        // Если вдруг пришёл путь без ожидаемого префикса — вернём от корня uploads
+        if ($relative === $normalized) {
+            $fallbackRoot = __DIR__ . '/../../../uploads/';
+            $relative = str_replace($fallbackRoot, '', $normalized);
+        }
+        return ltrim($relative, '/');
+    }
+
+    /**
+     * 🖼️ Генерация миниатюр medium (500x500) и mini (50x50) из оригинала
+     * @param string $origFullPath Абсолютный путь к оригиналу (uploads/orig/{entity}/{name})
+     * @param string $entityType   Тип сущности (user|car|...)
+     * @param string $fileName     Имя файла (например, car_1_2.jpg)
+     */
+    public static function generateThumbnails(string $origFullPath, string $entityType, string $fileName): void {
+        if (!function_exists('imagecreatetruecolor')) {
+            // Нет GD — пропускаем
+            return;
+        }
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        // Поддерживаем только jpg/png/gif на вход
+        $supported = ['jpg','jpeg','png','gif'];
+        if (!in_array($ext, $supported, true)) return;
+
+        $src = null;
+        if ($ext === 'jpg' || $ext === 'jpeg') $src = @imagecreatefromjpeg($origFullPath);
+        elseif ($ext === 'png') $src = @imagecreatefrompng($origFullPath);
+        elseif ($ext === 'gif') $src = @imagecreatefromgif($origFullPath);
+        if (!$src) return;
+
+        $w = imagesx($src); $h = imagesy($src);
+
+        // Хелпер: нарисовать квадратный thumbnail нужного размера с кропом по центру
+        $makeThumb = function($size) use ($src, $w, $h) {
+            $minSide = min($w, $h);
+            $srcX = (int) max(0, ($w - $minSide) / 2);
+            $srcY = (int) max(0, ($h - $minSide) / 2);
+            $srcSize = (int) $minSide;
+            $dst = imagecreatetruecolor($size, $size);
+            // Белый фон (на случай PNG/GIF с прозрачностью)
+            $white = imagecolorallocate($dst, 255, 255, 255);
+            imagefill($dst, 0, 0, $white);
+            imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $size, $size, $srcSize, $srcSize);
+            return $dst;
+        };
+
+        // Папки для превью
+        $dirMedium = self::getUploadDir($entityType, 'medium');
+        $dirMini   = self::getUploadDir($entityType, 'mini');
+        if (!is_dir($dirMedium)) mkdir($dirMedium, 0755, true);
+        if (!is_dir($dirMini)) mkdir($dirMini, 0755, true);
+
+        // Пути
+        $mediumPath = $dirMedium . '/' . $fileName;
+        $miniPath   = $dirMini   . '/' . $fileName;
+
+        // Генерация и сохранение JPG
+        $thumbM = $makeThumb(500);
+        @imagejpeg($thumbM, $mediumPath, 85);
+        imagedestroy($thumbM);
+
+        $thumbS = $makeThumb(50);
+        @imagejpeg($thumbS, $miniPath, 80);
+        imagedestroy($thumbS);
+
+        imagedestroy($src);
     }
     
     /**

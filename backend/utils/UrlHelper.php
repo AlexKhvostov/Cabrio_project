@@ -17,6 +17,37 @@ class UrlHelper {
     }
 
     /**
+     * Вернёт базовый URL для указанного размера: orig | medium | mini
+     */
+    public static function getUploadsBaseUrlWithSize(string $size = 'orig'): string {
+        $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
+        return self::getUploadsBaseUrl() . '/' . $size;
+    }
+
+    /**
+     * Нормализовать путь из БД к виду без префикса uploads/ и без префикса размера (orig/medium/mini).
+     * Примеры входа:
+     *  - "/uploads/user/user_1_1.jpg" → "user/user_1_1.jpg"
+     *  - "uploads/orig/car/car_2_3.jpg" → "car/car_2_3.jpg"
+     *  - "car/car_2_3.jpg" → "car/car_2_3.jpg"
+     */
+    public static function normalizeDbPath(?string $dbUrl): ?string {
+        if ($dbUrl === null || trim($dbUrl) === '') return null;
+        $path = ltrim(trim($dbUrl), '/');
+        if (stripos($path, 'uploads/') === 0) {
+            $path = substr($path, strlen('uploads/'));
+        }
+        // Срезаем возможные префиксы размера
+        foreach (['orig/','medium/','mini/'] as $prefix) {
+            if (stripos($path, $prefix) === 0) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+        return $path;
+    }
+
+    /**
      * Склеить базовый URL и значение из БД (photos.url).
      * Поддерживает варианты: "/uploads/...", "uploads/...", "user/...", "car/...".
      * Если уже абсолютный URL — возвращает как есть.
@@ -25,11 +56,45 @@ class UrlHelper {
         if ($dbUrl === null || $dbUrl === '') return null;
         $trimmed = trim($dbUrl);
         if (preg_match('/^https?:\/\//i', $trimmed)) return $trimmed;
-        $path = ltrim($trimmed, '/');
-        if (stripos($path, 'uploads/') === 0) {
-            $path = substr($path, strlen('uploads/'));
+        $path = self::normalizeDbPath($trimmed) ?? '';
+        // По умолчанию считаем, что нужен оригинал
+        return self::getUploadsBaseUrlWithSize('orig') . '/' . $path;
+    }
+
+    /**
+     * Построить URL для конкретного размера превью: orig | medium | mini
+     */
+    public static function buildUploadsUrlSized(?string $dbUrl, string $size = 'orig'): ?string {
+        if ($dbUrl === null || $dbUrl === '') return null;
+        $trimmed = trim($dbUrl);
+        if (preg_match('/^https?:\/\//i', $trimmed)) return $trimmed;
+        $path = self::normalizeDbPath($trimmed) ?? '';
+        $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
+
+        // Формируем кандидата для указанного размера
+        $urlSized = self::getUploadsBaseUrlWithSize($size) . '/' . $path;
+        $absSized = self::toAbsoluteUploadsPath($path, $size);
+        if (file_exists($absSized)) {
+            return $urlSized;
         }
+        // Фоллбек на оригинал
+        $urlOrig = self::getUploadsBaseUrlWithSize('orig') . '/' . $path;
+        $absOrig = self::toAbsoluteUploadsPath($path, 'orig');
+        if (file_exists($absOrig)) {
+            return $urlOrig;
+        }
+        // Легаси фоллбек: uploads/{path} без размера (до миграции файлов в orig/)
         return self::getUploadsBaseUrl() . '/' . $path;
+    }
+
+    /**
+     * Абсолютный путь на ФС до файла в uploads/{size}/{path}
+     */
+    private static function toAbsoluteUploadsPath(string $relativePath, string $size = 'orig'): string {
+        $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
+        $baseDir = __DIR__ . '/../../..'; // до корня проекта
+        $relativePath = ltrim($relativePath, '/');
+        return $baseDir . '/uploads/' . $size . '/' . $relativePath;
     }
 }
 
