@@ -136,8 +136,10 @@ class FileHelper {
             throw new ValidationException('Файл не был загружен');
         }
         
-        // Проверяем, является ли это загруженным файлом или временным файлом
-        if (!is_uploaded_file($fileData['tmp_name']) && !file_exists($fileData['tmp_name'])) {
+        // Проверяем валидность временного файла: допускаем как загруженный файл, так и существующий temp-файл
+        $tmp = $fileData['tmp_name'];
+        $isUpload = function_exists('is_uploaded_file') ? @is_uploaded_file($tmp) : false;
+        if (!$isUpload && !@file_exists($tmp)) {
             throw new ValidationException('Файл не был загружен');
         }
         
