@@ -94,10 +94,13 @@ class PhotoController extends BaseController
             require_once __DIR__ . '/../utils/UrlHelper.php';
             require_once __DIR__ . '/../models/Photo.php';
 
+            // Диагностика содержимого $_FILES
+            try { Logger::info('PhotoController: incoming $_FILES', ['keys' => array_keys($_FILES), 'photo' => $_FILES['photo'] ?? null]); } catch (Throwable $e) {}
             $prepared = FileHelper::preparePhotoForSaving($_POST, $_FILES);
             if (!$prepared) {
                 return $this->json(['success'=>false,'error'=>['code'=>'VALIDATION_ERROR','message'=>'Файл фото не найден']], 400);
             }
+            try { Logger::info('PhotoController: prepared file', ['name'=>$prepared['name']??null,'tmp_name'=>$prepared['tmp_name']??null,'size'=>$prepared['size']??null,'type'=>$prepared['type']??null]); } catch (Throwable $e) {}
 
             // Резервируем ID фото и формируем имя файла
             $photoId = Photo::getNextId();
