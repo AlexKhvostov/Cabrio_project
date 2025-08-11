@@ -19,7 +19,7 @@ export function renderUserCard(member, options = {}){
   const carsListHtml = carsCount ? `
     <div class="cars-mini-list">
       ${cars.slice(0,3).map(c=>{
-        const carPhoto = c.photo?.url || ''
+        const carPhoto = c.photo?.urls?.mini || c.photo?.url || ''
         const plate = (c.reg_number===null || c.reg_number===undefined || String(c.reg_number)==='') ? '—' : String(c.reg_number)
         return `
           <div class="cars-mini-item">

@@ -9,11 +9,20 @@ function escapeHtml(str){
 export function renderCarCard(car, options = {}){
   const showOwner = (options.showOwner !== false) && !!car.owner
   const title = `${car.brand?.name||''} ${car.model||''}`.trim()
-  const photoUrl = car.photo?.url || ''
-  const ownerAvatar = car.owner?.photo?.url || ''
+  const photoUrl = car.photo?.urls?.medium || car.photo?.url || ''
+  const ownerAvatar = car.owner?.photo?.urls?.mini || car.owner?.photo?.url || ''
   const ownerFirst = car.owner?.first_name_app || car.owner?.first_name || car.owner?.first_name_tg || ''
   const ownerLast = car.owner?.last_name_app || car.owner?.last_name || car.owner?.last_name_tg || ''
   const statusText = car.status?.name || car.status?.code || ''
+  const roofTypeName = (code) => {
+    switch ((code || '').toString()) {
+      case 'soft': return 'Мягкая'
+      case 'hard': return 'Жёсткая'
+      case 'targa': return 'Тарга'
+      case 'none': return 'Нет'
+      default: return code || ''
+    }
+  }
   return `
   <div class="car-card-compact" data-id="${car.id}">
     <div class="car-image-container">
@@ -24,6 +33,7 @@ export function renderCarCard(car, options = {}){
       <div class="car-specs-compact">
         <span>${escapeHtml(String(car.year||'не задано'))}</span>
         <span> • ${escapeHtml(car.model || 'не задано')}</span>
+        ${car.roof_type ? `<span> • ${escapeHtml(roofTypeName(car.roof_type))}</span>` : ''}
       </div>
       ${statusText ? `<div class=\"car-status\" style=\"font-size:12px;color:#aaa\">Статус: ${escapeHtml(statusText)}</div>` : ''}
       ${showOwner ? `
