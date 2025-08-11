@@ -9,7 +9,11 @@ function escapeHtml(str){
 export function openCarModal(car){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
-  const title = `${car.brand?.name||''} ${car.model||''}`.trim()
+  const rawBrandName = (car.brand && typeof car.brand.name === 'string') ? car.brand.name.trim() : ''
+  const rawModelName = (typeof car.model === 'string') ? car.model.trim() : ''
+  const titleBrand = rawBrandName || 'марка'
+  const titleModel = rawModelName || 'модель'
+  const title = `${titleBrand} ${titleModel}`.trim()
   const ownerAvatar = car.owner?.photo?.url || ''
   const rawPhotos = Array.isArray(car.photos) && car.photos.length ? car.photos : (car.photo?.url ? [car.photo] : [])
   const photos = rawPhotos.map(p=>{
@@ -76,7 +80,7 @@ export function openCarModal(car){
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-title">${escapeHtml(title)}</div>
-        <div style="display:flex;gap:6px;align-items:center;">
+        <div id="carHeaderActions" style="display:flex;gap:6px;align-items:center;">
           ${canEdit ? `<button class=\"btn-warning\" id=\"carEditBtn\" style=\"padding:6px 10px;font-size:13px\">Редактировать</button>` : ''}
           <button class="modal-close" aria-label="close">×</button>
         </div>
@@ -143,9 +147,11 @@ export function openCarModal(car){
     const basic = overlay.querySelector('#carDetailsBasic')
     if (basic) {
       const brandName = car.brand?.name || ''
+      const brandValue = isEditing ? brandName : (brandName || 'марка')
+      const modelPlaceholder = 'модель'
       basic.innerHTML = `
-        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['brand'])}</span><span class="detail-value"><div class="combo"><input id="brandSearchInput" class="combo-input" type="text" placeholder="Начните ввод..." value="${escapeHtml(brandName)}" autocomplete="off" ${disAttr} /><input type="hidden" data-edit-key="car_brand_id" value="${car.car_brand_id?Number(car.car_brand_id):''}"><div class="combo-list" id="brandSuggestList"></div></div></span></div>
-        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['model'])}</span><span class="detail-value"><input data-edit-key="model" class="filter-input" value="${escapeHtml(car.model||'')}" ${disAttr} /></span></div>
+        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['brand'])}</span><span class="detail-value"><div class="combo"><input id="brandSearchInput" class="combo-input" type="text" placeholder="${isEditing ? 'Начните ввод...' : ''}" value="${escapeHtml(brandValue)}" autocomplete="off" ${disAttr} /><input type="hidden" data-edit-key="car_brand_id" value="${car.car_brand_id?Number(car.car_brand_id):''}"><div class="combo-list" id="brandSuggestList"></div></div></span></div>
+        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['model'])}</span><span class="detail-value"><input data-edit-key="model" class="filter-input" value="${escapeHtml(car.model||'')}" placeholder="${escapeHtml(modelPlaceholder)}" ${disAttr} /></span></div>
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['color'])}</span><span class="detail-value"><input data-edit-key="color" class="filter-input" value="${escapeHtml(car.color||'')}" ${disAttr} /></span></div>
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['year'])}</span><span class="detail-value"><input data-edit-key="year" class="filter-input" inputmode="numeric" value="${escapeHtml(car.year||'')}" ${disAttr} /></span></div>
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['roof_type'])}</span><span class="detail-value"><select data-edit-key="roof_type" class="filter-input" ${disAttr}><option value="soft" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value="hard" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value="targa" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value="none" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
@@ -299,6 +305,60 @@ export function openCarModal(car){
       openCarModal(saved)
     }
 
+    // Кнопка загрузки фото (добавляем при входе в режим редактирования)
+    const ensureUploadControls = () => {
+      const actions = overlay.querySelector('#carHeaderActions')
+      if (!actions) return
+      if (!actions.querySelector('#carUploadBtn')) {
+        const uploadBtn = document.createElement('button')
+        uploadBtn.id = 'carUploadBtn'
+        uploadBtn.className = 'btn-secondary'
+        uploadBtn.textContent = 'Загрузить фото'
+        uploadBtn.style.cssText = 'padding:6px 10px;font-size:13px'
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.id = 'carPhotoInput'
+        input.accept = 'image/*'
+        input.style.display = 'none'
+        actions.insertBefore(uploadBtn, actions.querySelector('.modal-close'))
+        actions.appendChild(input)
+        uploadBtn.addEventListener('click', ()=> input.click())
+        input.addEventListener('change', async ()=>{
+          const file = input.files && input.files[0]
+          if (!file) return
+          try {
+            const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+            const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}`
+            const fd = new FormData()
+            fd.append('entity_type','car')
+            fd.append('entity_id', String(car.id))
+            fd.append('photo', file)
+            // Telegram headers
+            const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
+            const resp = await fetch(url, { method: 'POST', headers, body: fd }).then(r=>r.json().catch(()=>null))
+            if (!resp || resp.success === false) {
+              alert((resp && resp.error && resp.error.message) || 'Не удалось загрузить фото')
+              return
+            }
+            const newPhoto = resp.data
+            // Обновим локальные данные авто
+            car.photo = newPhoto
+            if (!Array.isArray(car.photos)) car.photos = []
+            car.photos.unshift(newPhoto)
+            // Проще перерисовать модалку заново с обновлёнными данными
+            const saved = { ...car }
+            overlay.remove()
+            openCarModal(saved)
+            // Автовключение редактирования обратно не делаем — по UX достаточно
+          } catch {
+            alert('Ошибка загрузки')
+          } finally {
+            input.value = ''
+          }
+        })
+      }
+    }
+
     editBtn?.addEventListener('click', async ()=>{
       if (!isEditing) {
         isEditing = true
@@ -306,6 +366,7 @@ export function openCarModal(car){
         editBtn.classList.remove('btn-warning')
         editBtn.classList.add('btn-success')
         renderEditable()
+        ensureUploadControls()
       } else {
         // Сохранить
         const payload = {}
