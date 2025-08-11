@@ -71,13 +71,8 @@ class UrlHelper {
         $path = self::normalizeDbPath($trimmed) ?? '';
         $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
 
-        // Если запрошен не orig, но каталога такого размера нет — возвращаем orig
-        if ($size !== 'orig') {
-            $absDir = self::toAbsoluteUploadsDir($size);
-            if (!is_dir($absDir)) {
-                return self::getUploadsBaseUrlWithSize('orig') . '/' . $path;
-            }
-        }
+        // Всегда возвращаем URL на запрошенный размер (orig|medium|mini)
+        // Если файл отсутствует — клиент получит 404, что корректно и заметно при отладке
         return self::getUploadsBaseUrlWithSize($size) . '/' . $path;
     }
 
