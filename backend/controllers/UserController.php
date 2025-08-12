@@ -69,6 +69,81 @@ class UserController extends BaseController
     }
 
     /**
+     * Сменить роль пользователя (только для moderator+)
+     * POST /api/users/{id}/role
+     * Body: { "role": "member" } ИЛИ { "role_id": 4 }
+     */
+    public function updateRole($userId)
+    {
+        try {
+            // Если по какой-то причине контекст пользователя не установлен — пытаемся аутентифицировать здесь
+            if (!AppContext::hasCurrentUser()) {
+                require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+                $routeGuess = $_GET['route'] ?? ('/api/users/' . (int)$userId . '/role');
+                AuthMiddleware::authenticate($routeGuess, $_SERVER['REQUEST_METHOD'] ?? 'POST');
+            }
+
+            // Проверяем доступ: модератор и выше (робастно определяем код роли)
+            $current = $this->requireUser();
+            require_once __DIR__ . '/../../config/sectionGroups.php';
+            $currentRoleCode = 'guest';
+            if (isset($current['role']) && is_array($current['role']) && isset($current['role']['code'])) {
+                $currentRoleCode = $current['role']['code'];
+            } elseif (isset($current['role']) && is_string($current['role'])) {
+                $currentRoleCode = $current['role'];
+            } elseif (isset($current['role_id'])) {
+                $currentRoleCode = Roles::getRoleById((int)$current['role_id']);
+            }
+            if (!Roles::hasAccess($currentRoleCode, Roles::MODERATOR)) {
+                $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Недостаточно прав (требуется роль: moderator)']],403);
+                return;
+            }
+
+            $targetUserId = (int)$userId;
+            if ($targetUserId <= 0) {
+                $this->json(['success'=>false,'error'=>['code'=>'BAD_REQUEST','message'=>'Некорректный ID пользователя']],400);
+                return;
+            }
+
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $roleCode = $input['role'] ?? null;
+            $roleId = isset($input['role_id']) ? (int)$input['role_id'] : null;
+
+            if (!$roleId && $roleCode) {
+                require_once __DIR__ . '/../../config/sectionGroups.php';
+                $roleId = Roles::getRoleId($roleCode);
+            }
+
+            if (!$roleId) {
+                $this->json(['success'=>false,'error'=>['code'=>'NO_ROLE','message'=>'Не указана роль']],400);
+                return;
+            }
+
+            // Нельзя понизить/повысить себя через этот эндпоинт (безопасность)
+            $currentUser = $this->requireUser();
+            if ((int)$currentUser['id'] === $targetUserId) {
+                $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Нельзя менять свою роль']],403);
+                return;
+            }
+
+            // Обновляем роль
+            $ok = User::updateRole($targetUserId, $roleId);
+            if (!$ok) {
+                $this->json(['success'=>false,'error'=>['code'=>'UPDATE_FAILED','message'=>'Не удалось обновить роль']],400);
+                return;
+            }
+
+            // Возвращаем пользователя с развернутыми данными
+            $updated = User::findByIdWithDetails($targetUserId);
+            $this->logUserAction('update_user_role', ['target_user_id'=>$targetUserId,'role_id'=>$roleId]);
+            $this->json(['success'=>true,'data'=>$updated,'meta'=>$this->getRequestInfo()]);
+        } catch (Throwable $e) {
+            Logger::error('UserController: updateRole error', [ 'error'=>$e->getMessage(), 'user_id'=>$this->getCurrentUserId() ]);
+            $this->json(['success'=>false,'error'=>['code'=>'INTERNAL_ERROR','message'=>$e->getMessage()]],500);
+        }
+    }
+
+    /**
      * Создать нового пользователя
      * 
      * Требует авторизации: Да

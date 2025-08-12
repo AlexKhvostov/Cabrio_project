@@ -10,20 +10,30 @@
     <?php include __DIR__ . '/../components/header.php'; ?>
     <?php include __DIR__ . '/../components/nav.php'; ?>
     <main class="page">
-      <h2>Профиль</h2>
       <section id="profile" class="card profile-card" style="display:none;">
-        <div class="profile-header">
-          <div class="profile-avatar" id="profileAvatar"></div>
-          <div class="profile-title">
-            <div class="profile-name" id="profileName">&nbsp;</div>
-            <div class="profile-username" id="profileUsername">&nbsp;</div>
-          </div>
+        <div class="profile-topbar">
+          <div class="topbar-title" aria-hidden="true">Профиль</div>
           <div class="profile-actions">
-            <button type="button" id="editBtn" class="btn-secondary">Редактировать</button>
-            <button type="button" id="saveBtn" class="btn-primary" style="display:none;">Сохранить</button>
+            <button type="button" id="editBtn" class="btn-warning">Редактировать</button>
+            <button type="button" id="saveBtn" class="btn-success" style="display:none;">Сохранить</button>
           </div>
         </div>
-        <div id="role" style="font-size:12px;color:#aaa"></div>
+
+        <div class="profile-avatar-row" id="profileAvatarRow">
+          <div class="profile-avatar" id="profileAvatar"></div>
+          <div class="profile-info-stack">
+            <div class="profile-line">
+              <div class="profile-name" id="profileName">&nbsp;</div>
+            </div>
+            <div class="profile-subline">
+              <div class="profile-username" id="profileUsername">&nbsp;</div>
+              <div id="role" class="role-badge" aria-live="polite"></div>
+            </div>
+            <div class="profile-upload-line">
+              <button type="button" id="userUploadBtn" class="btn-secondary" style="display:none;">Загрузить фото</button>
+            </div>
+          </div>
+        </div>
         <form id="profile-form" class="profile-form" autocomplete="off">
           <div class="form-grid">
             <label class="form-field">

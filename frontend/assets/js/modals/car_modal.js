@@ -86,8 +86,11 @@ export function openCarModal(car){
         </div>
       </div>
       <div class="modal-body">
-        ${photos.length ? `<div class=\"main-photo-compact\"><img src=\"${escapeHtml(photos[0].url)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\"/></div>` : ''}
-        ${photos.length > 1 ? `<div class=\"photo-thumbnails-compact\">${photos.map((p,i)=>`<img src=\\\"${escapeHtml(p.url)}\\\" class=\\\"thumbnail-compact${i===0?' active':''}\\\" data-index=\\\"${i}\\\" alt=\\\"thumb\\\"/>`).join('')}</div>` : ''}
+        <div class=\"main-photo-compact\">
+          ${photos.length ? `<img src=\"${escapeHtml(photos[0].url)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\" id=\"carMainPhoto\"/>` : `<div class=\"car-placeholder\" id=\"carMainPhotoPlaceholder\" style=\"width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,var(--border-color) 0%, rgba(255,255,255,.08) 100%);display:flex;align-items:center;justify-content:center;color:#aaa;border-radius:10px;\">Нет фото</div>`}
+          <div class=\"photo-upload-overlay\" id=\"carUploadOverlay\" style=\"display:none\"> <div class=\"spinner\"></div> <span>Загрузка…</span> </div>
+        </div>
+        
 
         <div class="car-info-section-compact">
           <div class="car-header-compact">
@@ -121,17 +124,73 @@ export function openCarModal(car){
   overlay.querySelector('.modal-close')?.addEventListener('click', close)
   document.body.appendChild(overlay)
 
-  if (photos.length > 1) {
-    const main = overlay.querySelector('.main-photo-compact .main-image')
-    overlay.querySelectorAll('.thumbnail-compact').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        overlay.querySelectorAll('.thumbnail-compact').forEach(t=>t.classList.remove('active'))
-        el.classList.add('active')
-        const idx = Number(el.getAttribute('data-index'))
-        if (main && photos[idx]) main.setAttribute('src', photos[idx].url)
-      })
-    })
+  // Миниатюры отключены по требованиям UX
+  // Просмотр фото на весь экран (слайды) + подгрузка всех фото авто
+  const openPhotoViewer = async (startIndex = 0) => {
+    // Подгружаем полный список фото при необходимости
+    let fullList = Array.isArray(car._allPhotos) && car._allPhotos.length ? car._allPhotos : null
+    if (!fullList) {
+      try {
+        if (window.CabrioAPI?.apiGet) {
+          const res = await window.CabrioAPI.apiGet(`/api/photos?entity_type=car&entity_id=${encodeURIComponent(String(car.id))}`)
+          if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
+        } else {
+          const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+          const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
+          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
+          const res = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+          if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
+        }
+      } catch {}
+      // Fallback: если получили слишком мало фото, пробуем принудительно второй способ
+      try {
+        if (!fullList || fullList.length < 2) {
+          const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+          const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
+          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
+          const res2 = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+          if (res2 && res2.success !== false && Array.isArray(res2.data)) fullList = res2.data
+        }
+      } catch {}
+      // Фоллбек на то, что есть
+      if (!fullList || !fullList.length) {
+        fullList = rawPhotos
+      }
+      car._allPhotos = fullList
+    }
+    // Преобразуем в список URL (предпочитаем medium)
+    const viewerPhotos = fullList.map(p => {
+      if (typeof p === 'string') return { url: p }
+      const best = p.urls?.medium || p.url
+      return { url: best }
+    }).filter(p=>p && p.url)
+    if (!viewerPhotos.length) return
+    let index = Math.min(Math.max(0, startIndex), viewerPhotos.length - 1)
+    const ov = document.createElement('div')
+    ov.className = 'photo-viewer-overlay'
+    ov.innerHTML = `
+      <div class="photo-viewer-content">
+        <button class="photo-viewer-close" aria-label="close">×</button>
+        <button class="photo-viewer-nav photo-viewer-prev" aria-label="prev">‹</button>
+        <img class="photo-viewer-img" src="${escapeHtml(viewerPhotos[index].url)}" alt="photo"/>
+        <button class="photo-viewer-nav photo-viewer-next" aria-label="next">›</button>
+        <div class="photo-viewer-counter" id="pvCounter">${index+1} / ${viewerPhotos.length}</div>
+      </div>`
+    document.body.appendChild(ov)
+    const close = ()=> ov.remove()
+    ov.addEventListener('click', (e)=>{ if (e.target === ov) close() })
+    ov.querySelector('.photo-viewer-close')?.addEventListener('click', close)
+    const imgEl = ov.querySelector('.photo-viewer-img')
+    const counterEl = ov.querySelector('#pvCounter')
+    const apply = ()=>{ if (imgEl) imgEl.src = viewerPhotos[index].url; if (counterEl) counterEl.textContent = `${index+1} / ${viewerPhotos.length}` }
+    ov.querySelector('.photo-viewer-prev')?.addEventListener('click', ()=>{ index = (index - 1 + viewerPhotos.length) % viewerPhotos.length; apply() })
+    ov.querySelector('.photo-viewer-next')?.addEventListener('click', ()=>{ index = (index + 1) % viewerPhotos.length; apply() })
+    // свайп жесты (простая версия)
+    let sx = 0
+    ov.addEventListener('touchstart', (e)=>{ sx = e.touches[0].clientX })
+    ov.addEventListener('touchend', (e)=>{ const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40){ if (dx < 0) index = (index + 1) % viewerPhotos.length; else index = (index - 1 + viewerPhotos.length) % viewerPhotos.length; apply() } })
   }
+  overlay.querySelector('#carMainPhoto')?.addEventListener('click', ()=> openPhotoViewer(0))
 
   // Клик по карточке владельца внутри модалки → открыть модалку профиля
   if (car.owner) {
@@ -309,53 +368,71 @@ export function openCarModal(car){
     const ensureUploadControls = () => {
       const actions = overlay.querySelector('#carHeaderActions')
       if (!actions) return
-      if (!actions.querySelector('#carUploadBtn')) {
-        const uploadBtn = document.createElement('button')
-        uploadBtn.id = 'carUploadBtn'
-        uploadBtn.className = 'btn-secondary'
-        uploadBtn.textContent = 'Загрузить фото'
-        uploadBtn.style.cssText = 'padding:6px 10px;font-size:13px'
-        const input = document.createElement('input')
+      // Скрытый input (один на модалку)
+      let input = actions.querySelector('#carPhotoInput')
+      if (!input) {
+        input = document.createElement('input')
         input.type = 'file'
         input.id = 'carPhotoInput'
         input.accept = 'image/*'
         input.style.display = 'none'
-        actions.insertBefore(uploadBtn, actions.querySelector('.modal-close'))
         actions.appendChild(input)
-        uploadBtn.addEventListener('click', ()=> input.click())
         input.addEventListener('change', async ()=>{
           const file = input.files && input.files[0]
           if (!file) return
           try {
+            const overlayEl = overlay.querySelector('#carUploadOverlay'); if (overlayEl) overlayEl.style.display='flex'
             const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
             const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}`
             const fd = new FormData()
             fd.append('entity_type','car')
             fd.append('entity_id', String(car.id))
             fd.append('photo', file)
-            // Telegram headers
             const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
-            const resp = await fetch(url, { method: 'POST', headers, body: fd }).then(r=>r.json().catch(()=>null))
+            const resp = await new Promise((resolve)=>{
+              const xhr = new XMLHttpRequest()
+              xhr.open('POST', url, true)
+              Object.entries(headers||{}).forEach(([k,v])=>{ try{ xhr.setRequestHeader(k,v) }catch{} })
+              xhr.onreadystatechange = ()=>{
+                if (xhr.readyState===4){
+                  try{ resolve(JSON.parse(xhr.responseText)) }catch{ resolve(null) }
+                }
+              }
+              xhr.send(fd)
+            })
             if (!resp || resp.success === false) {
               alert((resp && resp.error && resp.error.message) || 'Не удалось загрузить фото')
               return
             }
             const newPhoto = resp.data
-            // Обновим локальные данные авто
             car.photo = newPhoto
             if (!Array.isArray(car.photos)) car.photos = []
             car.photos.unshift(newPhoto)
-            // Проще перерисовать модалку заново с обновлёнными данными
             const saved = { ...car }
             overlay.remove()
             openCarModal(saved)
-            // Автовключение редактирования обратно не делаем — по UX достаточно
           } catch {
             alert('Ошибка загрузки')
           } finally {
+            const overlayEl = overlay.querySelector('#carUploadOverlay'); if (overlayEl) overlayEl.style.display='none'
             input.value = ''
           }
         })
+      }
+      // FAB под фото
+      const container = overlay.querySelector('.main-photo-compact')
+      if (container && !container.querySelector('#carUploadFab')) {
+        const fabBtn = document.createElement('button')
+        fabBtn.id = 'carUploadFab'
+        fabBtn.className = 'photo-upload-fab'
+        fabBtn.innerHTML = '<span>📷</span><span>Загрузить фото</span>'
+        const wrapper = document.createElement('div')
+        wrapper.style.cssText = 'display:flex;justify-content:flex-end'
+        wrapper.appendChild(fabBtn)
+        container.appendChild(wrapper)
+        fabBtn.addEventListener('click', ()=> actions.querySelector('#carPhotoInput')?.click())
+        const placeholder = container.querySelector('.car-placeholder')
+        if (placeholder) placeholder.addEventListener('click', ()=> actions.querySelector('#carPhotoInput')?.click())
       }
     }
 

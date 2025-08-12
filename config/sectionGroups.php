@@ -137,6 +137,9 @@ class FunctionRoles {
     const API_CARS_CREATE = 'guest';
     // Включение владельца в ответе по авто (приватность)
     const API_CARS_INCLUDE_OWNER = 'member';
+    // Обновление авто
+    const API_CARS_UPDATE_SELF = 'guest';
+    const API_CARS_UPDATE_BY_ID = 'moderator';
     
     // API endpoints - Events
     const API_EVENTS_GET_LIST = 'member';
@@ -153,6 +156,9 @@ class FunctionRoles {
     // API endpoints - Photos
     const API_PHOTOS_GET_LIST = 'member';
     const API_PHOTOS_UPLOAD = 'member';
+
+    // API endpoints - Reference Data
+    const API_REF_CAR_BRANDS_GET_LIST = 'guest';
     
     // API endpoints - Reviews
     const API_REVIEWS_GET_LIST = 'member';
@@ -186,6 +192,8 @@ class FunctionRoles {
             'api.cars.getById' => self::API_CARS_GET_BY_ID,
             'api.cars.create' => self::API_CARS_CREATE,
             'api.cars.includeOwner' => self::API_CARS_INCLUDE_OWNER,
+            'api.cars.updateSelf' => self::API_CARS_UPDATE_SELF,
+            'api.cars.updateById' => self::API_CARS_UPDATE_BY_ID,
             
             // API endpoints - Events
             'api.events.getList' => self::API_EVENTS_GET_LIST,
@@ -202,6 +210,9 @@ class FunctionRoles {
             // API endpoints - Photos
             'api.photos.getList' => self::API_PHOTOS_GET_LIST,
             'api.photos.upload' => self::API_PHOTOS_UPLOAD,
+
+            // API endpoints - Reference Data
+            'api.ref.getCarBrands' => self::API_REF_CAR_BRANDS_GET_LIST,
             
             // API endpoints - Reviews
             'api.reviews.getList' => self::API_REVIEWS_GET_LIST,
@@ -279,10 +290,16 @@ class AccessUtils {
             return false;
         }
         
-        // Если роль развернута (объект), берем код роли
+        // Если роль развернута (объект), берём код роли
         if (isset($user['role']) && is_array($user['role']) && isset($user['role']['code'])) {
             $userRoleCode = $user['role']['code'];
-        } elseif (isset($user['role_id'])) {
+        }
+        // Если роль строкой (например, 'moderator') — используем её напрямую
+        elseif (isset($user['role']) && is_string($user['role'])) {
+            $userRoleCode = $user['role'];
+        }
+        // Если есть числовой role_id — конвертируем в код
+        elseif (isset($user['role_id'])) {
             // Если роль не развернута (число), конвертируем в код
             $userRoleId = (int)$user['role_id'];
             $userRoleCode = Roles::getRoleById($userRoleId);

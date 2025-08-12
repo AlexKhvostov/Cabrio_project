@@ -73,7 +73,7 @@ export async function initProfilePage() {
       if (placeholder) placeholder.style.display = 'none'
       if (profile) profile.style.display = 'block'
       const d = json.data || {}
-      if (roleEl) roleEl.textContent = `Роль: ${d.role?.name || d.role?.code || ''}`
+      if (roleEl) roleEl.textContent = `${d.role?.name || d.role?.code || ''}`
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = (val ?? '') }
       set('first_name_app', d.first_name_app)
       set('last_name_app', d.last_name_app)
@@ -88,13 +88,15 @@ export async function initProfilePage() {
       set('first_name_tg', d.first_name_tg || d.first_name)
       set('last_name_tg', d.last_name_tg || d.last_name)
 
-      // Заголовок профиля (аватар, имя, username)
+      // Заголовок профиля (имя, username)
       const name = (d.first_name_app || d.first_name || d.first_name_tg || '') + ((d.last_name_app || d.last_name || d.last_name_tg) ? ' ' + (d.last_name_app || d.last_name || d.last_name_tg) : '')
-      const avatarEl = document.getElementById('profileAvatar')
       const titleNameEl = document.getElementById('profileName')
       const titleUserEl = document.getElementById('profileUsername')
       if (titleNameEl) titleNameEl.textContent = name.trim() || 'Профиль'
       if (titleUserEl) titleUserEl.textContent = d.username ? '@'+d.username : ''
+      // Аватар + загрузка
+      const avatarEl = document.getElementById('profileAvatar')
+      const uploadBtn = document.getElementById('userUploadBtn')
       if (avatarEl) {
         avatarEl.innerHTML = ''
         const url = d.photo?.url
@@ -113,11 +115,32 @@ export async function initProfilePage() {
       if (cars.length && carsSection && carsListEl) {
         carsSection.style.display = 'block'
         carsListEl.innerHTML = cars.map(c => window.CabrioComponents.renderCarCard({ ...c }, { showOwner: false })).join('')
+        // Клик по карточке авто → модалка авто
+        carsListEl.addEventListener('click', async (e)=>{
+          const card = e.target.closest('.car-card-compact')
+          if (!card) return
+          const id = Number(card.getAttribute('data-id'))
+          const car = cars.find(x=>Number(x.id)===id)
+          if (!car) return
+          try {
+            if (!(window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function')) {
+              await import('/app/frontend/assets/js/modals/car_modal.js')
+            }
+          } catch {}
+          if (window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function') {
+            window.CabrioModals.openCarModal(car)
+            return
+          }
+          if (window.CabrioComponents && typeof window.CabrioComponents.openCarModal === 'function') {
+            window.CabrioComponents.openCarModal(car)
+          }
+        })
       }
 
       // Редактирование/Сохранение
       const editBtn = document.getElementById('editBtn')
       const saveBtn = document.getElementById('saveBtn')
+      const profileBtn = document.getElementById('profileBtn')
       const editableIds = ['first_name_app','last_name_app','city','country','email','phone','about']
       const setDisabled = (disabled) => {
         editableIds.forEach(id => {
@@ -133,6 +156,41 @@ export async function initProfilePage() {
       let initialData = snapshot()
       setDisabled(true)
 
+      if (uploadBtn) {
+        let input = document.getElementById('userPhotoInput')
+        if (!input) {
+          input = document.createElement('input')
+          input.type = 'file'
+          input.id = 'userPhotoInput'
+          input.accept = 'image/*'
+          input.style.display = 'none'
+          document.body.appendChild(input)
+        }
+        uploadBtn.addEventListener('click', ()=> input.click())
+        input.onchange = async ()=>{
+          const file = input.files && input.files[0]
+          if (!file) return
+          try {
+            const base = getBaseUrl()
+            const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}`
+            const fd = new FormData()
+            fd.append('entity_type','user')
+            fd.append('entity_id', String(d.id))
+            fd.append('photo', file)
+            const res = await fetch(url, { method:'POST', headers: buildTelegramHeaders(), body: fd }).then(r=>r.json().catch(()=>null))
+            if (!res || res.success === false) { alert((res && res.error && res.error.message) || 'Не удалось загрузить'); return }
+            const newPhoto = res.data
+            if (avatarEl) {
+              avatarEl.innerHTML = ''
+              const img = document.createElement('img')
+              img.src = newPhoto.urls?.medium || newPhoto.url
+              avatarEl.appendChild(img)
+            }
+          } catch { alert('Ошибка загрузки') }
+          finally { input.value = '' }
+        }
+      }
+
       if (editBtn && saveBtn) {
         editBtn.addEventListener('click', () => {
           const isEditing = editBtn.dataset.mode === 'editing'
@@ -140,6 +198,7 @@ export async function initProfilePage() {
             editBtn.dataset.mode = 'editing'
             editBtn.textContent = 'Отменить'
             saveBtn.style.display = 'inline-flex'
+            if (uploadBtn) uploadBtn.style.display = 'inline-flex'
             setDisabled(false)
           } else {
             // Отмена
@@ -147,6 +206,7 @@ export async function initProfilePage() {
             editBtn.dataset.mode = ''
             editBtn.textContent = 'Редактировать'
             saveBtn.style.display = 'none'
+            if (uploadBtn) uploadBtn.style.display = 'none'
             setDisabled(true)
           }
         })
@@ -167,6 +227,7 @@ export async function initProfilePage() {
           editBtn.dataset.mode = ''
           editBtn.textContent = 'Редактировать'
           saveBtn.style.display = 'none'
+          if (uploadBtn) uploadBtn.style.display = 'none'
           setDisabled(true)
         })
       }

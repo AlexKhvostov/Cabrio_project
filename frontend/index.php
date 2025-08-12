@@ -23,6 +23,12 @@ require __DIR__ . '/partials/meta.php';
         </div>
 
         <h2>Разделы</h2>
+        <!--
+        <div class="card" style="margin-bottom:12px; display:flex; gap:8px; align-items:center; justify-content:space-between;">
+          <div style="font-size:14px;color:#aaa">Открыть на весь экран для лучшего опыта</div>
+          <button id="expandBtn" class="btn-secondary">Развернуть</button>
+        </div>
+        -->
         <div class="menu-grid">
           <a class="menu-item card" href="/app/frontend/pages/users.php">
             <div class="menu-icon" aria-hidden="true">👥</div>
@@ -68,10 +74,14 @@ require __DIR__ . '/partials/meta.php';
         CabrioAPI.apiGet('/api/events')
       ]).then(([u,c,e])=>{
         const members = (u?.data||[]).length || '—'
-        const cars = (c?.data||[]).length || '—'
+        const carsActive = (c?.data||[]).filter(x=>{
+          const code = (x?.status?.code||'').toString().toLowerCase()
+          const name = (x?.status?.name||'').toString().toLowerCase().trim()
+          return code==='active' || name==='активен'
+        }).length
         const events = (e?.data||[]).length || '—'
         document.getElementById('stat-members').textContent = members
-        document.getElementById('stat-cars').textContent = cars
+        document.getElementById('stat-cars').textContent = carsActive
         document.getElementById('stat-events').textContent = events
       }).catch(()=>{})
 
@@ -83,6 +93,24 @@ require __DIR__ . '/partials/meta.php';
           if (el) el.textContent = `Привет, ${u.first_name}! Добро пожаловать в CabrioRide`
         }
       } catch {}
+
+      /* Кнопка разворачивания WebApp на весь экран — временно отключено
+      try{
+        const btn = document.getElementById('expandBtn')
+        const tg = window.Telegram?.WebApp
+        if (btn && tg) {
+          btn.addEventListener('click', ()=>{
+            try{
+              tg.expand()
+              tg.disableVerticalSwipes?.()
+              // Принудительно обновим высоту после expand
+              setTimeout(()=>window.CabrioUI?.updateAppHeight?.(), 50)
+              setTimeout(()=>window.CabrioUI?.updateAppHeight?.(), 250)
+            }catch{}
+          })
+        }
+      }catch{}
+      */
     </script>
   </body>
   </html>

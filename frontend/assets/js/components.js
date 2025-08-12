@@ -7,7 +7,7 @@ function escapeHtml(str){
 }
 
 // Импорт карточек как локальные символы и далее публикуем в window
-import { renderUserCard as renderMemberCard } from '/app/frontend/assets/js/components/cards/user_card.js'
+import { renderUserCard as renderMemberCard } from '/app/frontend/assets/js/components/cards/user_card.js?v=3'
 
 export function openMemberModal(member){
   const overlay = document.createElement('div')
@@ -16,22 +16,21 @@ export function openMemberModal(member){
   overlay.innerHTML = `
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">${escapeHtml(member.first_name)} ${escapeHtml(member.last_name||'')}</div>
+        <div class="modal-title">Профиль</div>
         <button class="modal-close" aria-label="close">×</button>
       </div>
       <div class="modal-body">
-        <div class="member-profile">
+        <div class="member-profile" style="display:flex;align-items:center;gap:12px;">
           <div class="profile-avatar-compact">
             ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" class="avatar-image" alt="${escapeHtml(member.first_name)}"/>` : `<span class=\"avatar-initials\">${escapeHtml((member.first_name?.[0]||'').toUpperCase())}${escapeHtml((member.last_name?.[0]||'').toUpperCase())}</span>`}
           </div>
-          <div class="profile-info-compact">
-            <h3 class="profile-name-compact">${escapeHtml(member.first_name)} ${escapeHtml(member.last_name||'')}</h3>
-            ${member.username ? `<p class="profile-nickname-compact">@${escapeHtml(member.username)}</p>` : ''}
-            <div class="detail-grid-compact">
-              <div class="detail-item-compact"><span class="detail-label">Telegram ID:</span><span class="detail-value">${escapeHtml(member.telegram_id||'')}</span></div>
-              <div class="detail-item-compact"><span class="detail-label">Город:</span><span class="detail-value">${escapeHtml(member.city||'')}</span></div>
-              <div class="detail-item-compact"><span class="detail-label">Роль:</span><span class="detail-value">${escapeHtml(member.role?.name||member.role?.code||'')}</span></div>
-              <div class="detail-item-compact"><span class="detail-label">Автомобили:</span><span class="detail-value">${(member.cars||[]).length}</span></div>
+          <div class="profile-info-compact" style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <h3 class="profile-name-compact" style="margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(`${member.first_name||''} ${member.last_name||''}`.trim())}</h3>
+              <span class="role-badge">${escapeHtml(member.role?.name||member.role?.code||'')}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${member.username ? `<p class="profile-nickname-compact" style="margin:0;">@${escapeHtml(member.username)}</p>` : ''}
             </div>
           </div>
         </div>

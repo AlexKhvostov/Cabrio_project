@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/load_env.php';
 require_once __DIR__ . '/ResponseHelper.php';
+require_once __DIR__ . '/Logger.php';
 
 /**
  * 🔐 AuthHelper — утилита для авторизации и проверки токенов в backend CabrioRide.
@@ -137,9 +138,29 @@ class AuthHelper {
     private static function extractFromHeaders()
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
-        
+        // Диагностика входящих заголовков WebApp
+        try {
+            Logger::info('AuthHelper: extractFromHeaders — incoming headers snapshot', [
+                'has_X-Telegram-User-Id' => isset($headers['X-Telegram-User-Id']) || isset($_SERVER['HTTP_X_TELEGRAM_USER_ID']),
+                'has_X-Telegram-Init-Data' => isset($headers['X-Telegram-Init-Data']) || isset($_SERVER['HTTP_X_TELEGRAM_INIT_DATA'])
+            ]);
+        } catch (Throwable $e) {}
 
-        
+        // Дополнительно: логируем присутствие и состав initData (не меняем поведение валидации)
+        $initDataHeader = $headers['X-Telegram-Init-Data'] ?? $_SERVER['HTTP_X_TELEGRAM_INIT_DATA'] ?? null;
+        if ($initDataHeader) {
+            $parsed = [];
+            parse_str($initDataHeader, $parsed);
+            try {
+                Logger::info('AuthHelper: X-Telegram-Init-Data detected', [
+                    'keys' => array_keys($parsed),
+                    'has_hash' => isset($parsed['hash']),
+                    'has_signature' => isset($parsed['signature']),
+                    'has_user' => isset($parsed['user']),
+                    'auth_date' => $parsed['auth_date'] ?? null
+                ]);
+            } catch (Throwable $e) {}
+        }
         // Telegram WebApp передает данные в заголовках
         $telegramData = [];
         
@@ -173,7 +194,7 @@ class AuthHelper {
         }
         
 
-        
+        try { Logger::info('AuthHelper: extractFromHeaders — result telegramData', $telegramData); } catch (Throwable $e) {}
         // Проверяем, что есть хотя бы telegram_id
         if (!empty($telegramData['telegram_id'])) {
             return $telegramData;
@@ -290,7 +311,9 @@ class AuthHelper {
      */
     public static function validateTelegramData($telegramData)
     {
+        try { Logger::info('AuthHelper: validateTelegramData called', ['keys'=>array_keys((array)$telegramData)]); } catch (Throwable $e) {}
         if (!$telegramData || !is_array($telegramData)) {
+            try { Logger::warning('AuthHelper: validateTelegramData — invalid structure'); } catch (Throwable $e) {}
             return [
                 'success' => false,
                 'error' => [
@@ -302,6 +325,7 @@ class AuthHelper {
         
         // Проверяем обязательные поля
         if (empty($telegramData['telegram_id'])) {
+            try { Logger::warning('AuthHelper: validateTelegramData — missing telegram_id'); } catch (Throwable $e) {}
             return [
                 'success' => false,
                 'error' => [
@@ -312,6 +336,7 @@ class AuthHelper {
         }
         
         if (empty($telegramData['first_name'])) {
+            try { Logger::warning('AuthHelper: validateTelegramData — missing first_name'); } catch (Throwable $e) {}
             return [
                 'success' => false,
                 'error' => [
@@ -323,6 +348,7 @@ class AuthHelper {
         
         // Проверяем типы данных
         if (!is_numeric($telegramData['telegram_id'])) {
+            try { Logger::warning('AuthHelper: validateTelegramData — telegram_id not numeric', ['telegram_id'=>$telegramData['telegram_id']]); } catch (Throwable $e) {}
             return [
                 'success' => false,
                 'error' => [
@@ -367,7 +393,9 @@ class AuthHelper {
         // Это требует реализации проверки подписи согласно документации Telegram
         
         // добавляем проверку подписи Telegram
-        if (!self::isHashValid($telegramData)) {
+        $hashValid = self::isHashValid($telegramData);
+        if (!$hashValid) {
+            try { Logger::warning('AuthHelper: validateTelegramData — invalid Telegram hash'); } catch (Throwable $e) {}
             return [
                 'success' => false,
                 'error' => [
@@ -377,6 +405,7 @@ class AuthHelper {
             ];
         }
         
+        try { Logger::info('AuthHelper: validateTelegramData — OK'); } catch (Throwable $e) {}
         return [
             'success' => true,
             'message' => 'Данные Telegram валидны'
@@ -391,6 +420,7 @@ class AuthHelper {
     {
         // Если хеш отсутствует, разрешаем (бот использует SYSTEM_TOKEN)
         if (empty($data['hash'])) {
+            try { Logger::info('AuthHelper: isHashValid — no hash provided in telegramData (skipping check)'); } catch (Throwable $e) {}
             return true;
         }
         
@@ -408,10 +438,18 @@ class AuthHelper {
         $dataCheckString = implode("\n", $pairs);
 
         $botToken = getenv('BOT_TOKEN');
-        if (!$botToken) return false;
+        if (!$botToken) {
+            try { Logger::warning('AuthHelper: isHashValid — BOT_TOKEN is not set'); } catch (Throwable $e) {}
+            return false;
+        }
         $secretKey = hash('sha256', $botToken, true); // binary
         $calculatedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
-
+        try {
+            Logger::info('AuthHelper: isHashValid — comparing hashes', [
+                'has_recv_hash' => !empty($recvHash),
+                'data_check_len' => strlen($dataCheckString)
+            ]);
+        } catch (Throwable $e) {}
         return hash_equals($calculatedHash, $recvHash);
     }
 

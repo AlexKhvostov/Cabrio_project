@@ -15,16 +15,17 @@ export function renderUserCard(member, options = {}){
   const carsCount = cars.length
   const photoUrl = member.photo?.url || member.photo_url || ''
   const fullName = (`${firstName} ${lastName}`).trim() || 'не задано'
+  const roleLabel = (member.role && (member.role.name || member.role.code)) ? (member.role.name || member.role.code) : ''
 
   const carsListHtml = carsCount ? `
     <div class="cars-mini-list">
       ${cars.slice(0,3).map(c=>{
         const carPhoto = c.photo?.urls?.mini || c.photo?.url || ''
-        const plate = (c.reg_number===null || c.reg_number===undefined || String(c.reg_number)==='') ? '—' : String(c.reg_number)
+        const brandName = c.brand?.name_ru || c.brand?.name || c.brand_name || 'марка'
         return `
           <div class="cars-mini-item">
             <div class="car-photo-mini">${carPhoto ? `<img src="${escapeHtml(carPhoto)}" class="car-mini-image" alt="car"/>` : ''}</div>
-            <span class="car-info">${escapeHtml(plate)}</span>
+            <span class="car-info">${escapeHtml(brandName)}</span>
           </div>`
       }).join('')}
       ${carsCount>3 ? `<span class="cars-count">+${carsCount-3}</span>`: ''}
@@ -40,6 +41,7 @@ export function renderUserCard(member, options = {}){
       <div class="member-main">
         <h3 class="member-name">${escapeHtml(fullName)}</h3>
         ${member.username ? `<span class="member-nickname">@${escapeHtml(member.username)}</span>` : ''}
+        ${roleLabel ? `<span class="role-badge">${escapeHtml(roleLabel)}</span>` : ''}
       </div>
       <div class="member-details">
         ${showCars ? carsListHtml : ''}

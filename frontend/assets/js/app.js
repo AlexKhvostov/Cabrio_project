@@ -3,6 +3,8 @@ try {
   const tg = window.Telegram?.WebApp
   tg?.ready()
   tg?.expand()
+  // Отключаем свайп-сворачивание Telegram, скролл оставляем внутри приложения
+  tg?.disableVerticalSwipes?.()
   // Устанавливаем системные цвета для эффекта нативного приложения
   tg?.setHeaderColor?.('secondary_bg_color')
   tg?.setBackgroundColor?.('bg_color')
@@ -15,6 +17,9 @@ try {
   }
   setAppHeight(true)
   tg?.onEvent?.('viewportChanged', ({ isStateStable }) => setAppHeight(isStateStable))
+  // Экспорт обновления высоты для ручного вызова (например, после expand())
+  window.CabrioUI = window.CabrioUI || {}
+  window.CabrioUI.updateAppHeight = () => setAppHeight(true)
 } catch {}
 
 // Хелпер для загрузки данных с backend (с Telegram заголовками)
@@ -53,6 +58,19 @@ async function apiPost(route, payload){
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
   return data
 }
+
+// Справочники для фронта (можно расширять)
+window.CabrioData = window.CabrioData || {}
+// Простейший список брендов до подключения API справочников
+async function loadRefCarBrands(){
+  try{
+    const res = await apiGet('/api/ref/car-brands')
+    if (res && res.success && Array.isArray(res.data)) {
+      window.CabrioData.carBrands = res.data
+    }
+  }catch{}
+}
+loadRefCarBrands()
 
 window.CabrioAPI = { apiGet, apiPost }
 

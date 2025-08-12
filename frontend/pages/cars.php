@@ -38,6 +38,9 @@
         const statuses = Array.from(new Set(list.map(c=>c.status?.name || c.status?.code).filter(Boolean))).sort()
         if(statusSelect){
           statuses.forEach(s=>{ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; statusSelect.appendChild(opt) })
+          // По умолчанию выбираем "Активен"/"active", если есть
+          const defaultActive = statuses.find(s=>String(s).toLowerCase()==='активен') || statuses.find(s=>String(s).toLowerCase()==='active')
+          if(defaultActive){ statusSelect.value = defaultActive }
           statusSelect.addEventListener('change', render)
         }
         if(searchInput){ searchInput.addEventListener('input', render) }

@@ -44,10 +44,13 @@ try {
         '/api/users/check-by-telegram' => ['POST'],
         '/api/users/find-by-telegram' => ['POST'],
         '/api/cars' => ['GET', 'POST'],
+        // PATCH по id
+        // динамический маршрут проверится ниже
         '/api/events' => ['GET', 'POST'],
         '/api/guide-objects' => ['GET', 'POST'],
         '/api/business-cards' => ['GET', 'POST'],
         '/api/photos' => ['GET', 'POST'],
+        '/api/ref/car-brands' => ['GET'],
         '/api/reviews' => ['GET', 'POST'],
         '/api/health' => ['GET'],
         '/api/status' => ['GET'],
@@ -65,7 +68,11 @@ try {
     }
     
     // Проверяем динамические маршруты (например, /api/cars/{id})
-    if (!$routeExists && preg_match('/^\/api\/cars\/\d+$/', $route) && $method === 'GET') {
+    if (!$routeExists && preg_match('/^\/api\/cars\/\d+$/', $route) && ($method === 'GET' || $method === 'PATCH')) {
+        $routeExists = true;
+    }
+    // Динамический маршрут для смены роли пользователя: /api/users/{id}/role
+    if (!$routeExists && preg_match('/^\/api\/users\/(\d+)\/role$/', $route) && $method === 'POST') {
         $routeExists = true;
     }
     
@@ -80,10 +87,17 @@ try {
         echo ResponseHelper::error('NOT_FOUND', 'Маршрут не найден');
         return;
     }
+    // Смена роли пользователя (модератор+)
+    elseif (preg_match('/^\/api\/users\/(\d+)\/role$/', $route, $matches) && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/UserController.php';
+        (new UserController())->updateRole((int)$matches[1]);
+    }
     
     // Здоровье API остаётся полностью публичным
     if (!($route === '/api/health' && $method === 'GET')) {
+        Logger::info('API Router: About to authenticate', [ 'route' => $route, 'method' => $method ]);
         $authResult = AuthMiddleware::authenticate($route, $method);
+        Logger::info('API Router: Auth result', [ 'success' => $authResult['success'] ?? null, 'error' => $authResult['error']['code'] ?? null ]);
         if (!$authResult['success']) {
             Logger::warning('API Router: Authentication failed', [
                 'route' => $route,
@@ -93,6 +107,12 @@ try {
             echo ResponseHelper::error('AUTH_ERROR', $authResult['error']['message'] ?? 'Auth error');
             exit;
         }
+        // Диагностика текущего пользователя после авторизации
+        $currentUser = AppContext::getCurrentUser();
+        Logger::info('API Router: Authenticated user context', [
+            'user_id' => $currentUser['id'] ?? null,
+            'role' => ($currentUser['role']['code'] ?? ($currentUser['role'] ?? null))
+        ]);
     }
 
     // Маршрутизация запросов
@@ -113,6 +133,14 @@ try {
     } elseif (preg_match('/^\/api\/cars\/(\d+)$/', $route, $matches) && $method === 'GET') {
         require_once __DIR__ . '/../controllers/CarController.php';
         (new CarController())->getById($matches[1]);
+    } elseif (preg_match('/^\/api\/cars\/(\d+)$/', $route, $matches) && $method === 'PATCH') {
+        require_once __DIR__ . '/../controllers/CarController.php';
+        (new CarController())->update($matches[1]);
+    }
+    // Справочники
+    elseif ($route === '/api/ref/car-brands' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/RefController.php';
+        (new RefController())->getCarBrands();
     }
     // Маршруты для событий
     elseif ($route === '/api/events' && $method === 'GET') {
