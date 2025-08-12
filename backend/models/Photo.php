@@ -21,6 +21,7 @@
  *   $newPhoto = Photo::create([...]);
  */
 require_once __DIR__ . '/../utils/Database.php';
+require_once __DIR__ . '/../utils/UrlHelper.php';
 
 class Photo {
     public $id;
@@ -75,7 +76,23 @@ class Photo {
         
         $photos = [];
         foreach ($data as $row) {
-            $photos[] = (new self($row))->toArray();
+            // Приводим путь к абсолютному URL и добавляем размеры
+            $absOrig = UrlHelper::buildUploadsUrlSized($row['url'] ?? '', 'orig');
+            $absMed  = UrlHelper::buildUploadsUrlSized($row['url'] ?? '', 'medium');
+            $absMin  = UrlHelper::buildUploadsUrlSized($row['url'] ?? '', 'mini');
+            $item = [
+                'id' => (int)$row['id'],
+                'entity_type' => $row['entity_type'],
+                'entity_id' => (int)$row['entity_id'],
+                'file_name' => $row['file_name'],
+                'url' => $absOrig,
+                'urls' => [ 'medium' => $absMed, 'mini' => $absMin ],
+                'photo_type' => $row['photo_type'],
+                'description' => $row['description'],
+                'uploaded_at' => $row['uploaded_at'],
+                'uploaded_by' => $row['uploaded_by'] ? (int)$row['uploaded_by'] : null,
+            ];
+            $photos[] = $item;
         }
         
         return $photos;

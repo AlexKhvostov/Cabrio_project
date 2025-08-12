@@ -59,12 +59,17 @@ class PhotoController extends BaseController
                 return; // Ответ уже отправлен в requireAccess
             }
             
-            $entityType = $_POST['entity_type'] ?? null;
+            $entityType = isset($_POST['entity_type']) ? strtolower(trim((string)$_POST['entity_type'])) : null;
             $entityId = $_POST['entity_id'] ?? null;
             $this->logUserAction('upload_photo', ['entity_type' => $entityType, 'entity_id' => $entityId]);
 
             if (!$entityType || !$entityId) {
                 return $this->json(['success'=>false,'error'=>['code'=>'VALIDATION_ERROR','message'=>'entity_type и entity_id обязательны']], 400);
+            }
+
+            $allowedTypes = ['user','car','event','guide_object','business_card'];
+            if (!in_array($entityType, $allowedTypes, true)) {
+                return $this->json(['success'=>false,'error'=>['code'=>'VALIDATION_ERROR','message'=>'Недопустимый entity_type']], 400);
             }
 
             // Дополнительные проверки доступа: модератор и выше всегда может; иначе владелец сущности
@@ -115,8 +120,8 @@ class PhotoController extends BaseController
                 'entity_id' => (int)$entityId,
                 'file_name' => $fileName,
                 'url' => $relativePath, // в БД храним канонический путь без префикса размера
-                'photo_type' => $_POST['photo_type'] ?? 'cover',
-                'description' => $_POST['description'] ?? null,
+                'photo_type' => $_POST['photo_type'] ?? ($entityType === 'user' ? 'avatar' : 'cover'),
+                'description' => $_POST['description'] ?? ($entityType === 'user' ? 'Аватар пользователя' : 'Фото автомобиля'),
                 'uploaded_by' => $currentUserId,
             ]);
 

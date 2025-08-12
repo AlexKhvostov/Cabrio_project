@@ -44,6 +44,17 @@ class CarController extends BaseController
 
             // Получаем список автомобилей с развернутыми данными
             $cars = Car::getAll();
+            // Добавим флаг прав на редактирование для каждого авто
+            $currentUserId = (int)$this->getCurrentUserId();
+            foreach ($cars as &$c) {
+                $isOwner = isset($c['owner']) && isset($c['owner']['id']) && ((int)$c['owner']['id'] === $currentUserId);
+                $c['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
+                // Маскируем номер только для не владельцев при запрете показа
+                if (!$isOwner && !(($c['show_reg_number'] ?? 0) === 1) && !empty($c['reg_number'])) {
+                    $c['reg_number'] = 'скрыт';
+                }
+            }
+            unset($c);
             // Приватность: скрываем владельца, если нет прав на просмотр участников
             $canIncludeOwner = $this->checkAccess('api.cars.includeOwner');
             if (!$canIncludeOwner) {
@@ -83,6 +94,164 @@ class CarController extends BaseController
     }
 
     /**
+     * Обновить автомобиль по id (владелец или модератор)
+     * 
+     * PATCH /api/cars/{id}
+     */
+    public function update($id)
+    {
+        try {
+            // Требуем базовый доступ (гость и выше) — конкретная проверка ниже
+            if (!$this->isAuthenticated()) {
+                $this->json([
+                    'success' => false,
+                    'error' => [ 'code' => 'UNAUTHORIZED', 'message' => 'Пользователь не авторизован' ]
+                ], 401);
+                return;
+            }
+
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+            // Получаем текущее авто
+            $car = Car::findByIdWithDetails($id);
+            if (!$car) {
+                $this->json([
+                    'success' => false,
+                    'error' => [ 'code' => 'NOT_FOUND', 'message' => 'Автомобиль не найден' ]
+                ], 404);
+                return;
+            }
+
+            $currentUserId = (int)$this->getCurrentUserId();
+            $isOwner = isset($car['owner']) && (int)$car['owner']['id'] === $currentUserId;
+
+            // Проверка прав: владелец или модератор/админ
+            if ($isOwner) {
+                if (!$this->requireAccess('api.cars.updateSelf')) { return; }
+            } else {
+                if (!$this->requireAccess('api.cars.updateById')) { return; }
+            }
+
+            // Список разрешённых полей для владельца
+            $allowedFieldsOwner = [
+                'reg_number', 'show_reg_number',
+                'car_brand_id', 'model', 'color', 'year',
+                'engine_power', 'engine_volume', 'vin', 'roof_type', 'description'
+            ];
+            // Доп. поля для модератора
+            $allowedFieldsModerator = array_merge($allowedFieldsOwner, [
+                'status_id', // например, модератор может менять статус
+                'owner_user_id' // смена владельца — только модератор/админ
+            ]);
+
+            $allowed = $isOwner ? $allowedFieldsOwner : $allowedFieldsModerator;
+            $updateData = [];
+            foreach ($allowed as $field) {
+                if (array_key_exists($field, $input)) {
+                    $updateData[$field] = $input[$field];
+                }
+            }
+
+            // Валидация бренда (если пришёл) — допускаем null (не выбрано)
+            if (array_key_exists('car_brand_id', $updateData)) {
+                $brandId = $updateData['car_brand_id'];
+                if ($brandId === '' || $brandId === null) {
+                    $updateData['car_brand_id'] = null;
+                } else {
+                    $pdo = Database::getInstance();
+                    $st = $pdo->prepare('SELECT 1 FROM ref_car_brands WHERE id = ?');
+                    $st->execute([ (int)$brandId ]);
+                    if (!$st->fetchColumn()) {
+                        $this->json([
+                            'success' => false,
+                            'error' => [ 'code' => 'INVALID_BRAND', 'message' => 'Неизвестная марка автомобиля' ]
+                        ], 400);
+                        return;
+                    }
+                }
+            }
+
+            // Нормализация значений: пустые строки → NULL, числовые поля приводим, bool → 0/1
+            $nullableStringFields = ['model','color','roof_type','vin','description','reg_number'];
+            foreach ($nullableStringFields as $f) {
+                if (array_key_exists($f, $updateData)) {
+                    $val = is_string($updateData[$f]) ? trim($updateData[$f]) : $updateData[$f];
+                    $updateData[$f] = ($val === '' ? null : $val);
+                }
+            }
+            // Защита: если на фронте пришло текстовое значение "скрыт" для рег. номера — не перезаписываем БД
+            if (array_key_exists('reg_number', $updateData)) {
+                $rn = is_string($updateData['reg_number']) ? trim($updateData['reg_number']) : $updateData['reg_number'];
+                if ($rn === 'скрыт') {
+                    unset($updateData['reg_number']);
+                }
+            }
+            $nullableIntFields = ['year'];
+            foreach ($nullableIntFields as $f) {
+                if (array_key_exists($f, $updateData)) {
+                    $val = $updateData[$f];
+                    if ($val === '' || $val === null || !is_numeric($val)) {
+                        $updateData[$f] = null;
+                    } else {
+                        $updateData[$f] = (int)$val;
+                    }
+                }
+            }
+            $nullableNumFields = ['engine_power','engine_volume'];
+            foreach ($nullableNumFields as $f) {
+                if (array_key_exists($f, $updateData)) {
+                    $val = $updateData[$f];
+                    if ($val === '' || $val === null || !is_numeric($val)) {
+                        $updateData[$f] = null;
+                    } else {
+                        // допускаем дробные значения
+                        $updateData[$f] = $val + 0;
+                    }
+                }
+            }
+            if (array_key_exists('show_reg_number', $updateData)) {
+                $updateData['show_reg_number'] = (!empty($updateData['show_reg_number']) && $updateData['show_reg_number'] !== '0') ? 1 : 0;
+            }
+
+            if (empty($updateData)) {
+                $this->json([
+                    'success' => false,
+                    'error' => [ 'code' => 'NO_DATA', 'message' => 'Нет данных для обновления' ]
+                ], 400);
+                return;
+            }
+
+            // Применяем обновление
+            $updated = Car::updateWithDetails((int)$id, $updateData);
+            if (!$updated) {
+                $this->json([
+                    'success' => false,
+                    'error' => [ 'code' => 'UPDATE_FAILED', 'message' => 'Не удалось обновить автомобиль' ]
+                ], 400);
+                return;
+            }
+
+            // Приватность владельца в ответе
+            if (!$this->checkAccess('api.cars.includeOwner') && isset($updated['owner'])) {
+                unset($updated['owner']);
+            }
+
+            // Флаг прав на редактирование
+            $updated['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
+
+            $this->logUserAction('update_car', [ 'car_id' => (int)$id, 'fields' => array_keys($updateData) ]);
+            $this->json(['success' => true, 'data' => $updated, 'meta' => $this->getRequestInfo()]);
+
+        } catch (Throwable $e) {
+            Logger::error('CarController: update error', [ 'error' => $e->getMessage(), 'car_id' => $id ]);
+            $this->json([
+                'success' => false,
+                'error' => [ 'code' => 'INTERNAL_ERROR', 'message' => $e->getMessage() ]
+            ], 500);
+        }
+    }
+
+    /**
      * Получить автомобиль по id
      * 
      * Требует авторизации: Да
@@ -108,6 +277,15 @@ class CarController extends BaseController
                 ], 404);
                 return;
             }
+            // Флаг прав на редактирование
+            $isOwner = isset($car['owner']) && isset($car['owner']['id']) && ((int)$car['owner']['id'] === (int)$this->getCurrentUserId());
+            $car['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
+
+            // Приватность регистрационного номера: не владелец и запрет показа → маскируем
+            if (!$isOwner && !(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
+                $car['reg_number'] = 'скрыт';
+            }
+
             // Приватность: скрываем владельца, если нет прав на просмотр участников
             if (!$this->checkAccess('api.cars.includeOwner') && isset($car['owner'])) {
                 unset($car['owner']);

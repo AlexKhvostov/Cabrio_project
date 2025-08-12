@@ -227,15 +227,32 @@ class FileHelper {
      * @return string - Относительный путь от корня проекта
      */
     public static function getRelativePath($fullPath) {
-        $projectRoot = __DIR__ . '/../../../uploads/orig/';
-        $normalized = str_replace('\\', '/', $fullPath);
-        $relative = str_replace($projectRoot, '', $normalized);
-        // Если вдруг пришёл путь без ожидаемого префикса — вернём от корня uploads
-        if ($relative === $normalized) {
-            $fallbackRoot = __DIR__ . '/../../../uploads/';
-            $relative = str_replace($fallbackRoot, '', $normalized);
+        // Нормализуем слэши для Windows/Linux
+        $normalized = str_replace('\\', '/', (string)$fullPath);
+        $uploadsRoot = realpath(__DIR__ . '/../../../uploads');
+        $uploadsRootNorm = $uploadsRoot ? str_replace('\\', '/', $uploadsRoot) : __DIR__ . '/../../../uploads';
+        $uploadsRootNorm = rtrim($uploadsRootNorm, '/');
+
+        // Отрежем всё до uploads/
+        $relative = $normalized;
+        if (stripos($normalized, $uploadsRootNorm . '/') === 0) {
+            $relative = substr($normalized, strlen($uploadsRootNorm . '/'));
+        } else {
+            // Fallback: найдём подстроку '/uploads/' в любом виде
+            $pos = stripos($normalized, '/uploads/');
+            if ($pos !== false) {
+                $relative = substr($normalized, $pos + strlen('/uploads/'));
+            }
         }
-        return ltrim($relative, '/');
+
+        // Убираем префикс размера (orig|medium|mini)
+        $relative = ltrim($relative, '/');
+        if (preg_match('#^(orig|medium|mini)/(.*)$#i', $relative, $m)) {
+            $relative = $m[2];
+        }
+
+        // Возвращаем с префиксом /uploads/ как принято в БД проекта
+        return '/uploads/' . ltrim($relative, '/');
     }
 
     /**

@@ -53,7 +53,12 @@ require_once __DIR__ . '/../../utils/Logger.php';
 
 class __SyncUserDataAction {
     
-    public static function handle($data) {
+    /**
+     * @param array $data   Данные пользователя из Telegram
+     * @param array $options Опции выполнения. Поддерживаемые ключи:
+     *                       - allow_file_upload (bool) — разрешить обработку $_FILES['photo'] как аватара (по умолчанию false)
+     */
+    public static function handle($data, array $options = []) {
         try {
             // Валидация обязательных полей
             ValidationHelper::requireFields($data, ['telegram_id']);
@@ -133,9 +138,10 @@ class __SyncUserDataAction {
                 }
             }
             
-            // 2. Обрабатываем фото если передана
+            // 2. Обрабатываем фото если передана (ТОЛЬКО если явно разрешено через опции)
             $photoData = null;
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $allowFileUpload = (bool)($options['allow_file_upload'] ?? false);
+            if ($allowFileUpload && isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
                 try {
                     // Сохраняем файл на сервер
                     $photoId = Photo::getNextId(); // Получаем следующий ID заранее

@@ -113,7 +113,8 @@ class AuthMiddleware
             
             // 3️⃣ СИНХРОНИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ
             // Создаем или обновляем пользователя в базе данных
-            $userResult = __SyncUserDataAction::handle($telegramData);
+            // На этапе process не передаём файлы в синк пользователя, чтобы не перехватывать загрузки фото других сущностей
+            $userResult = __SyncUserDataAction::handle($telegramData, ['allow_file_upload' => false]);
             
             if (!$userResult['success']) {
                 Logger::error('AuthMiddleware: User sync failed', [
@@ -290,7 +291,8 @@ class AuthMiddleware
             $telegramData = self::extractTelegramData();
             if ($telegramData) {
                 require_once __DIR__ . '/../actions/level2/__SyncUserDataAction.php';
-                $syncResult = __SyncUserDataAction::handle($telegramData);
+                // В локальных запросах также игнорируем файлы в синке пользователя
+                $syncResult = __SyncUserDataAction::handle($telegramData, ['allow_file_upload' => false]);
 
                 if ($syncResult['success']) {
                     $userData = $syncResult['data'];
@@ -408,7 +410,7 @@ class AuthMiddleware
                 
                 if ($telegramData) {
                     // Синхронизируем пользователя с реальными Telegram данными
-                    $syncResult = __SyncUserDataAction::handle($telegramData);
+                    $syncResult = __SyncUserDataAction::handle($telegramData, ['allow_file_upload' => false]);
                     
                     if ($syncResult['success']) {
                         $userData = $syncResult['data'];
