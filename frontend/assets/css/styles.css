@@ -1,17 +1,20 @@
-:root{--primary-color:#2a7;--border-color:#2a2a2a;--card-bg:#1e1e1e;--hover-bg:#262626;--nav-height:64px}
+:root{--primary-color:#2a7;--border-color:#2a2a2a;--card-bg:#1e1e1e;--hover-bg:#262626;--nav-height:64px;--nav-safe:calc(var(--nav-height) + env(safe-area-inset-bottom))}
 *{box-sizing:border-box}
 *::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0;background:#111;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;overflow-x:hidden;width:100%;max-width:100%;height:100%;overflow:hidden}
 img,video,canvas,svg{max-width:100%;height:auto}
 body{overscroll-behavior-x:none;-webkit-text-size-adjust:100%}
-.page{padding:12px;height:calc(var(--app-height, 100vh) - var(--nav-height));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--tg-theme-bg-color,#111);border-top:1px solid var(--border-color);display:flex;padding:6px 0;padding-bottom:calc(6px + env(safe-area-inset-bottom));z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);contain:layout paint}
-.bottom-nav .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px;text-decoration:none;color:#888;min-height:56px;position:relative}
+.page{padding:12px;padding-bottom:calc(12px + var(--nav-safe));min-height:calc(var(--app-height, 100vh) - var(--nav-safe));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-safe);background:var(--tg-theme-bg-color,#111);border-top:1px solid var(--border-color);display:flex;align-items:flex-end;justify-content:stretch;padding:2px 0 0 0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);contain:layout paint}
+/* убираем дополнительную подложку, т.к. высота учитывает safe-area */
+.bottom-nav::after{display:none}
+.bottom-nav .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px 6px 4px;text-decoration:none;color:#888;min-height:50px;position:relative}
 .bottom-nav .nav-item:hover{color:#fff}
 .bottom-nav .nav-item.active{color:#fff}
 .bottom-nav .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:#fff;border-radius:1px}
+.bottom-nav{padding-bottom:0}
 .bottom-nav .nav-icon{font-size:18px;line-height:1}
-.bottom-nav .nav-label{font-size:12px;margin-top:4px}
+.bottom-nav .nav-label{font-size:12px;margin-top:2px}
 .links{display:flex;gap:12px;flex-wrap:wrap}
 .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:10px}
 
@@ -105,15 +108,43 @@ h2{margin:8px 0}
 /* CarCard (упрощённая) */
 .car-card-compact{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer}
 .car-image-container{position:relative;width:100%;height:120px;overflow:hidden}
+.car-image-container img{width:100%;height:100%;object-fit:cover}
+.car-status-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.8);color:#fff;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:500;z-index:2;backdrop-filter:blur(4px)}
 .car-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--border-color) 0%, rgba(255,255,255,.1) 100%);display:flex;align-items:center;justify-content:center;color:#aaa}
-.car-info-compact{padding:10px;display:flex;flex-direction:column;gap:6px}
-.car-title-compact{font-size:16px;margin:0}
-.car-specs-compact{font-size:12px;color:#aaa}
-.car-owner-compact{display:flex;align-items:center;gap:6px;margin-top:auto}
+
+.car-owner-compact{display:flex;align-items:center;gap:8px;margin-top:0;padding:8px 12px}
 .owner-avatar-small{width:20px;height:20px;border-radius:50%;background:var(--primary-color)}
 .owner-avatar-small{overflow:hidden}
 .owner-avatar-small .avatar-image{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.owner-name-compact{font-size:12px;color:#aaa}
+.owner-info-compact{display:flex;flex-direction:column;gap:2px;min-width:0}
+.owner-name-compact{font-size:13px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owner-name-compact .username{font-size:11px;color:rgba(255,255,255,0.6);font-weight:400}
+
+/* Мобильная оптимизация для навигации */
+@media (max-width: 768px) {
+  .bottom-nav {
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+  
+  .page {
+    padding-bottom: calc(12px + var(--nav-height) + max(0px, env(safe-area-inset-bottom)));
+  }
+}
+
+/* Оверлей с информацией об авто на фото */
+.car-overlay-info{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent, rgba(0,0,0,0.95));padding:16px 12px 12px 12px;z-index:1}
+
+/* Карта */
+.map-container{position:relative;width:100%;height:calc(100vh - 80px);min-height:400px}
+.yandex-map{width:100%;height:100%;border-radius:12px;overflow:hidden}
+/* Map controls placement: bottom-left compact */
+.map-controls{position:absolute;bottom:16px;left:16px;right:auto;top:auto;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.map-controls .btn{min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:inline-flex;align-self:flex-end}
+.location-status{padding:8px 12px;border-radius:8px;font-size:14px;text-align:center;min-width:200px}
+.location-status.success{background:rgba(76,175,80,0.1);color:#4caf50;border:1px solid rgba(76,175,80,0.3)}
+.location-status.error{background:rgba(244,67,54,0.1);color:#f44336;border:1px solid rgba(244,67,54,0.3)}
+.car-title-overlay{font-size:clamp(14px,3vw,16px);line-height:1.2;margin:0 0 4px 0;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.car-specs-overlay{font-size:12px;color:rgba(255,255,255,0.95);line-height:1.3}
 
 /* Сетка автомобилей 2 в ряд */
 .cars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -236,4 +267,87 @@ h2{margin:8px 0}
 .map-placeholder .map-content{position:relative;z-index:1;padding:24px;display:flex;flex-direction:column;gap:10px;min-height:220px;align-items:flex-start;justify-content:center}
 .map-badges{display:flex;gap:8px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border-color);border-radius:999px;background:rgba(255,255,255,0.06);font-size:12px}
+
+/* Toggle button for location */
+.toggle-btn{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;width:auto;max-width:100%;height:38px;border-radius:999px;padding:8px 12px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1)}
+.toggle-btn .toggle-icon{font-size:16px;margin-left:2px}
+.toggle-indicator{flex:0 0 auto;width:32px;height:18px;border-radius:999px;background:#444;position:relative;transition:background .2s ease}
+.toggle-indicator::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#bbb;transition:left .2s ease, background .2s ease}
+.toggle-btn.active .toggle-indicator{background:rgba(42,170,119,0.4)}
+.toggle-btn.active .toggle-indicator::after{left:16px;background:#2aa84a}
+.toggle-btn .toggle-text{font-weight:600;font-size:13px}
+.toggle-btn.active .toggle-text{display:none}
+.toggle-btn .toggle-time{font-size:12px;color:rgba(255,255,255,0.7)}
+.toggle-btn:not(.active) .toggle-time{display:none}
+
+/* Prevent scaling on tap */
+.toggle-btn:active{transform:none}
+
+/* Avatar markers on Yandex Map */
+.avatar-marker{position:relative;transform:translate(-50%, -100%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto}
+.avatar-marker .avatar-wrap{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.35);background:#222;display:flex;align-items:center;justify-content:center}
+.avatar-marker .avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.avatar-marker .avatar-fallback{font-size:16px}
+/* метка времени под аватаром скрыта — больше не используется */
+.avatar-marker .marker-time{display:none}
+
+/* Member balloon */
+.member-balloon{min-width:180px;max-width:240px}
+.member-balloon .member-line{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.member-balloon .member-name{font-weight:700}
+.member-balloon .member-username{font-size:12px;color:#2aa87a}
+.member-balloon .member-cars{margin:0;padding-left:16px}
+.member-balloon .member-cars li{margin:2px 0}
+.member-balloon .member-empty{font-size:12px;color:#aaa}
+
+/* Top people panel */
+.map-people-panel{position:absolute;top:12px;left:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.people-toggle{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.55);color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 12px;font-weight:700}
+.people-list{background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;max-height:40vh;overflow:auto}
+.people-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.people-item:last-child{border-bottom:none}
+.people-item .pi-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#333;flex:0 0 auto}
+.people-item .pi-avatar img{width:100%;height:100%;object-fit:cover}
+.people-item .pi-main{display:flex;flex-direction:column;min-width:0}
+.people-item .pi-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.people-item .pi-username{font-size:12px;color:#2aa87a}
+.people-item .pi-time{margin-left:auto;font-size:12px;color:#bbb}
+
+/* Dev log styles removed */
+
+/* Map controls positions */
+/* FAB bar */
+.map-fab-bar{position:absolute;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:14px;z-index:1000}
+.map-toast{position:absolute;bottom:calc(90px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:rgba(0,0,0,0.8);color:#fff;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.35);z-index:1100}
+
+/* Refresh button improved */
+/* Round FAB buttons */
+.fab{width:56px;height:56px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(17,17,17,0.85);border:1px solid rgba(255,255,255,0.12);box-shadow:0 6px 18px rgba(0,0,0,0.35);color:#fff;position:relative;overflow:hidden}
+.fab:active{transform:translateY(1px)}
+.fab .fab-icon{font-size:20px;line-height:1}
+.fab .fab-timer{display:none}
+.fab .fab-progress{position:absolute;inset:0;border-radius:50%;pointer-events:none;transform:rotate(90deg)}
+/* трек (фон кольца) — тонкое кольцо по окружности */
+.fab .fab-progress::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background: rgba(255,255,255,0.25);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+}
+/* прогресс поверх: от 12 часов по часовой (каждую сек. +1/60) */
+.fab .fab-progress::after{content:'';position:absolute;inset:0;border-radius:50%;
+  background: conic-gradient(from 270deg, #ff9f1c var(--fab-progress-deg, 0deg), transparent var(--fab-progress-deg, 0deg));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+  transition: background .2s linear;
+}
+.fab .blink-dot{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#2aa87a;opacity:0;animation:none}
+.fab--power[aria-pressed="true"]{background:#2aa87a}
+.fab--power[aria-pressed="true"] .blink-dot{opacity:1;animation:blink 1.2s infinite}
+.fab--rec{background:#a21;}
+.fab--rec .fab-icon{font-size:18px}
+.fab--refresh{background:rgba(17,17,17,0.85)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* Top error bar */
+.map-error{position:absolute;top:12px;left:12px;right:12px;z-index:1100;background:rgba(244,67,54,0.9);color:#fff;border-radius:10px;padding:10px 12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.25)}
 
