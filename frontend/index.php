@@ -41,16 +41,22 @@ require __DIR__ . '/partials/meta.php';
             <div class="menu-desc">Гараж клуба и авто участников</div>
           </a>
           <a class="menu-item card" href="/app/frontend/pages/map.php">
+            <div class="dev-ribbon"></div>
+            <div class="dev-badge">в разработке</div>
             <div class="menu-icon" aria-hidden="true">📍</div>
             <div class="menu-title">Карта</div>
             <div class="menu-desc">Локации и активность</div>
           </a>
           <a class="menu-item card" href="/app/frontend/pages/events.php">
+            <div class="dev-ribbon"></div>
+            <div class="dev-badge">в разработке</div>
             <div class="menu-icon" aria-hidden="true">📅</div>
             <div class="menu-title">События</div>
             <div class="menu-desc">Мероприятия клуба</div>
           </a>
           <a class="menu-item card" href="/app/frontend/pages/services.php">
+            <div class="dev-ribbon"></div>
+            <div class="dev-badge">в разработке</div>
             <div class="menu-icon" aria-hidden="true">📖</div>
             <div class="menu-title">Гид</div>
             <div class="menu-desc">Полезные места и сервисы</div>

@@ -166,12 +166,17 @@ h2{margin:8px 0}
 .stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .stat-value{font-size:20px;font-weight:700}
 .stat-label{font-size:12px;color:#aaa}
-.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.menu-item{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;transition:transform .08s ease, background .12s ease}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.menu-item{position:relative;display:flex;flex-direction:column;gap:4px;text-decoration:none;color:inherit;transition:transform .08s ease, background .12s ease;overflow:hidden}
+.menu-item.card{padding:8px}
 .menu-item:active{transform:scale(0.98);background:rgba(255,255,255,0.04)}
-.menu-icon{font-size:24px}
-.menu-title{font-weight:600}
-.menu-desc{font-size:12px;color:#aaa}
+.menu-icon{font-size:20px}
+.menu-title{font-weight:600;font-size:14px}
+.menu-desc{font-size:11px;color:#aaa}
+
+/* Banner “в разработке” и диагональная лента */
+.dev-badge{position:absolute;top:8px;right:8px;z-index:2;background:rgba(0,0,0,0.8);color:#fff;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:.2px}
+.dev-ribbon{position:absolute;left:-30%;top:18px;width:160%;height:20px;transform:rotate(-20deg);background:repeating-linear-gradient(45deg,#ffd400 0 12px,#000 12px 24px);opacity:.35;z-index:1;pointer-events:none}
 
 /* Upload FAB and overlay for car modal */
 .main-photo-compact { position: relative; }
