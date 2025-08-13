@@ -49,5 +49,3 @@ export function renderCarCard(car, options = {}){
     </div>` : ''}
   </div>`
 }
-
-
