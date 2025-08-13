@@ -59,7 +59,9 @@ try {
         '/api/system/entity-status' => ['POST'],
         '/api/actions/check-car-in-club' => ['POST'],
         '/api/actions/leave-business-card' => ['POST'],
-        '/api/actions/add-car-to-garage' => ['POST']
+        '/api/actions/add-car-to-garage' => ['POST'],
+        // User locations (map)
+        '/api/user-locations' => ['GET', 'POST']
     ];
     
     // Проверяем точное совпадение
@@ -141,6 +143,14 @@ try {
     elseif ($route === '/api/ref/car-brands' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/RefController.php';
         (new RefController())->getCarBrands();
+    }
+    // Маршруты для координат пользователей (карта)
+    elseif ($route === '/api/user-locations' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/UserLocationController.php';
+        (new UserLocationController())->index();
+    } elseif ($route === '/api/user-locations' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/UserLocationController.php';
+        (new UserLocationController())->store();
     }
     // Маршруты для событий
     elseif ($route === '/api/events' && $method === 'GET') {

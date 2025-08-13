@@ -49,7 +49,6 @@ class StartCommand {
         
         return "🎉 <b>Привет, $username!</b>\n\n" .
                "Я бот клуба CabrioRide.\n\n" .
-               "💡 <b>Напишите @$botUsername</b> чтобы узнать как работать с фото в группе\n\n" .
                "🌐 <b>Больше полезной информации в приложении</b>";
     }
     
@@ -58,6 +57,6 @@ class StartCommand {
      */
     private function getWebAppUrl() {
         // Используем функцию getConfig для получения APP_URL из .env
-        return getConfig('APP_URL', 'https://virtually-initially-wool-runtime.trycloudflare.com/app/frontend/dist/');
+        return getConfig('APP_URL', 'https://cabrioride.by/app/frontend/');
     }
 } 

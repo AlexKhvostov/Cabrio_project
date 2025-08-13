@@ -280,6 +280,36 @@ class AuthMiddleware
         // 📊 Старт метрики времени выполнения
         AppContext::setStartTime(microtime(true));
 
+        // 🤖 Приоритетная проверка бота по X-Bot-Secret: если секрет верный — доверяем и продолжаем как раньше
+        $incomingBotSecret = $_SERVER['HTTP_X_BOT_SECRET'] ?? '';
+        $expectedBotSecret = getenv('BOT_SECRET') ?: '';
+        if ($incomingBotSecret && $expectedBotSecret && hash_equals($expectedBotSecret, $incomingBotSecret)) {
+            // Авторизуем системный контекст (admin)
+            self::initSystemContext();
+
+            // Пытаемся подставить реального пользователя из Telegram заголовков, чтобы не было create_user_id = 0
+            try {
+                $telegramData = self::extractTelegramData();
+                if ($telegramData) {
+                    $syncResult = __SyncUserDataAction::handle($telegramData, ['allow_file_upload' => false]);
+                    if ($syncResult['success']) {
+                        $userData = $syncResult['data'];
+                        AppContext::setCurrentUser($userData);
+                        Logger::info('AuthMiddleware: Real user set via Bot secret', [ 'user_id' => $userData['id'], 'route' => $route ]);
+                    } else {
+                        Logger::warning('AuthMiddleware: Failed to sync user via Bot secret', [ 'error' => $syncResult['error']['message'] ?? 'unknown' ]);
+                    }
+                } else {
+                    Logger::warning('AuthMiddleware: No Telegram data with Bot secret');
+                }
+            } catch (Throwable $e) {
+                Logger::warning('AuthMiddleware: Exception during Bot user sync', [ 'error' => $e->getMessage() ]);
+            }
+
+            Logger::info('AuthMiddleware: Bot authenticated via X-Bot-Secret', [ 'route' => $route, 'method' => $method ]);
+            return [ 'success' => true, 'user_id' => AppContext::getCurrentUser()['id'] ?? 0, 'session_id' => 'system', 'message' => 'Bot auth ok' ];
+        }
+
         // 🏠 1️⃣ ПРОВЕРКА ЛОКАЛЬНЫХ ЗАПРОСОВ (для Telegram Bot)
         // Если запрос пришел локально - разрешаем без дополнительных проверок
         if (self::isLocalRequest()) {

@@ -15,9 +15,9 @@
     <span class="nav-label">Главная</span>
   </a>
   <!-- События -->
-  <a class="nav-item" href="/app/frontend/pages/events.php">
-    <span class="nav-icon">📅</span>
-    <span class="nav-label">События</span>
+  <a class="nav-item" href="/app/frontend/pages/map.php">
+    <span class="nav-icon">📍</span>
+    <span class="nav-label">Карта</span>
   </a>
   <!-- Профиль -->
   <a class="nav-item" href="/app/frontend/pages/me.php">

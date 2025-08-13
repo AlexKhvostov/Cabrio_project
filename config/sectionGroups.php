@@ -173,6 +173,10 @@ class FunctionRoles {
     const API_ACTIONS_LEAVE_BUSINESS_CARD = 'member';    // минимальная роль: member
     const API_ACTIONS_ADD_CAR_TO_GARAGE = 'guest';       // минимальная роль: guest
 
+    // API endpoints - User Locations (Map)
+    const API_USER_LOCATIONS_INDEX = 'member';
+    const API_USER_LOCATIONS_STORE = 'member';
+
     /**
      * Получить массив всех функций с их минимальными ролями
      */
@@ -226,6 +230,10 @@ class FunctionRoles {
             'api.actions.checkCarInClub' => self::API_ACTIONS_CHECK_CAR_IN_CLUB,
             'api.actions.leaveBusinessCard' => self::API_ACTIONS_LEAVE_BUSINESS_CARD,
             'api.actions.addCarToGarage' => self::API_ACTIONS_ADD_CAR_TO_GARAGE,
+
+            // API endpoints - User Locations (Map)
+            'api.userLocations.index' => self::API_USER_LOCATIONS_INDEX,
+            'api.userLocations.store' => self::API_USER_LOCATIONS_STORE,
         ];
     }
 
