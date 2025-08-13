@@ -279,17 +279,19 @@ class FileHelper {
 
         $w = imagesx($src); $h = imagesy($src);
 
-        // Хелпер: нарисовать квадратный thumbnail нужного размера с кропом по центру
-        $makeThumb = function($size) use ($src, $w, $h) {
-            $minSide = min($w, $h);
-            $srcX = (int) max(0, ($w - $minSide) / 2);
-            $srcY = (int) max(0, ($h - $minSide) / 2);
-            $srcSize = (int) $minSide;
-            $dst = imagecreatetruecolor($size, $size);
+        // Хелпер: пропорционально вписать изображение так, чтобы длинная сторона = $maxSide (без обрезки)
+        $makeResized = function($maxSide) use ($src, $w, $h) {
+            $longSide = max($w, $h);
+            $scale = $longSide > 0 ? ($maxSide / $longSide) : 1.0;
+            // Масштабируем только вниз (без апскейла)
+            if ($scale > 1) { $scale = 1; }
+            $dstW = (int) max(1, round($w * $scale));
+            $dstH = (int) max(1, round($h * $scale));
+            $dst = imagecreatetruecolor($dstW, $dstH);
             // Белый фон (на случай PNG/GIF с прозрачностью)
             $white = imagecolorallocate($dst, 255, 255, 255);
             imagefill($dst, 0, 0, $white);
-            imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $size, $size, $srcSize, $srcSize);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $dstW, $dstH, $w, $h);
             return $dst;
         };
 
@@ -303,12 +305,12 @@ class FileHelper {
         $mediumPath = $dirMedium . '/' . $fileName;
         $miniPath   = $dirMini   . '/' . $fileName;
 
-        // Генерация и сохранение JPG
-        $thumbM = $makeThumb(500);
+        // Генерация и сохранение JPG (пропорционально, длинная сторона = 500 / 50)
+        $thumbM = $makeResized(500);
         @imagejpeg($thumbM, $mediumPath, 85);
         imagedestroy($thumbM);
 
-        $thumbS = $makeThumb(50);
+        $thumbS = $makeResized(50);
         @imagejpeg($thumbS, $miniPath, 80);
         imagedestroy($thumbS);
 

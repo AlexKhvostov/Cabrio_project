@@ -15,6 +15,8 @@ export function renderCarCard(car, options = {}){
   const ownerAvatar = car.owner?.photo?.urls?.mini || car.owner?.photo?.url || ''
   const ownerFirst = car.owner?.first_name_app || car.owner?.first_name || car.owner?.first_name_tg || ''
   const ownerLast = car.owner?.last_name_app || car.owner?.last_name || car.owner?.last_name_tg || ''
+  const ownerName = `${(ownerFirst||'').trim()} ${(ownerLast||'').trim()}`.trim()
+  const ownerUsername = car.owner?.username ? `@${car.owner.username}` : ''
   const statusText = car.status?.name || car.status?.code || ''
   const roofTypeName = (code) => {
     switch ((code || '').toString()) {
@@ -25,25 +27,26 @@ export function renderCarCard(car, options = {}){
       default: return code || ''
     }
   }
+  const yearText = (car.year ? String(car.year) : 'не задано')
+  const roofText = (car.roof_type ? roofTypeName(car.roof_type) : '')
+  const volText = (car.engine_volume ? String(car.engine_volume) : '')
+  const powerText = (car.engine_power ? String(car.engine_power) : '')
+  const specs = [yearText, roofText, volText, powerText].filter(Boolean).map(escapeHtml).join(' • ')
   return `
   <div class="car-card-compact" data-id="${car.id}">
     <div class="car-image-container">
+      ${statusText ? `<div class="car-status-badge">${escapeHtml(statusText)}</div>` : ''}
       ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" class="car-image" alt="${escapeHtml(title)}"/>` : `<div class="car-placeholder">🚗</div>`}
-    </div>
-    <div class="car-info-compact">
-      <h3 class="car-title-compact">${escapeHtml(title)}</h3>
-      <div class="car-specs-compact">
-        <span>${escapeHtml(String(car.year||'не задано'))}</span>
-        <span> • ${escapeHtml(modelName)}</span>
-        ${car.roof_type ? `<span> • ${escapeHtml(roofTypeName(car.roof_type))}</span>` : ''}
+      <div class="car-overlay-info">
+        <div class="car-title-overlay">${escapeHtml(title)}</div>
+        <div class="car-specs-overlay">${specs}</div>
       </div>
-      ${statusText ? `<div class=\"car-status\" style=\"font-size:12px;color:#aaa\">Статус: ${escapeHtml(statusText)}</div>` : ''}
-      ${showOwner ? `
-      <div class="car-owner-compact">
-        <div class="owner-avatar-small">${ownerAvatar ? `<img src="${escapeHtml(ownerAvatar)}" class="avatar-image" alt="${escapeHtml(ownerFirst)}"/>` : ''}</div>
-        <span class="owner-name-compact">${car.owner?.username?`@${escapeHtml(car.owner.username)}`:'не задано'}</span>
-      </div>` : ''}
     </div>
+    ${showOwner ? `
+    <div class="car-owner-compact">
+      <div class="owner-avatar-small">${ownerAvatar ? `<img src="${escapeHtml(ownerAvatar)}" class="avatar-image" alt="${escapeHtml(ownerFirst)}"/>` : ''}</div>
+      <span class="owner-name-compact">${escapeHtml(ownerName || '')}${ownerUsername ? ` <span class="username">(${escapeHtml(ownerUsername)})</span>` : (!ownerName ? (ownerUsername || 'не задано') : '')}</span>
+    </div>` : ''}
   </div>`
 }
 

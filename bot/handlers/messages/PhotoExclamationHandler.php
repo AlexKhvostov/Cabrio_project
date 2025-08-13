@@ -131,16 +131,9 @@ class PhotoExclamationHandler {
             ]);
             
             // Проверяем HTTP код и содержимое ответа
-            if ($result['success'] && $result['http_code'] === 200) {
-                // Проверяем, что API действительно вернул успех
-                $apiData = $result['data'];
-                if (isset($apiData['success']) && $apiData['success'] === true) {
-                    $this->sendSuccessMessage($chatId, $user, $apiData);
-                } else {
-                    // API вернул ошибку
-                    $errorMsg = $apiData['error']['message'] ?? 'Неизвестная ошибка API';
-                    $this->sendErrorMessage($chatId, $errorMsg);
-                }
+            if (!empty($result['success']) && $result['http_code'] === 200) {
+                $apiData = $result['data'] ?? [];
+                $this->sendSuccessMessage($chatId, $user, $apiData);
             } else {
                 // HTTP ошибка или невалидный ответ
                 if ($result['http_code'] === 403) {
@@ -150,7 +143,7 @@ class PhotoExclamationHandler {
                 } elseif ($result['http_code'] === 500) {
                     $errorMsg = 'Внутренняя ошибка сервера';
                 } else {
-                    $errorMsg = $result['data']['error']['message'] ?? 'Неизвестная ошибка';
+                    $errorMsg = $result['error']['message'] ?? ($result['data']['error']['message'] ?? 'Неизвестная ошибка');
                 }
                 $this->sendErrorMessage($chatId, $errorMsg);
             }

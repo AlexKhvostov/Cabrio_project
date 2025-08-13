@@ -30,6 +30,8 @@ class Database {
                     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
                 ]);
+                // ВАЖНО: уравниваем таймзону MySQL с PHP (UTC), чтобы сравнения DATETIME были корректны
+                try { self::$instance->exec("SET time_zone = '+00:00'"); } catch (\Throwable $e) { /* ignore */ }
             } catch (\PDOException $e) {
                 // Логируем ошибку и выбрасываем исключение
                 if (class_exists('Logger')) {

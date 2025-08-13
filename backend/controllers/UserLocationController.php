@@ -18,6 +18,10 @@ class UserLocationController extends BaseController
     public function store()
     {
         try {
+            // Доступ только для member и выше (централизованно)
+            if (method_exists($this, 'requireAccess')) {
+                if (!$this->requireAccess('api.userLocations.store')) { return; }
+            }
             // Получаем данные из запроса
             $input = $this->getJsonInput();
             
@@ -50,10 +54,11 @@ class UserLocationController extends BaseController
             
             if ($userLocation) {
                 // Обновляем существующую запись
+                // Храним время в UTC (таймзона процесса уже UTC через load_env)
                 $userLocation->update([
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'updated_at' => gmdate('Y-m-d H:i:s')
                 ]);
                 
                 Logger::info("Обновлены координаты пользователя {$user['id']}", [
@@ -63,11 +68,12 @@ class UserLocationController extends BaseController
                 ]);
             } else {
                 // Создаем новую запись
+                // Храним время в UTC (таймзона процесса уже UTC через load_env)
                 UserLocation::create([
                     'user_id' => $user['id'],
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'updated_at' => gmdate('Y-m-d H:i:s')
                 ]);
                 
                 Logger::info("Созданы координаты пользователя {$user['id']}", [
@@ -83,7 +89,7 @@ class UserLocationController extends BaseController
                 'data' => [
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'updated_at' => gmdate('Y-m-d H:i:s')
                 ]
             ]);
             
@@ -104,6 +110,10 @@ class UserLocationController extends BaseController
     public function index()
     {
         try {
+            // Доступ только для member и выше (централизованно)
+            if (method_exists($this, 'requireAccess')) {
+                if (!$this->requireAccess('api.userLocations.index')) { return; }
+            }
             // Получаем время жизни координат из env
             $liveTimeMinutes = (int)(getenv('map_live_time_min') ?: 40);
             $cutoffTime = date('Y-m-d H:i:s', strtotime("-{$liveTimeMinutes} minutes"));

@@ -19,3 +19,9 @@ if (file_exists($env_path)) {
         }
     }
 } 
+
+// Всегда храним время в БД в UTC
+// Устанавливаем таймзону PHP-процесса явно на UTC, чтобы date()/time() возвращали время в UTC
+if (function_exists('date_default_timezone_set')) {
+	date_default_timezone_set('UTC');
+}

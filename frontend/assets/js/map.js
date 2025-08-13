@@ -9,6 +9,7 @@ const UPDATE_MOVING_SEC = Number(window.MAP_UPD_MOVING_SEC || 10);
 const MOVE_THRESHOLD_M = Number(window.MAP_MOVE_THRESHOLD_M || 25);
 const USERS_REFRESH_IDLE_SEC = Number(window.MAP_USERS_REFRESH_IDLE_SEC || 60);
 const USERS_REFRESH_MOVING_SEC = Number(window.MAP_USERS_REFRESH_MOVING_SEC || 20);
+let LIVE_TIME_MIN = 40; // значение по умолчанию, может быть переопределено ответом сервера
 
 // Состояние трекинга
 let isTracking = false;
@@ -139,10 +140,36 @@ async function loadCarsForCards() {
   } catch {}
 }
 
+function parseSqlUtc(sql){
+  try{
+    const s = String(sql).trim();
+    if (!s) return new Date(NaN);
+    if (s.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(s)) return new Date(s);
+    return new Date(s.replace(' ', 'T') + 'Z');
+  }catch{ return new Date(NaN); }
+}
+
+function ageMinutesFromSql(sql){
+  const s = String(sql || '').trim();
+  if (!s) return 0;
+  const utcDate = parseSqlUtc(s);
+  let diffMs = Date.now() - utcDate.getTime();
+  let mins = Math.floor(diffMs / 60000);
+  if (!isFinite(mins)) mins = 0;
+  // Фолбэк для старых записей (сохранённых в локальном времени): если "будущее" > 2 минут — парсим как локальное
+  if (mins < -2) {
+    try {
+      const localDate = new Date(s.replace(' ', 'T'));
+      const diff2 = Date.now() - localDate.getTime();
+      const mins2 = Math.floor(diff2 / 60000);
+      if (isFinite(mins2)) return mins2;
+    } catch {}
+  }
+  return mins;
+}
+
 function formatRelativeTime(isoOrSql) {
-  const t = new Date(isoOrSql.replace(' ', 'T'));
-  const diffMs = Date.now() - t.getTime();
-  const mins = Math.max(0, Math.floor(diffMs / 60000));
+  const mins = Math.max(0, ageMinutesFromSql(isoOrSql));
   if (mins < 1) return 'только что';
   if (mins < 60) return `${mins}м`;
   const h = Math.floor(mins / 60);
@@ -153,12 +180,12 @@ function formatRelativeTime(isoOrSql) {
 // Layout с HTML содержимым (аватар) с фолбэком
 function createAvatarLayout(imageUrl) {
   const safeUrl = imageUrl ? String(imageUrl) : '';
-  // onerror скрывает img и показывает fallback
+  // Без onerror: используем только то, что уже проверено в списке (dataURL/mini)
   return ymaps.templateLayoutFactory.createClass(
     `<div class="avatar-marker">
        <div class="avatar-wrap">
-         ${safeUrl ? `<img src="${safeUrl}" alt="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>` : ''}
-         <div class="avatar-fallback" style="display:${safeUrl ? 'none' : 'flex'}">👤</div>
+         ${safeUrl ? `<img src="${safeUrl}" alt="avatar"/>` : ''}
+         ${safeUrl ? '' : '<div class="avatar-fallback">👤</div>'}
        </div>
      </div>`
   );
@@ -223,10 +250,11 @@ async function loadActiveUsers() {
       if (isFinite(v) && v > 0) LIVE_TIME_MIN = v;
     }
 
-    activeUsersById = {};
     for (const loc of res.data) {
+      const k = String(loc.user_id);
+      const prev = activeUsersById[k] || {};
       const mini = (loc.user?.photo?.mini) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo_url) || (loc.user?.photo?.fallback) || '';
-      activeUsersById[String(loc.user_id)] = { mini, user: loc.user, dataUrl: null };
+      activeUsersById[k] = { mini, user: loc.user, dataUrl: prev.dataUrl || null };
     }
 
     const toggleBtn = document.getElementById('peopleToggle');
@@ -251,12 +279,27 @@ async function loadActiveUsers() {
       }).join('');
       list.innerHTML = items;
 
-      // Сразу после вставки — попробуем получить dataURL из реально загруженных картинок
+    // Дождёмся загрузки аватаров в списке, затем сохраним dataURL (без повторных запросов)
+      const waits = [];
       for (const loc of res.data){
+        const k = String(loc.user_id);
         const el = list.querySelector(`.people-item[data-user-id="${loc.user_id}"] img`);
-        const dataUrl = imgToDataUrl(el, 36);
-        if (dataUrl){ activeUsersById[String(loc.user_id)].dataUrl = dataUrl; }
+        waits.push(new Promise((resolve)=>{
+          if (!el){ resolve(); return; }
+          if (el.complete && el.naturalWidth){
+            const du = imgToDataUrl(el, 36);
+            if (du) activeUsersById[k].dataUrl = du;
+            resolve();
+          } else {
+            let done = false;
+            const finish = ()=>{ if (done) return; done = true; const du = imgToDataUrl(el, 36); if (du) activeUsersById[k].dataUrl = du; resolve(); };
+          const t = setTimeout(()=>{ finish(); }, 2500);
+            el.addEventListener('load', ()=>{ clearTimeout(t); finish(); }, { once: true });
+            el.addEventListener('error', ()=>{ clearTimeout(t); finish(); }, { once: true });
+          }
+        }));
       }
+      try { await Promise.all(waits); } catch {}
     }
 
     usersLayer.removeAll();
@@ -267,12 +310,12 @@ async function loadActiveUsers() {
 
       let opacity = 1;
       try {
-        const t = new Date(String(loc.updated_at).replace(' ', 'T'));
-        const ageMin = Math.max(0, (Date.now() - t.getTime()) / 60000);
-        if (LIVE_TIME_MIN > 0) opacity = Math.max(0.2, Math.min(1, 1 - ageMin / LIVE_TIME_MIN));
+        const ageMin = Math.max(0, ageMinutesFromSql(loc.updated_at));
+        if (LIVE_TIME_MIN > 0) opacity = Math.max(0, Math.min(1, 1 - ageMin / LIVE_TIME_MIN));
       } catch { opacity = 1; }
 
       const cache = activeUsersById[String(loc.user_id)] || {};
+      // Берём только dataURL из списка. Если его нет — пробуем mini один раз, но без onerror-фолбэков
       const useUrl = cache.dataUrl || cache.mini || '';
       const contentLayout = createAvatarLayout(useUrl);
       const placemark = new ymaps.Placemark([lat, lon], {
@@ -302,7 +345,12 @@ async function sendLocationToServer(coords) {
     accuracy: coords.accuracy
   });
   if (!result || result.success !== true) {
-    throw new Error(result?.error || 'Сервер вернул ошибку');
+    const raw = result?.error;
+    const msg = (raw && (raw.message || raw)) || 'Сервер вернул ошибку';
+    const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
+    // Показать человекочитаемую ошибку вместо [object Object]
+    try { setErrorTop(text); } catch {}
+    throw new Error(text);
   }
   return result;
 }
@@ -336,8 +384,9 @@ function addUserMarker(coords) {
   try {
     selfLayer.removeAll();
     const meId = getCurrentTelegramUserId();
-    const miniUrl = activeUsersById[String(meId)]?.mini || '';
-    const contentLayout = createAvatarLayout(miniUrl);
+    const cache = activeUsersById[String(meId)] || {};
+    const useUrl = cache.dataUrl || cache.mini || '';
+    const contentLayout = createAvatarLayout(useUrl);
     const placemark = new ymaps.Placemark([coords.latitude, coords.longitude], {}, {
       iconLayout: 'default#imageWithContent',
       iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',

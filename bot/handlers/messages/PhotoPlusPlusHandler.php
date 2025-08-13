@@ -129,21 +129,18 @@ class PhotoPlusPlusHandler {
                 'raw_response' => json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             ]);
             
-            // Проверяем успешность операции по данным ответа, а не по HTTP коду
-            if (isset($result['data']['success']) && $result['data']['success']) {
-                $this->sendSuccessMessage($chatId, $user, $result['data']);
+            // Считаем успехом, если бот‑обёртка вернула success=true и http 200
+            if (!empty($result['success']) && $result['http_code'] === 200) {
+                $this->sendSuccessMessage($chatId, $user, $result['data'] ?? []);
             } else {
-                // Получаем ошибку из данных ответа
+                // Получаем ошибку из обёртки
                 $errorData = $result['data'] ?? [];
-                $errorCode = $errorData['error']['code'] ?? 'UNKNOWN_ERROR';
-                $errorMsg = $errorData['error']['message'] ?? 'Неизвестная ошибка';
-                
+                $errorMsg = $result['error']['message'] ?? ($errorData['error']['message'] ?? 'Неизвестная ошибка');
                 writeToLog("PhotoPlusPlusHandler: Backend error", [
-                    'error_code' => $errorCode,
+                    'http_code' => $result['http_code'] ?? 'unknown',
                     'error_message' => $errorMsg,
                     'user_id' => $user['id']
                 ]);
-                
                 $this->sendErrorMessage($chatId, $errorMsg);
             }
             

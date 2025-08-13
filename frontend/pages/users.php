@@ -16,13 +16,24 @@
         ['id' => 'cityFilter', 'placeholder' => 'Все города']
       ]
     ]; include __DIR__ . '/../components/filters.php'; ?>
-      <div id="users">Загрузка...</div>
+<div id="usersAccessBanner" class="card" style="margin-bottom:12px">
+  <h3 style="margin:6px 0 8px 0">Доступ к списку участников</h3>
+  <p style="margin:0 0 6px 0; color:#ccc">Список доступен полноправным участникам клуба.</p>
+  <ul style="margin:0 0 6px 18px; color:#ccc">
+    <li>Добавьте свой автомобиль в приложении</li>
+    <li>Познакомьтесь лично на встрече</li>
+    <li>Получите роль <b>member</b> или выше</li>
+  </ul>
+</div>
+<div id="users">Загрузка...</div>
+
     </main>
     <script type="module">
       import '/app/frontend/assets/js/app.js'
       import '/app/frontend/assets/js/components.js'
       import '/app/frontend/assets/js/modals/user_modal.js?v=2'
       const usersEl = document.getElementById('users')
+      const usersAccessBanner = document.getElementById('usersAccessBanner')
       const searchInput = document.getElementById('filters-search')
       const citySelect = document.getElementById('cityFilter')
       const { renderMemberCard } = window.CabrioComponents
@@ -30,9 +41,12 @@
       let list = []
       CabrioAPI.apiGet('/api/users').then(json=>{
         if(!json || json.__httpStatus===401 || json.__httpStatus===403 || json.success===false){
-          usersEl.textContent = 'Недостаточно прав'
+          // Недостаточно прав — показываем пояснение и не рендерим список
+          usersEl.innerHTML = ''
+          if (usersAccessBanner) usersAccessBanner.style.display = ''
           return
         }
+        if (usersAccessBanner) usersAccessBanner.style.display = 'none'
         list = json.data||[]
         // Заполним города
         const cities = Array.from(new Set(list.map(u=>u.city).filter(Boolean))).sort()

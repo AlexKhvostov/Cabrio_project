@@ -94,10 +94,9 @@ export function openCarModal(car){
 
         <div class="car-info-section-compact">
           <div class="car-header-compact">
-            <div class="car-title-compact">
-              <h3 class="car-name-compact">${escapeHtml(title)}</h3>
-              <span class="status-badge status-primary">${escapeHtml(statusLabel)}</span>
-            </div>
+          <div class="car-title-compact">
+            <span class="status-badge status-primary">${escapeHtml(statusLabel)}</span>
+          </div>
             ${(car.reg_number!==undefined && car.reg_number!==null && String(car.reg_number)!=='') ? `
               <div class=\"car-number-compact\"><span class=\"detail-label\">Номер:</span> <span class=\"detail-value\">${escapeHtml(String(car.reg_number))}</span></div>
             ` : ''}
