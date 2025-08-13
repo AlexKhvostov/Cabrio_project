@@ -110,11 +110,40 @@ class MessageHandler {
         
         // Это клубный чат - обрабатываем сообщение
         writeToLog("MessageHandler: Club chat message, processing");
+
+		// Обрабатываем вступление новых участников, когда Telegram присылает событие как service message new_chat_members
+		// Это покрывает случаи, когда webhook не включает chat_member/my_chat_member и событие приходит в message
+		if (!empty($message['new_chat_members'])) {
+			$joinedHandler = new UserJoinedHandler($this->botService);
+			foreach ($message['new_chat_members'] as $member) {
+				$joinedHandler->handle([
+					'chat' => $message['chat'],
+					'new_chat_member' => [
+						'status' => 'member',
+						'user' => $member
+					]
+				]);
+			}
+			return; // уже обработали событие вступления
+		}
         
         // Обрабатываем фото с комментариями
         if (isset($message['photo']) && isset($message['caption'])) {
             $this->handlePhotoWithCaption($message);
         }
+
+		// Обрабатываем выход участника как service message left_chat_member
+		if (!empty($message['left_chat_member'])) {
+			$leftHandler = new UserLeftHandler($this->botService);
+			$leftHandler->handle([
+				'chat' => $message['chat'],
+				'new_chat_member' => [
+					'status' => 'left',
+					'user' => $message['left_chat_member']
+				]
+			]);
+			return; // обработали событие выхода
+		}
     }
     
     /**

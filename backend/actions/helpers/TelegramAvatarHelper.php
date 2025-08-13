@@ -13,13 +13,57 @@ require_once __DIR__ . '/../../models/User.php';
 class TelegramAvatarHelper {
     
     /**
+     * Попытаться захватить файловый лок на загрузку аватара пользователя
+     * Возвращает дескриптор файла при успехе, иначе null
+     */
+    private static function acquireLock($userId) {
+        try {
+            $lockDir = __DIR__ . '/../../logs/locks';
+            if (!is_dir($lockDir)) {
+                @mkdir($lockDir, 0755, true);
+            }
+            $lockPath = $lockDir . "/avatar_{$userId}.lock";
+            $fh = @fopen($lockPath, 'c');
+            if (!$fh) {
+                return null;
+            }
+            // Неблокирующая попытка захватить эксклюзивный лок
+            if (!@flock($fh, LOCK_EX | LOCK_NB)) {
+                // Уже обрабатывается другим процессом — не дублируем
+                @fclose($fh);
+                return null;
+            }
+            return $fh;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Освободить файловый лок
+     */
+    private static function releaseLock($fh) {
+        if ($fh) {
+            @flock($fh, LOCK_UN);
+            @fclose($fh);
+        }
+    }
+
+    /**
      * Получить аватар пользователя из Telegram
      */
     public static function getUserAvatar($telegramId, $userId) {
         try {
+            // Защита от параллельных скачиваний одного и того же аватара
+            $lock = self::acquireLock($userId);
+            if ($lock === null) {
+                Logger::info("TelegramAvatarHelper: Skip duplicate avatar fetch (locked)", ['user_id' => $userId]);
+                return self::getExistingAvatar($userId);
+            }
             $botToken = getenv('BOT_TOKEN');
             if (!$botToken) {
                 Logger::warning('TelegramAvatarHelper: BOT_TOKEN not found');
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -27,6 +71,7 @@ class TelegramAvatarHelper {
             $userInfo = self::getUserInfo($botToken, $telegramId);
             if (!$userInfo || !isset($userInfo['photo'])) {
                 Logger::info("TelegramAvatarHelper: No avatar for telegram_id=$telegramId");
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -34,6 +79,7 @@ class TelegramAvatarHelper {
             $fileId = self::getFileId($userInfo['photo']);
             if (!$fileId) {
                 Logger::info("TelegramAvatarHelper: No file_id for telegram_id=$telegramId");
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -43,6 +89,7 @@ class TelegramAvatarHelper {
             $currentUser = User::findById($userId);
             if ($currentUser && $currentUser->telegram_photo_id === $fileId) {
                 Logger::info("TelegramAvatarHelper: Avatar unchanged for user_id=$userId");
+                self::releaseLock($lock);
                 return self::getExistingAvatar($userId);
             }
             
@@ -50,6 +97,7 @@ class TelegramAvatarHelper {
             $filePath = self::getFilePath($botToken, $fileId);
             if (!$filePath) {
                 Logger::warning("TelegramAvatarHelper: Failed to get file_path for file_id=$fileId");
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -57,6 +105,7 @@ class TelegramAvatarHelper {
             $imageData = self::downloadFile($botToken, $filePath);
             if (!$imageData) {
                 Logger::warning("TelegramAvatarHelper: Failed to download file");
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -64,6 +113,7 @@ class TelegramAvatarHelper {
             $avatarData = self::saveAvatar($imageData, $userId, $filePath);
             if (!$avatarData) {
                 Logger::warning("TelegramAvatarHelper: Failed to save avatar");
+                self::releaseLock($lock);
                 return null;
             }
             
@@ -71,6 +121,7 @@ class TelegramAvatarHelper {
             self::updateAvatarLink($userId, $fileId);
             
             Logger::info("TelegramAvatarHelper: Avatar saved for user_id=$userId");
+            self::releaseLock($lock);
             return $avatarData;
             
         } catch (Exception $e) {

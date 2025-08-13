@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../utils/EventDeduplicator.php';
 
 class UserJoinedHandler {
     /** @var BotService */
@@ -36,6 +37,13 @@ class UserJoinedHandler {
                 'username' => $user['username'] ?? 'unknown',
                 'first_name' => $user['first_name'] ?? 'unknown'
             ]);
+
+            // Дедупликация: защищаемся от двойной обработки одного и того же события
+            $dedupKey = 'join:' . $chat['id'] . ':' . $user['id'];
+            if (hasRecentlyProcessed($dedupKey, 30)) {
+                writeToLog("UserJoinedHandler: Duplicate join detected, skip", ['key' => $dedupKey]);
+                return;
+            }
             
             // Проверяем, что это клубный чат
             $club_chat_id = $_ENV['CLUB_CHAT_ID'] ?? '-1002873258290';
@@ -63,6 +71,8 @@ class UserJoinedHandler {
             ];
             
             if ($syncResult['success']) {
+                // Помечаем как обработанное перед отправкой сообщения
+                markProcessed($dedupKey);
                 // Отправляем приветственное сообщение
                 $this->sendWelcomeMessage($chat['id'], $user, $syncResult['data']);
                 

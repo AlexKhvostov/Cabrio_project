@@ -29,7 +29,7 @@ $info = json_decode($webhookInfo, true);
 
 echo "📊 Информация о webhook:\n";
 echo "URL: " . ($info['result']['url'] ?? 'не установлен') . "\n";
-echo "Активен: " . ($info['result']['ok'] ? 'да' : 'нет') . "\n";
+echo "Активен: " . (($info['ok'] ?? false) ? 'да' : 'нет') . "\n";
 echo "Ошибки: " . ($info['result']['last_error_message'] ?? 'нет') . "\n";
 echo "Последняя ошибка: " . ($info['result']['last_error_date'] ?? 'нет') . "\n";
 

@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/../../utils/Logger.php';
+require_once __DIR__ . '/../../utils/EventDeduplicator.php';
 
 class UserLeftHandler {
     /** @var BotService */
@@ -55,6 +56,13 @@ class UserLeftHandler {
                 writeToLog("UserLeftHandler: Bot left, ignoring");
                 return;
             }
+
+            // Дедупликация: защищаемся от двойной обработки одной и той же операции
+            $dedupKey = 'leave:' . $chat['id'] . ':' . $user['id'];
+            if (hasRecentlyProcessed($dedupKey, 30)) {
+                writeToLog("UserLeftHandler: Duplicate leave detected, skip", ['key' => $dedupKey]);
+                return;
+            }
             
             // Обновляем роль пользователя в БД
             $updateResult = $this->updateUserRole($user);
@@ -69,6 +77,8 @@ class UserLeftHandler {
             ];
             
             if ($updateResult['success']) {
+                // Помечаем как обработанное перед отправкой сообщения
+                markProcessed($dedupKey);
                 // Отправляем сообщение с сожалением
                 $this->sendFarewellMessage($chat['id'], $user);
                 
