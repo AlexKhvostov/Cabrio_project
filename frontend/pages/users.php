@@ -66,14 +66,15 @@
       }).catch(()=>{ usersEl.textContent='Ошибка загрузки' })
 
       function render(){
-        const q = (searchInput?.value||'').toLowerCase().trim()
+        const qRaw = (searchInput?.value||'').toLowerCase().trim()
+        const qUser = qRaw.replace(/^@+/, '')
         const city = citySelect?.value||''
         const filtered = list.filter(u=>{
-          const matchesQ = !q || (
-            (u.first_name||'').toLowerCase().includes(q) ||
-            (u.last_name||'').toLowerCase().includes(q) ||
-            (u.username||'').toLowerCase().includes(q)
-          )
+          const first = (u.first_name_app || u.first_name_tg || u.first_name || '').toLowerCase()
+          const last  = (u.last_name_app  || u.last_name_tg  || u.last_name  || '').toLowerCase()
+          const full  = (first + ' ' + last).trim()
+          const usern = (u.username || '').toLowerCase()
+          const matchesQ = !qRaw || full.includes(qRaw) || first.includes(qRaw) || last.includes(qRaw) || usern.includes(qUser)
           const matchesCity = !city || (u.city===city)
           return matchesQ && matchesCity
         })
