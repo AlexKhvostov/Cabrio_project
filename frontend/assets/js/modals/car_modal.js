@@ -14,7 +14,7 @@ export function openCarModal(car){
   const titleBrand = rawBrandName || 'марка'
   const titleModel = rawModelName || 'модель'
   const title = `${titleBrand} ${titleModel}`.trim()
-  const ownerAvatar = car.owner?.photo?.url || ''
+  const ownerAvatar = car.owner?.photo?.urls?.medium || car.owner?.photo?.url || ''
   const rawPhotos = Array.isArray(car.photos) && car.photos.length ? car.photos : (car.photo?.url ? [car.photo] : [])
   const photos = rawPhotos.map(p=>{
     if (typeof p === 'string') return { url: p }

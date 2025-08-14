@@ -9,7 +9,7 @@ function escapeHtml(str){
 export async function openUserModal(member){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
-  const photoUrl = member.photo?.url || member.photo_url || ''
+  const photoUrl = member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
   const cars = Array.isArray(member.cars) ? member.cars : []
   const firstName = member.first_name_app || member.first_name || member.first_name_tg || ''
   const lastName = member.last_name_app || member.last_name || member.last_name_tg || ''

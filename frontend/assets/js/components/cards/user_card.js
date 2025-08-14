@@ -13,7 +13,7 @@ export function renderUserCard(member, options = {}){
   const initials = (firstName?.[0]||'').toUpperCase() + (lastName?.[0]||'').toUpperCase()
   const cars = Array.isArray(member.cars) ? member.cars : []
   const carsCount = cars.length
-  const photoUrl = member.photo?.url || member.photo_url || ''
+  const photoUrl = member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
   const fullName = (`${firstName} ${lastName}`).trim() || 'не задано'
   const roleLabel = (member.role && (member.role.name || member.role.code)) ? (member.role.name || member.role.code) : ''
 

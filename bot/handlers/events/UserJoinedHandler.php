@@ -173,17 +173,16 @@ class UserJoinedHandler {
         $action = $syncData['action'] ?? 'joined';
         $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
         
-        $message = "🎉 <b>Добро пожаловать, $username!</b>\n\n";
+        $message = "🎉 <b>✅ Добро пожаловать, $username!</b>\n\n";
         
         if ($action === 'created') {
-            $message .= "✅ Вы присоединились к клубу CabrioRide\n\n";
             $message .= "📝 <b>Расскажите пару слов о себе</b>\n";
-            $message .= "📸 <b>Покажите фото авто</b> с <code>++</code>\n\n";
+            $message .= "📸 <b>Покажите фото авто авто</b> с текстом<code>++</code>\n\n";
         } else {
             $message .= "✅ С возвращением в клуб!\n\n";
         }
         
-        $message .= "💡 <b>Напишите @$botUsername</b> /help чтобы узнать как работать с фото в группе";
+        // $message .= "💡 <b>Напишите @$botUsername</b> /help чтобы узнать как работать с фото в группе";
         
         $this->botService->sendMessage($chatId, $message);
     }

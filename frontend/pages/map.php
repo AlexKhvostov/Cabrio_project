@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=<?php echo getenv('map_ya_key') ?: ''; ?>&lang=ru_RU" type="text/javascript"></script>
+    <style>
+      /* Специальная разметка для страницы карты: без прокрутки, карта на всю высоту */
+      .page{ padding:0; height:var(--app-height, 100vh); overflow:hidden }
+      .map-container{ position:relative; width:100%; height:calc(var(--app-height, 100vh) - var(--nav-safe)); }
+      .yandex-map{ width:100%; height:100%; }
+    </style>
     <script>
       window.MAP_UPD_SEC = Number('<?php echo (int)(getenv('map_upd_sec') ?: 30); ?>') || 30;
       window.MAP_UPD_MOVING_SEC = Number('<?php echo (int)(getenv('map_upd_moving_sec') ?: 10); ?>') || 10; // интервал при движении
@@ -19,9 +25,9 @@
     <?php include __DIR__ . '/../components/nav.php'; ?>
     <main class="page">
       <div class="map-container">
-        <!-- Верхняя панель участников -->
+        <!-- Верхняя панель участников (Online - X) -->
         <div class="map-people-panel">
-          <button id="peopleToggle" type="button" class="people-toggle" aria-expanded="false">На карте — 0</button>
+          <button id="peopleToggle" type="button" class="people-toggle" aria-expanded="false">Online - 0</button>
           <div id="peopleList" class="people-list" hidden></div>
         </div>
 
@@ -33,11 +39,11 @@
         <!-- Круглые FAB-кнопки снизу -->
         <div class="map-fab-bar">
           <button id="sendLocationBtn" type="button" class="fab fab--power" aria-pressed="false" title="GPS">
-            <span class="fab-progress" aria-hidden="true"></span>
+           <!-- <span class="fab-progress" aria-hidden="true"></span> -->
             <span class="fab-icon" aria-hidden="true">⏻</span>
-            <span class="blink-dot" aria-hidden="true"></span>
+            <!-- <span class="blink-dot" aria-hidden="true"></span>-->
           </button>
-
+          <!--
           <button id="audioRecBtn" type="button" class="fab fab--rec" aria-pressed="false" title="REC (скоро)">
             <span class="fab-icon" aria-hidden="true">●</span>
           </button>
@@ -46,6 +52,7 @@
             <span class="fab-progress" aria-hidden="true"></span>
             <span class="fab-icon" aria-hidden="true">↻</span>
           </button>
+          -->
         </div>
 
         <!-- Тост над FAB -->

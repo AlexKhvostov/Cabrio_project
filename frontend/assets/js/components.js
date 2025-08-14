@@ -12,7 +12,7 @@ import { renderUserCard as renderMemberCard } from '/app/frontend/assets/js/comp
 export function openMemberModal(member){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
-  const photoUrl = member.photo?.url || member.photo_url || ''
+  const photoUrl = member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
   overlay.innerHTML = `
     <div class="modal-content">
       <div class="modal-header">
@@ -48,12 +48,16 @@ export function openCarModal(car){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
   const title = `${car.brand?.name||''} ${car.model||''}`.trim()
-  const ownerAvatar = car.owner?.photo?.url || ''
+  const ownerAvatar = car.owner?.photo?.urls?.medium || car.owner?.photo?.url || ''
   // Фото: поддержка массива car.photos (объекты/строки) и одиночного car.photo
   const rawPhotos = Array.isArray(car.photos) && car.photos.length
     ? car.photos
-    : (car.photo?.url ? [car.photo] : [])
-  const photos = rawPhotos.map(p=> typeof p === 'string' ? { url: p } : { url: p.url })
+    : (car.photo?.urls?.medium ? [car.photo] : (car.photo?.url ? [car.photo] : []))
+  const photos = rawPhotos.map(p=> {
+    if (typeof p === 'string') return { url: p }
+    const best = p.urls?.medium || p.url
+    return { url: best }
+  })
 
   // Метки для полей БД (cars c.*)
   const fieldLabels = {
@@ -105,11 +109,11 @@ export function openCarModal(car){
           <h4>Дополнительные пилоты (${car.second_pilots.length})</h4>
           <div class=\"pilots-list-compact\">
           ${car.second_pilots.map(p=>`
-            <div class=\\\"pilot-item-compact\\\">
-              <div class=\\\"pilot-avatar-compact\\\">${p.photo?.url?`<img src=\\\\\\\"${escapeHtml(p.photo.url)}\\\\\\\" class=\\\\\\\"avatar-image\\\\\\\" alt=\\\\\\\"@${escapeHtml(p.username||'')}\\\\\\\"/>`:''}</div>
-              <div class=\\\"pilot-info-compact\\\">
-                <span class=\\\"pilot-name-compact\\\">${escapeHtml(`${p.first_name||''} ${p.last_name||''}`.trim())||'—'}</span>
-                ${p.username?`<span class=\\\"pilot-nickname-compact\\\">@${escapeHtml(p.username)}</span>`:''}
+            <div class=\"pilot-item-compact\"> 
+              <div class=\"pilot-avatar-compact\">${p.photo?.urls?.medium?`<img src=\\\"${escapeHtml(p.photo.urls.medium)}\\\" class=\\\"avatar-image\\\" alt=\\\"@${escapeHtml(p.username||'')}\\\"/>`:(p.photo?.url?`<img src=\\\"${escapeHtml(p.photo.url)}\\\" class=\\\"avatar-image\\\" alt=\\\"@${escapeHtml(p.username||'')}\\\"/>`:'')}</div>
+              <div class=\"pilot-info-compact\"> 
+                <span class=\"pilot-name-compact\">${escapeHtml(`${p.first_name||''} ${p.last_name||''}`.trim())||'—'}</span>
+                ${p.username?`<span class=\"pilot-nickname-compact\">@${escapeHtml(p.username)}</span>`:''}
               </div>
             </div>`).join('')}
           </div>

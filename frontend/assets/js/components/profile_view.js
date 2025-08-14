@@ -99,7 +99,7 @@ export async function initProfilePage() {
       const uploadBtn = document.getElementById('userUploadBtn')
       if (avatarEl) {
         avatarEl.innerHTML = ''
-        const url = d.photo?.url
+        const url = d.photo?.urls?.medium || d.photo?.url
         if (url) {
           const img = document.createElement('img')
           img.src = url
