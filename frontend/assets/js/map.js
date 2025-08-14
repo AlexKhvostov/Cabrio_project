@@ -328,11 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
 			try { document.querySelector('.map-fab-bar')?.setAttribute('hidden',''); } catch {}
 			try { document.querySelector('.map-people-panel')?.setAttribute('hidden',''); } catch {}
 			return;
-		}
+  }
 
-		if (window.ymaps && typeof ymaps.ready === 'function') {
-			 ymaps.ready(() => { try { initMap(); } catch {} });
-		}
+  if (window.ymaps && typeof ymaps.ready === 'function') {
+    ymaps.ready(() => { try { initMap(); } catch {} });
+  }
 
 		const gpsBtn = document.getElementById('sendLocationBtn');
 		if (gpsBtn) {
@@ -344,13 +344,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			setGpsBtnState(false);
 		}
 		// WakeLock safety on visibility changes
-		document.addEventListener('visibilitychange', () => {
-			if (document.visibilityState === 'visible') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
 				if (isTracking) acquireWakeLock();
-			} else {
-				releaseWakeLock();
-			}
-		});
+    } else {
+      releaseWakeLock();
+    }
+  });
 
 		// People panel (Online - X)
 		setupOnlinePanel();
