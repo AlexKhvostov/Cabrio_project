@@ -49,7 +49,7 @@ class StartCommand {
         
         return "🎉 <b>Привет, $username!</b>\n\n" .
                "Я бот клуба CabrioRide.\n\n" .
-               "🌐 <b>Больше полезной информации в приложении</b>";
+               "ℹ️ Как использовать бота /help\n\n";
     }
     
     /**
