@@ -143,7 +143,14 @@ class PhotoExclamationHandler {
                 } elseif ($result['http_code'] === 500) {
                     $errorMsg = 'Внутренняя ошибка сервера';
                 } else {
-                    $errorMsg = $result['error']['message'] ?? ($result['data']['error']['message'] ?? 'Неизвестная ошибка');
+                    $raw = $result['error']['message'] ?? ($result['data']['error']['message'] ?? 'Неизвестная ошибка');
+                    $normalized = preg_replace('/(?:Не удалось распознать номер автомобиля:\\s*)+/u', 'Не удалось распознать номер автомобиля: ', $raw);
+                    $normalized = preg_replace('/:\\s*Не удалось распознать номер автомобиля:\\s*$/u', ': ', $normalized);
+                    $hint = 'Убедитесь, что номер целиком в кадре, хорошо освещён и без бликов.';
+                    $errorMsg = trim($normalized);
+                    if (mb_stripos($errorMsg, 'Не удалось распознать номер автомобиля') !== false) {
+                        $errorMsg = 'Не удалось распознать номер автомобиля. ' . $hint;
+                    }
                 }
                 $this->sendErrorMessage($chatId, $errorMsg);
             }
