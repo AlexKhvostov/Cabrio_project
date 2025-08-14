@@ -329,6 +329,27 @@ class UserController extends BaseController
                 'data' => $updatedUser,
                 'meta' => $this->getRequestInfo()
             ]);
+        } catch (\PDOException $e) {
+            $sqlState = $e->getCode();
+            $msg = $e->getMessage();
+            if ($sqlState === '23000' && stripos($msg, 'Duplicate entry') !== false) {
+                $field = (stripos($msg, 'email') !== false) ? 'email' : ((stripos($msg, 'phone') !== false) ? 'phone' : 'unique_field');
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'DUPLICATE_' . strtoupper($field),
+                        'message' => 'Значение поля уже используется: ' . $field
+                    ]
+                ], 409);
+                return;
+            }
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'DB_ERROR',
+                    'message' => $msg
+                ]
+            ], 400);
         } catch (Exception $e) {
             $this->json([
                 'success' => false,

@@ -21,7 +21,12 @@
   </a>
   <!-- Профиль -->
   <a class="nav-item" href="/app/frontend/pages/me.php">
-    <span class="nav-icon">👤</span>
+    <span class="nav-icon">
+      <span class="nav-avatar-wrap" style="display:none">
+        <img id="navProfileAvatar" class="nav-avatar-img" alt="" />
+      </span>
+      <span id="navProfileEmoji" style="display:none">👤</span>
+    </span>
     <span class="nav-label">Профиль</span>
   </a>
 </nav>

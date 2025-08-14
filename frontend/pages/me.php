@@ -110,7 +110,7 @@
       import '/app/frontend/assets/js/components.js'
       import { initProfilePage } from '/app/frontend/assets/js/components/profile_view.js'
       // Локальный клиент на случай, если глобальный не инициализировался
-      const BASE = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+      const API_ROOT = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
       const buildTelegramHeaders = () => {
         const headers = {}
         try {
@@ -126,7 +126,7 @@
       }
       const callApi = async (route) => {
         if (window.CabrioAPI?.apiGet) return window.CabrioAPI.apiGet(route)
-        const url = `${BASE}/backend/routes/api.php?route=${encodeURIComponent(route)}`
+        const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
         const res = await fetch(url, { headers: buildTelegramHeaders() })
         const data = await res.json().catch(()=>null)
         if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }

@@ -208,6 +208,17 @@ class User {
         if (!isset($data['id'])) {
             return false;
         }
+
+        // Нормализация: для уникальных полей, если приходит пустая строка — сохраняем как NULL
+        // Актуально для users: email, phone (см. схему БД)
+        foreach (['email', 'phone'] as $uniqueField) {
+            if (array_key_exists($uniqueField, $data)) {
+                $value = $data[$uniqueField];
+                if (is_string($value) && trim($value) === '') {
+                    $data[$uniqueField] = null;
+                }
+            }
+        }
         
         $updates = [];
         $values = [];

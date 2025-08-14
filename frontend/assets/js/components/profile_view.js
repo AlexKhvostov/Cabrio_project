@@ -1,7 +1,7 @@
 // profile_view.js — инициализация и логика страницы профиля
 
-function getBaseUrl() {
-  return (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
+function getApiRoot() {
+  return (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
 }
 
 function buildTelegramHeaders() {
@@ -20,7 +20,7 @@ function buildTelegramHeaders() {
 
 async function apiGet(route) {
   if (window.CabrioAPI?.apiGet) return window.CabrioAPI.apiGet(route)
-  const url = `${getBaseUrl()}/backend/routes/api.php?route=${encodeURIComponent(route)}`
+  const url = `${getApiRoot()}/routes/api.php?route=${encodeURIComponent(route)}`
   const res = await fetch(url, { headers: buildTelegramHeaders() })
   const data = await res.json().catch(()=>null)
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
@@ -29,7 +29,7 @@ async function apiGet(route) {
 
 async function apiPost(route, payload) {
   if (window.CabrioAPI?.apiPost) return window.CabrioAPI.apiPost(route, payload)
-  const url = `${getBaseUrl()}/backend/routes/api.php?route=${encodeURIComponent(route)}`
+  const url = `${getApiRoot()}/routes/api.php?route=${encodeURIComponent(route)}`
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...buildTelegramHeaders() },
@@ -171,8 +171,8 @@ export async function initProfilePage() {
           const file = input.files && input.files[0]
           if (!file) return
           try {
-            const base = getBaseUrl()
-            const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}`
+            const base = getApiRoot()
+            const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}`
             const fd = new FormData()
             fd.append('entity_type','user')
             fd.append('entity_id', String(d.id))

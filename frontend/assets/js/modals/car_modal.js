@@ -134,8 +134,8 @@ export function openCarModal(car){
           const res = await window.CabrioAPI.apiGet(`/api/photos?entity_type=car&entity_id=${encodeURIComponent(String(car.id))}`)
           if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
         } else {
-          const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
-          const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
+          const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
           const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
           const res = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
           if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
@@ -144,8 +144,8 @@ export function openCarModal(car){
       // Fallback: если получили слишком мало фото, пробуем принудительно второй способ
       try {
         if (!fullList || fullList.length < 2) {
-          const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
-          const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
+          const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
           const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
           const res2 = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
           if (res2 && res2.success !== false && Array.isArray(res2.data)) fullList = res2.data
@@ -381,8 +381,8 @@ export function openCarModal(car){
           if (!file) return
           try {
             const overlayEl = overlay.querySelector('#carUploadOverlay'); if (overlayEl) overlayEl.style.display='flex'
-            const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
-            const url = `${base}/backend/routes/api.php?route=${encodeURIComponent('/api/photos')}`
+            const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+            const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}`
             const fd = new FormData()
             fd.append('entity_type','car')
             fd.append('entity_id', String(car.id))
@@ -448,8 +448,8 @@ export function openCarModal(car){
         const payload = {}
         editableKeys.forEach(k=>{ payload[k] = getValue(k) })
         try {
-          const base = (window.VITE_BACKEND_API_URL || (window.location.origin + '/app')).replace(/\/$/, '')
-          const url = `${base}/backend/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}`
+          const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+          const url = `${base}/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}`
           const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={ 'Content-Type':'application/json' }; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {'Content-Type':'application/json'}} })()
           const res = await fetch(url, { method:'PATCH', headers, body: JSON.stringify(payload) }).then(r=>r.json().catch(()=>null))
           if (!res || res.success === false || res.__httpStatus === 403) {

@@ -277,6 +277,11 @@ class FileHelper {
         elseif ($ext === 'gif') $src = @imagecreatefromgif($origFullPath);
         if (!$src) return;
 
+        // Корректируем ориентацию по EXIF для JPEG (иначе превью могут быть повернуты)
+        if ($ext === 'jpg' || $ext === 'jpeg') {
+            $src = self::applyExifOrientation($src, $origFullPath);
+        }
+
         $w = imagesx($src); $h = imagesy($src);
 
         // Хелпер: пропорционально вписать изображение так, чтобы длинная сторона = $maxSide (без обрезки)
@@ -315,6 +320,46 @@ class FileHelper {
         imagedestroy($thumbS);
 
         imagedestroy($src);
+    }
+
+    /**
+     * Повернуть исходное изображение согласно EXIF Orientation (для JPEG)
+     * @param resource $src
+     * @param string   $origFullPath
+     * @return resource
+     */
+    private static function applyExifOrientation($src, string $origFullPath)
+    {
+        if (!function_exists('exif_read_data')) {
+            return $src;
+        }
+        try {
+            $exif = @exif_read_data($origFullPath);
+            if (!$exif || empty($exif['Orientation'])) {
+                return $src;
+            }
+            $orientation = (int)$exif['Orientation'];
+            switch ($orientation) {
+                case 3: // 180°
+                    $rot = @imagerotate($src, 180, 0);
+                    if ($rot) { imagedestroy($src); $src = $rot; }
+                    break;
+                case 6: // 90° CW
+                    $rot = @imagerotate($src, -90, 0);
+                    if ($rot) { imagedestroy($src); $src = $rot; }
+                    break;
+                case 8: // 90° CCW
+                    $rot = @imagerotate($src, 90, 0);
+                    if ($rot) { imagedestroy($src); $src = $rot; }
+                    break;
+                default:
+                    // Другие значения (зеркала) опускаем для простоты
+                    break;
+            }
+        } catch (\Throwable $e) {
+            // игнорируем — оставляем как есть
+        }
+        return $src;
     }
     
     /**
