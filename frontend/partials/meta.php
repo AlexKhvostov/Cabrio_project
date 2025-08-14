@@ -18,5 +18,17 @@ function render_meta(string $title = 'CabrioRide') {
   $apiBase = getenv('BACKEND_API_URL') ?: $defaultBase;
   $apiBase = rtrim($apiBase, '/');
   echo '<script>window.__API_URL = ' . json_encode($apiBase, JSON_UNESCAPED_SLASHES) . ';</script>';
+	// Интервалы обновления карты и отправки координат из .env
+	$updSec = getenv('MAP_UPD_SEC') ?: '30';
+	$usersRefreshSec = getenv('MAP_USERS_REFRESH_IDLE_SEC') ?: '60';
+	echo '<script>window.MAP_UPD_SEC = ' . json_encode((int)$updSec, JSON_UNESCAPED_SLASHES) . ';</script>';
+	echo '<script>window.MAP_USERS_REFRESH_IDLE_SEC = ' . json_encode((int)$usersRefreshSec, JSON_UNESCAPED_SLASHES) . ';</script>';
+	// Порог движения (в метрах) и минимальные интервалы при движении
+	$moveThresholdM = getenv('MAP_MOVE_THRESHOLD_M') ?: '25';
+	$updMovingSec = getenv('MAP_UPD_MOVING_SEC') ?: '10';
+	$usersRefreshMovingSec = getenv('MAP_USERS_REFRESH_MOVING_SEC') ?: '10';
+	echo '<script>window.MAP_MOVE_THRESHOLD_M = ' . json_encode((int)$moveThresholdM, JSON_UNESCAPED_SLASHES) . ';</script>';
+	echo '<script>window.MAP_UPD_MOVING_SEC = ' . json_encode((int)$updMovingSec, JSON_UNESCAPED_SLASHES) . ';</script>';
+	echo '<script>window.MAP_USERS_REFRESH_MOVING_SEC = ' . json_encode((int)$usersRefreshMovingSec, JSON_UNESCAPED_SLASHES) . ';</script>';
 }
 

@@ -1,632 +1,371 @@
-// map.js — Яндекс.Карты и управление координатами пользователей
+// Simple map implementation (Yandex Maps) with GPS tracking and "follow me" toggle
 
 let map;
-let userLocation;
+let selfPlacemark = null;
+let isTracking = false;
+let followMe = false; // appears when GPS is on; default true on start
+let watchId = null;
+let wakeLock = null;
+let userLocation = null;
+let heartbeatTid = null;
+let lastSentAt = 0;
+let mapBehaviors = null; // to manage dragging/scroll zoom if needed
+let activeUsers = [];
+let usersRefreshTimer = null;
 
-// Конфигурация
-const UPDATE_INTERVAL_SEC = Number(window.MAP_UPD_SEC || 30);
+const UPDATE_SEC = Number(window.MAP_UPD_SEC || 30);
 const UPDATE_MOVING_SEC = Number(window.MAP_UPD_MOVING_SEC || 10);
 const MOVE_THRESHOLD_M = Number(window.MAP_MOVE_THRESHOLD_M || 25);
-const USERS_REFRESH_IDLE_SEC = Number(window.MAP_USERS_REFRESH_IDLE_SEC || 60);
-const USERS_REFRESH_MOVING_SEC = Number(window.MAP_USERS_REFRESH_MOVING_SEC || 20);
-let LIVE_TIME_MIN = 40; // значение по умолчанию, может быть переопределено ответом сервера
 
-// Состояние трекинга
-let isTracking = false;
-let watchId = null;
-let lastSentAt = 0;
-let lastReceivedAt = 0;
-
-// Состояние
+let lastLocation = null;
+let lastSentCoords = null;
 let isMoving = false;
-let lastCoord = null;
-let usersRefreshTid = null;
 
-// Screen Wake Lock — чтобы экран не гас при активной передаче
-let wakeLock = null;
-async function acquireWakeLock() {
-  if (!('wakeLock' in navigator)) return;
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => {
-      wakeLock = null;
-      if (isTracking && document.visibilityState === 'visible') {
-        acquireWakeLock().catch(()=>{});
-      }
-    });
-  } catch (_) {}
-}
-function releaseWakeLock() {
-  try { wakeLock && wakeLock.release && wakeLock.release(); } catch(_) {}
-  wakeLock = null;
-}
+// Роль текущего пользователя (кешируем после первого запроса)
+let currentUserRole = null;
+const ROLE_ORDER = ['external','guest','new','registered','member','moderator','admin'];
 
-// Слои для объектов
-let selfLayer = null;
-let usersLayer = null;
-
-// Кэш машин пользователей для карточек
-let userIdToCars = {};
-let activeUsersById = {}; // кэш активных пользователей для аватаров (включая себя)
-
-// Управление автоцентрированием карты (чтобы не сбрасывать масштаб пользователю)
-let hasAutoCentered = false;
-let userMovedMap = false;
-
-let lastUsersRefreshAt = 0;
-let refreshTimerTid = null;
-let heartbeatTid = null; // таймер периодической отправки
-
-// Счётчик секунд с момента последней отправки координат
-let lastCoordSentAt = 0;
-function setCoordTimerLabel(){
-  const el = document.getElementById('toggleTime');
-  if (!el) return;
-  if (!lastCoordSentAt) { el.textContent = '(—s)'; return; }
-  const secs = Math.max(0, Math.floor((Date.now() - lastCoordSentAt)/1000));
-  el.textContent = `(${secs}s)`;
-}
-function markCoordSentNow(){
-  lastCoordSentAt = Date.now();
-  setCoordTimerLabel();
+function showAccessDenied(message){
+	try{
+		if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.showAlert === 'function') {
+			window.Telegram.WebApp.showAlert(message);
+			return;
+		}
+	} catch {}
+	try { alert(message); return; } catch {}
+	// Фолбэк: простая видимая плашка поверх карты
+	try{
+		const overlay = document.createElement('div');
+		overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:24px;';
+		const box = document.createElement('div');
+		box.style.cssText = 'max-width:420px;background:#1a1a1a;color:#fff;border-radius:12px;padding:16px 18px;font-size:16px;line-height:1.4;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.35)';
+		box.textContent = message;
+		overlay.appendChild(box);
+		document.body.appendChild(overlay);
+		overlay.addEventListener('click', ()=>{ try{ overlay.remove(); }catch{} });
+	}catch{}
 }
 
-function setRefreshTimerLabel() {
-  const el = document.getElementById('refreshTimer');
-  if (!el) return;
-  if (!lastUsersRefreshAt) { el.textContent = '(—s)'; return; }
-  const secs = Math.max(0, Math.floor((Date.now() - lastUsersRefreshAt)/1000));
-  el.textContent = `(${secs}s)`;
+async function fetchCurrentUserRole(){
+	if (currentUserRole) return currentUserRole;
+	try{
+		if (!window.CabrioAPI?.apiGet) { currentUserRole = 'guest'; return currentUserRole; }
+		const me = await window.CabrioAPI.apiGet('/api/users/profile');
+		const d = me?.data || me || {};
+		let code = null;
+		if (typeof d.role === 'string') code = d.role;
+		else if (d.role && typeof d.role.code === 'string') code = d.role.code;
+		else if (d.user && typeof d.user.role === 'string') code = d.user.role;
+		else if (d.user && d.user.role && typeof d.user.role.code === 'string') code = d.user.role.code;
+		else if (typeof d.role_code === 'string') code = d.role_code;
+		currentUserRole = code ? String(code).toLowerCase() : 'guest';
+		return currentUserRole;
+	}catch{ currentUserRole = 'guest'; return currentUserRole; }
 }
 
-function markUsersRefreshNow(){
-  lastUsersRefreshAt = Date.now();
-  setRefreshTimerLabel();
+function isRoleAtLeast(role, minRole){
+    try{
+        const a = ROLE_ORDER.indexOf((role||'').toLowerCase());
+        const b = ROLE_ORDER.indexOf((minRole||'').toLowerCase());
+        if (b === -1) return false; // некорректный minRole — перестрахуемся
+        if (a === -1) return false; // роль не распознали — считаем ниже порога
+        return a >= b;
+    }catch{ return false }
 }
 
-async function refreshUsersManually(){
-  // Обнуляем счётчик сразу по нажатию
-  markUsersRefreshNow();
-  await loadActiveUsers();
+async function ensureAccessAllowed(showDialog){
+    try{
+        const role = await fetchCurrentUserRole();
+        const allowed = isRoleAtLeast(role, 'member');
+        if (!allowed && showDialog) {
+            showAccessDenied('Карта доступна только подтверждённым участникам клуба (роль "Участник" и выше).');
+        }
+        return !!allowed;
+    }catch{ return false }
 }
 
-function getCurrentTelegramUserId() {
-  try {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
-  } catch { return null; }
+function distanceMeters(lat1, lon1, lat2, lon2) {
+	try{
+		const R = 6371000; // meters
+		const toRad = (d)=>d*Math.PI/180;
+		const dLat = toRad(lat2-lat1);
+		const dLon = toRad(lon2-lon1);
+		const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+		return 2*R*Math.asin(Math.sqrt(a));
+	}catch{return 0}
 }
 
 function initMap() {
   map = new ymaps.Map('map', {
-    center: [53.902284, 27.561831], // Минск
-    zoom: 10,
+		center: [53.902284, 27.561831], // Minsk, Belarus
+		zoom: 12,
     controls: ['zoomControl', 'fullscreenControl']
   });
-  selfLayer = new ymaps.GeoObjectCollection();
-  usersLayer = new ymaps.GeoObjectCollection();
-  map.geoObjects.add(usersLayer);
-  map.geoObjects.add(selfLayer);
-  map.geoObjects.add(new ymaps.TrafficLayer());
-
-  // Если пользователь начал взаимодействовать с картой — больше не центрируем автоматически
-  try {
-    map.events.add('actionbegin', () => { userMovedMap = true; });
-  } catch {}
-
-  // Стартовая загрузка данных
-  loadCarsForCards().catch(()=>{});
-  loadActiveUsers().catch(()=>{});
-  // Автообновление меток других пользователей с динамическим интервалом
-  restartUsersAutoRefresh();
+	mapBehaviors = map.behaviors;
+    // На мобильном лучше отключить скролл зум колесом/жестом страницы
+    try { map.behaviors.disable('scrollZoom'); } catch {}
 }
 
-async function loadCarsForCards() {
-  // Загружаем список машин и строим индекс по владельцу
-  if (!window.CabrioAPI?.apiGet) return;
-  try {
-    const res = await window.CabrioAPI.apiGet('/api/cars');
-    if (res && res.success && Array.isArray(res.data)) {
-      const mapCars = {};
-      for (const car of res.data) {
-        const ownerId = car?.owner?.id || car?.owner_user_id || null;
-        if (!ownerId) continue;
-        if (!mapCars[ownerId]) mapCars[ownerId] = [];
-        const brand = car?.brand?.name || car?.car_brand?.name || car?.car_brand_name || '';
-        const model = car?.model || '';
-        mapCars[ownerId].push({ brand, model });
-      }
-      userIdToCars = mapCars;
-    }
-  } catch {}
+function acquireWakeLock() {
+	if (!('wakeLock' in navigator)) return Promise.resolve();
+	return navigator.wakeLock.request('screen')
+		.then(lock => {
+			wakeLock = lock;
+			lock.addEventListener('release', () => { wakeLock = null; });
+		})
+		.catch(() => {});
 }
 
-function parseSqlUtc(sql){
-  try{
-    const s = String(sql).trim();
-    if (!s) return new Date(NaN);
-    if (s.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(s)) return new Date(s);
-    return new Date(s.replace(' ', 'T') + 'Z');
-  }catch{ return new Date(NaN); }
+function releaseWakeLock() {
+	try { wakeLock && wakeLock.release && wakeLock.release(); } catch {}
+	wakeLock = null;
 }
 
-function ageMinutesFromSql(sql){
-  const s = String(sql || '').trim();
-  if (!s) return 0;
-  const utcDate = parseSqlUtc(s);
-  let diffMs = Date.now() - utcDate.getTime();
-  let mins = Math.floor(diffMs / 60000);
-  if (!isFinite(mins)) mins = 0;
-  // Фолбэк для старых записей (сохранённых в локальном времени): если "будущее" > 2 минут — парсим как локальное
-  if (mins < -2) {
-    try {
-      const localDate = new Date(s.replace(' ', 'T'));
-      const diff2 = Date.now() - localDate.getTime();
-      const mins2 = Math.floor(diff2 / 60000);
-      if (isFinite(mins2)) return mins2;
-    } catch {}
-  }
-  return mins;
+function ensureSelfPlacemark() {
+	if (!map || !window.ymaps) return;
+	if (selfPlacemark) return;
+	selfPlacemark = new ymaps.Placemark([0, 0], {}, { preset: 'islands#blueCircleDotIcon' });
+	map.geoObjects.add(selfPlacemark);
 }
 
-function formatRelativeTime(isoOrSql) {
-  const mins = Math.max(0, ageMinutesFromSql(isoOrSql));
-  if (mins < 1) return 'только что';
-  if (mins < 60) return `${mins}м`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m ? `${h}ч ${m}м` : `${h}ч`;
+function updateSelfMarker(lat, lon) {
+	if (!map || !window.ymaps) return;
+	ensureSelfPlacemark();
+	try { selfPlacemark.geometry.setCoordinates([lat, lon]); } catch { try { selfPlacemark = new ymaps.Placemark([lat, lon]); map.geoObjects.add(selfPlacemark); } catch {} }
 }
 
-// Layout с HTML содержимым (аватар) с фолбэком
-function createAvatarLayout(imageUrl) {
-  const safeUrl = imageUrl ? String(imageUrl) : '';
-  // Без onerror: используем только то, что уже проверено в списке (dataURL/mini)
-  return ymaps.templateLayoutFactory.createClass(
-    `<div class="avatar-marker">
-       <div class="avatar-wrap">
-         ${safeUrl ? `<img src="${safeUrl}" alt="avatar"/>` : ''}
-         ${safeUrl ? '' : '<div class="avatar-fallback">👤</div>'}
-       </div>
-     </div>`
-  );
-}
-
-function buildBalloonHtml(user) {
-  const name = user?.first_name || 'Участник';
-  const username = user?.username ? `@${user.username}` : '';
-  const cars = userIdToCars[user.user_id] || [];
-  const carsHtml = cars.length ? (
-    `<ul class="member-cars">${cars.slice(0,3).map(c => `<li>${(c.brand||'').trim()} ${(c.model||'').trim()}</li>`).join('')}</ul>`
-  ) : '<div class="member-empty">Нет машин</div>';
-  return `
-    <div class="member-balloon">
-      <div class="member-line">
-        <div class="member-name">${name}</div>
-        ${username ? `<div class="member-username">${username}</div>` : ''}
-      </div>
-      ${carsHtml}
-    </div>
-  `;
-}
-
-// Предзагрузка изображения с таймаутом
-function preloadImage(url, timeoutMs = 2000){
-  return new Promise((resolve)=>{
-    if (!url) return resolve(false);
-    try{
-      const img = new Image();
-      let done = false;
-      const finish = (ok)=>{ if (done) return; done = true; resolve(ok); };
-      const t = setTimeout(()=>{ finish(false); }, timeoutMs);
-      img.onload = ()=>{ clearTimeout(t); finish(true); };
-      img.onerror = ()=>{ clearTimeout(t); finish(false); };
-      img.src = url;
-    }catch{ resolve(false); }
-  });
-}
-
-// Преобразование загруженного <img> в dataURL (если разрешено CORS), иначе возвращаем null
-function imgToDataUrl(img, size = 36){
-  try{
-    if (!img || !img.complete || !img.naturalWidth) return null;
-    const canvas = document.createElement('canvas');
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, size, size);
-    return canvas.toDataURL('image/png');
-  }catch{ return null; }
-}
-
-async function loadActiveUsers() {
-  markUsersRefreshNow();
-  if (!window.CabrioAPI?.apiGet) return;
-  const meId = getCurrentTelegramUserId();
-  try {
-    const res = await window.CabrioAPI.apiGet('/api/user-locations');
-    if (!(res && res.success && Array.isArray(res.data))) { return; }
-
-    if (typeof res.live_time_minutes !== 'undefined') {
-      const v = Number(res.live_time_minutes);
-      if (isFinite(v) && v > 0) LIVE_TIME_MIN = v;
-    }
-
-    for (const loc of res.data) {
-      const k = String(loc.user_id);
-      const prev = activeUsersById[k] || {};
-      const mini = (loc.user?.photo?.mini) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo_url) || (loc.user?.photo?.fallback) || '';
-      activeUsersById[k] = { mini, user: loc.user, dataUrl: prev.dataUrl || null };
-    }
-
-    const toggleBtn = document.getElementById('peopleToggle');
-    if (toggleBtn) toggleBtn.textContent = `На карте — ${res.data.length}`;
-
-    const list = document.getElementById('peopleList');
-    if (list) {
-      const items = res.data.map(loc => {
-        const name = (loc.user?.first_name) || 'Участник';
-        const username = loc.user?.username ? `@${loc.user.username}` : '';
-        const timeLabel = formatRelativeTime(loc.updated_at);
-        const avatar = (loc.user?.photo?.mini) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo_url) || (loc.user?.photo?.fallback) || '';
-        return `
-          <div class="people-item" data-user-id="${loc.user_id}">
-            <div class="pi-avatar">${avatar ? `<img src="${avatar}" alt="avatar" onerror="this.style.display='none'"/>` : ''}</div>
-            <div class="pi-main">
-              <div class="pi-name">${name}</div>
-              ${username ? `<div class="pi-username">${username}</div>` : ''}
-            </div>
-            <div class="pi-time">${timeLabel}</div>
-          </div>`;
-      }).join('');
-      list.innerHTML = items;
-
-    // Дождёмся загрузки аватаров в списке, затем сохраним dataURL (без повторных запросов)
-      const waits = [];
-      for (const loc of res.data){
-        const k = String(loc.user_id);
-        const el = list.querySelector(`.people-item[data-user-id="${loc.user_id}"] img`);
-        waits.push(new Promise((resolve)=>{
-          if (!el){ resolve(); return; }
-          if (el.complete && el.naturalWidth){
-            const du = imgToDataUrl(el, 36);
-            if (du) activeUsersById[k].dataUrl = du;
-            resolve();
-          } else {
-            let done = false;
-            const finish = ()=>{ if (done) return; done = true; const du = imgToDataUrl(el, 36); if (du) activeUsersById[k].dataUrl = du; resolve(); };
-          const t = setTimeout(()=>{ finish(); }, 2500);
-            el.addEventListener('load', ()=>{ clearTimeout(t); finish(); }, { once: true });
-            el.addEventListener('error', ()=>{ clearTimeout(t); finish(); }, { once: true });
-          }
-        }));
-      }
-      try { await Promise.all(waits); } catch {}
-    }
-
-    usersLayer.removeAll();
-
-    for (const loc of res.data) {
-      const lat = Number(loc.latitude), lon = Number(loc.longitude);
-      if (!isFinite(lat) || !isFinite(lon)) continue;
-
-      let opacity = 1;
-      try {
-        const ageMin = Math.max(0, ageMinutesFromSql(loc.updated_at));
-        if (LIVE_TIME_MIN > 0) opacity = Math.max(0, Math.min(1, 1 - ageMin / LIVE_TIME_MIN));
-      } catch { opacity = 1; }
-
-      const cache = activeUsersById[String(loc.user_id)] || {};
-      // Берём только dataURL из списка. Если его нет — пробуем mini один раз, но без onerror-фолбэков
-      const useUrl = cache.dataUrl || cache.mini || '';
-      const contentLayout = createAvatarLayout(useUrl);
-      const placemark = new ymaps.Placemark([lat, lon], {
-        balloonContent: buildBalloonHtml({ user_id: loc.user_id, first_name: loc.user?.first_name, username: loc.user?.username })
-      }, {
-        iconLayout: 'default#imageWithContent',
-        iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-        iconImageSize: [1,1],
-        iconContentLayout: contentLayout,
-        iconContentOffset: [0, 0],
-        hideIconOnBalloonOpen: false,
-        balloonShadow: false,
-        balloonPanelMaxMapArea: 0,
-        opacity
-      });
-      usersLayer.add(placemark);
-    }
-  } catch (e) { /* игнор */ }
-}
-
-// Отправка координат на сервер (через общий API-клиент с Telegram-заголовками)
-async function sendLocationToServer(coords) {
-  if (!window.CabrioAPI?.apiPost) throw new Error('API клиент не инициализирован');
-  const result = await window.CabrioAPI.apiPost('/api/user-locations', {
-    latitude: coords.latitude,
-    longitude: coords.longitude,
-    accuracy: coords.accuracy
-  });
-  if (!result || result.success !== true) {
-    const raw = result?.error;
-    const msg = (raw && (raw.message || raw)) || 'Сервер вернул ошибку';
-    const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
-    // Показать человекочитаемую ошибку вместо [object Object]
-    try { setErrorTop(text); } catch {}
-    throw new Error(text);
-  }
-  return result;
-}
-
-function setTrackingButtonState(active) {
-  const btn = document.getElementById('sendLocationBtn');
-  if (!btn) return;
-  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-}
-
-function setErrorTop(message){
-  const el = document.getElementById('mapError');
-  if (!el) return;
-  if (!message){ el.hidden = true; el.textContent = ''; return; }
-  el.textContent = message;
-  el.hidden = false;
-}
-
-function setStatus(message, kind = 'info') {
-  // перенаправляем ошибки в верхний блок
-  if (kind === 'error') { setErrorTop(message); return; }
-  const statusEl = document.getElementById('locationStatus');
-  if (statusEl) {
-    statusEl.textContent = message;
-    statusEl.className = `location-status ${kind === 'success' ? 'success' : kind === 'error' ? 'error' : ''}`;
-  }
-}
-
-function addUserMarker(coords) {
-  if (!map || !window.ymaps) return;
-  try {
-    selfLayer.removeAll();
-    const meId = getCurrentTelegramUserId();
-    const cache = activeUsersById[String(meId)] || {};
-    const useUrl = cache.dataUrl || cache.mini || '';
-    const contentLayout = createAvatarLayout(useUrl);
-    const placemark = new ymaps.Placemark([coords.latitude, coords.longitude], {}, {
-      iconLayout: 'default#imageWithContent',
-      iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-      iconImageSize: [1,1],
-      iconContentLayout: contentLayout,
-      iconContentOffset: [0, 0]
-    });
-    selfLayer.add(placemark);
-    // Автоцентрируем только один раз и только пока пользователь сам не двигал карту
-    if (!hasAutoCentered && !userMovedMap) {
-      try { map.setCenter([coords.latitude, coords.longitude]); } catch {}
-      hasAutoCentered = true;
-    }
+async function sendLocation(minIntervalSec = UPDATE_SEC) {
+	if (!window.CabrioAPI?.apiPost) return;
+	if (!userLocation) return;
+	const now = Date.now();
+	if (now - lastSentAt < Math.max(0, Number(minIntervalSec)||0) * 1000) return;
+	lastSentAt = now;
+	try {
+		await window.CabrioAPI.apiPost('/api/user-locations', {
+			latitude: userLocation.latitude,
+			longitude: userLocation.longitude,
+			accuracy: userLocation.accuracy
+		});
+		lastSentCoords = { lat: userLocation.latitude, lon: userLocation.longitude };
   } catch {}
 }
 
-function haversineMeters(a, b){
-  const R = 6371000;
-  const toRad = (deg)=>deg*Math.PI/180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLon = toRad(b.lon - a.lon);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-  const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(h));
+function startHeartbeat() {
+	stopHeartbeat();
+	heartbeatTid = setInterval(sendLocation, Math.max(UPDATE_SEC, 5) * 1000);
 }
 
-function updateMovingState(newCoords){
-  if (!lastCoord){ lastCoord = { lat: newCoords.latitude, lon: newCoords.longitude }; isMoving = false; return; }
-  const dist = haversineMeters(lastCoord, { lat: newCoords.latitude, lon: newCoords.longitude });
-  if (dist >= MOVE_THRESHOLD_M) {
-    isMoving = true;
-    lastCoord = { lat: newCoords.latitude, lon: newCoords.longitude };
-  } else {
-    isMoving = false;
-  }
-  restartHeartbeat();
-  restartUsersAutoRefresh();
+function stopHeartbeat() {
+	if (heartbeatTid) { try { clearInterval(heartbeatTid); } catch {} heartbeatTid = null; }
 }
 
-function restartUsersAutoRefresh(){
-  if (usersRefreshTid) { try { clearInterval(usersRefreshTid); } catch{} usersRefreshTid=null; }
-  const sec = isMoving ? USERS_REFRESH_MOVING_SEC : USERS_REFRESH_IDLE_SEC;
-  usersRefreshTid = setInterval(() => { if (document.visibilityState==='visible') loadActiveUsers().catch(()=>{}); }, sec*1000);
-}
-
-function startHeartbeat(){ stopHeartbeat(); heartbeatTid = setInterval(heartbeatTick, (isMoving? UPDATE_MOVING_SEC : UPDATE_INTERVAL_SEC) * 1000); }
-function stopHeartbeat(){ if (heartbeatTid) { try { clearInterval(heartbeatTid); } catch{} heartbeatTid = null; } }
-function restartHeartbeat(){ if (!isTracking) return; startHeartbeat(); }
-async function heartbeatTick(){
-  try{
-    if (!isTracking) return;
-    if (userLocation && (Date.now() - lastSentAt >= (isMoving? UPDATE_MOVING_SEC : UPDATE_INTERVAL_SEC) * 1000)){
-      await sendLocationToServer(userLocation);
-      lastSentAt = Date.now();
-      markCoordSentNow();
-      loadActiveUsers().catch(()=>{});
-    }
-  }catch{}
-}
-
-function startTracking() {
+async function startTracking() {
+  const allowed = await ensureAccessAllowed(true);
+  if (!allowed) return;
   if (isTracking) return;
-  if (!navigator.geolocation) { setStatus('Геолокация не поддерживается', 'error'); return; }
-  try {
+	if (!navigator.geolocation) return;
     isTracking = true;
-    setTrackingButtonState(true);
-    setErrorTop('');
-    lastSentAt = 0;
-    lastReceivedAt = 0;
-    lastCoordSentAt = 0;
-    setCoordTimerLabel();
-    // Разрешим одно автоцентрирование при новом запуске, если пользователь не трогал карту
-    hasAutoCentered = false;
-
-    acquireWakeLock().catch(()=>{});
-
-    // Запускаем heartbeat, чтобы слать даже без движения
+	setGpsBtnState(true);
+	followMe = true;
+	showFollowBtn(true);
+	acquireWakeLock();
     startHeartbeat();
-
+	if (watchId !== null) { try { navigator.geolocation.clearWatch(watchId); } catch {} watchId = null; }
     watchId = navigator.geolocation.watchPosition(
-      async (position) => {
-        try {
-          const coords = {
+		(position) => {
+			userLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           };
-          userLocation = coords;
-          lastReceivedAt = Date.now();
-          updateMovingState(coords);
-
-          addUserMarker(coords);
-
-          const now = Date.now();
-          if (now - lastSentAt >= UPDATE_INTERVAL_SEC * 1000) {
-            await sendLocationToServer(coords);
-            lastSentAt = now;
-            markCoordSentNow();
-            loadActiveUsers().catch(()=>{});
-          }
-        } catch (err) {
-          setStatus(err?.message || 'Ошибка отправки координат', 'error');
-          stopTracking();
-        }
-      },
-      (error) => {
-        let msg = 'Ошибка геолокации';
-        if (error.code === 1) msg = 'Доступ к геолокации запрещен';
-        else if (error.code === 2) msg = 'Не удалось определить местоположение';
-        else if (error.code === 3) msg = 'Превышено время ожидания';
-        setStatus(msg, 'error');
-        stopTracking();
-      },
+			updateSelfMarker(userLocation.latitude, userLocation.longitude);
+			if (followMe && map) {
+				try { map.setCenter([userLocation.latitude, userLocation.longitude], 17, { duration: 0, checkZoomRange: true }); } catch {}
+			}
+			// Определяем движение и отправляем при проходе порога, но не чаще заданного интервала для движения
+			if (lastLocation) {
+				const distFix = distanceMeters(lastLocation.latitude, lastLocation.longitude, userLocation.latitude, userLocation.longitude);
+				const prevMoving = isMoving;
+				isMoving = distFix >= MOVE_THRESHOLD_M;
+				if (prevMoving !== isMoving && typeof window.__setUsersMoving === 'function') {
+					try { window.__setUsersMoving(isMoving); } catch {}
+				}
+			} else {
+				// первая фиксация
+				isMoving = false;
+			}
+			// Немедленная первая отправка
+            if (lastSentAt === 0) {
+                sendLocation(0);
+                try { if (typeof window.__refreshUsersNow === 'function') window.__refreshUsersNow(); } catch {}
+            }
+			// Отправка при преодолении порога расстояния
+			if (lastSentCoords) {
+				const distSinceSent = distanceMeters(lastSentCoords.lat, lastSentCoords.lon, userLocation.latitude, userLocation.longitude);
+                if (distSinceSent >= MOVE_THRESHOLD_M) {
+                    sendLocation(UPDATE_MOVING_SEC);
+                    try { if (typeof window.__refreshUsersNow === 'function') window.__refreshUsersNow(); } catch {}
+                }
+			} else {
+				// если координаты ещё не отправлялись, привяжем к текущей
+				lastSentCoords = { lat: userLocation.latitude, lon: userLocation.longitude };
+			}
+			lastLocation = { latitude: userLocation.latitude, longitude: userLocation.longitude };
+		},
+		() => { stopTracking(); },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
     );
-  } catch (e) {
-    setStatus(e?.message || 'Не удалось запустить авто‑отправку', 'error');
-    stopTracking();
-  }
 }
 
 function stopTracking() {
+	if (!isTracking) return;
+	isTracking = false;
+	setGpsBtnState(false);
+	showFollowBtn(false);
   if (watchId !== null) { try { navigator.geolocation.clearWatch(watchId); } catch {} watchId = null; }
   stopHeartbeat();
-  isTracking = false;
-  setTrackingButtonState(false);
-  lastCoordSentAt = 0;
-  setCoordTimerLabel();
   releaseWakeLock();
 }
 
-// Обработчик раскрытия панели
-function setupPeoplePanel() {
-  const toggleBtn = document.getElementById('peopleToggle');
-  const list = document.getElementById('peopleList');
-  if (!toggleBtn || !list) return;
-  toggleBtn.addEventListener('click', () => {
-    const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-    const next = !expanded;
-    toggleBtn.setAttribute('aria-expanded', next ? 'true' : 'false');
-    if (next) {
-      list.hidden = false;
-    } else {
-      list.hidden = true;
-    }
-  });
+function setGpsBtnState(active) {
+	const btn = document.getElementById('sendLocationBtn');
+	if (!btn) return;
+	btn.setAttribute('aria-pressed', active ? 'true' : 'false');
 }
 
-function showToast(msg){
-  const el = document.getElementById('mapToast');
-  if (!el) return;
-  el.textContent = msg;
-  el.hidden = false;
-}
-function hideToast(){
-  const el = document.getElementById('mapToast');
-  if (!el) return;
-  el.hidden = true;
-}
-
-// Прогресс‑границы для FAB: 0..1 в минутном окне
-function setFabProgress(btnId, progress){
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  const deg = Math.max(0, Math.min(1, progress || 0)) * 360;
-  const ring = btn.querySelector('.fab-progress::after');
-  // querySelector на псевдоэлемент не работает — используем CSS var и вращение всей кнопки-псевдоэлемента через style
-  btn.style.setProperty('--fab-progress-deg', `${deg}deg`);
-}
-
-function updateFabProgressRings(){
-  // GPS
-  const gpsBtn = document.getElementById('sendLocationBtn');
-  if (gpsBtn){
-    const secs = lastCoordSentAt ? Math.min(60, Math.max(0, Math.floor((Date.now() - lastCoordSentAt)/1000))) : 0;
-    const deg = (secs / 60) * 360; // от -90deg задаётся в CSS
-    gpsBtn.style.setProperty('--fab-progress-deg', `${deg}deg`);
-  }
-  // Refresh
-  const refBtn = document.getElementById('refreshUsersBtn');
-  if (refBtn){
-    const secs = lastUsersRefreshAt ? Math.min(60, Math.max(0, Math.floor((Date.now() - lastUsersRefreshAt)/1000))) : 0;
-    const deg = (secs / 60) * 360;
-    refBtn.style.setProperty('--fab-progress-deg', `${deg}deg`);
+function showFollowBtn(visible) {
+	let bar = document.querySelector('.map-fab-bar');
+	if (!bar) return;
+	let btn = document.getElementById('followMeBtn');
+	if (visible) {
+		if (!btn) {
+			btn = document.createElement('button');
+			btn.id = 'followMeBtn';
+			btn.type = 'button';
+			btn.className = 'fab';
+			btn.title = 'Следить за мной';
+			btn.setAttribute('aria-pressed', 'true');
+			btn.innerHTML = '<span class="fab-icon" aria-hidden="true">➤</span>';
+			btn.addEventListener('click', () => {
+				followMe = !followMe;
+				btn.setAttribute('aria-pressed', followMe ? 'true' : 'false');
+				// При включении сразу центрируем и ставим зум 17 одним вызовом
+				if (followMe && userLocation && map) {
+					try { map.setCenter([userLocation.latitude, userLocation.longitude], 17, { duration: 0, checkZoomRange: true }); } catch {}
+				}
+			});
+			bar.appendChild(btn);
+		} else {
+			btn.style.display = '';
+			btn.setAttribute('aria-pressed', 'true');
+			followMe = true;
+		}
+	} else if (btn) {
+		btn.style.display = 'none';
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const tg = window.Telegram?.WebApp;
-    tg?.ready?.();
-    tg?.expand?.();
-    tg?.disableVerticalSwipes?.();
-  } catch {}
-
-  const btn = document.getElementById('sendLocationBtn');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      if (isTracking) stopTracking(); else startTracking();
-    });
-    setTrackingButtonState(false);
-  }
-
   if (window.ymaps && typeof ymaps.ready === 'function') {
     ymaps.ready(() => { try { initMap(); } catch {} });
   }
-
-  setupPeoplePanel();
-
+	const gpsBtn = document.getElementById('sendLocationBtn');
+	if (gpsBtn) {
+		gpsBtn.addEventListener('click', async () => {
+			const ok = await ensureAccessAllowed(true);
+			if (!ok) return;
+			if (isTracking) stopTracking(); else startTracking();
+		});
+		setGpsBtnState(false);
+	}
+	// WakeLock safety on visibility changes
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      if (isTracking) acquireWakeLock().catch(()=>{});
+			if (isTracking) acquireWakeLock();
     } else {
       releaseWakeLock();
     }
   });
 
-  window.addEventListener('pagehide', () => { releaseWakeLock(); });
-
-  const refreshBtn = document.getElementById('refreshUsersBtn');
-  if (refreshBtn) refreshBtn.addEventListener('click', refreshUsersManually);
-  // запускаем общий секундный таймер — обновляем оба счётчика
-  refreshTimerTid = setInterval(() => {
-    setRefreshTimerLabel();
-    setCoordTimerLabel();
-    updateFabProgressRings();
-  }, 1000);
-
-  const recBtn = document.getElementById('audioRecBtn');
-  if (recBtn){
-    const onDown = ()=> showToast('Функция записи аудио в разработке');
-    const onUp = ()=> hideToast();
-    recBtn.addEventListener('mousedown', onDown);
-    recBtn.addEventListener('touchstart', onDown, { passive: true });
-    recBtn.addEventListener('mouseup', onUp);
-    recBtn.addEventListener('mouseleave', onUp);
-    recBtn.addEventListener('touchend', onUp);
-    recBtn.addEventListener('touchcancel', onUp);
-  }
+  // People panel (Online - X)
+  setupOnlinePanel();
 });
 
-window.MapFunctions = { initMap, sendLocationToServer, addUserMarker, startTracking, stopTracking };
+// expose minimal API for debugging
+window.MapFunctions = { startTracking, stopTracking };
+
+// ===================== Online panel =====================
+function setupOnlinePanel(){
+  const toggle = document.getElementById('peopleToggle');
+  const list = document.getElementById('peopleList');
+  if (!toggle || !list) return;
+
+  const idleSec = Number(window.MAP_USERS_REFRESH_IDLE_SEC || 60);
+  const movingSec = Number(window.MAP_USERS_REFRESH_MOVING_SEC || idleSec);
+
+  toggle.textContent = 'Online - 0';
+  toggle.addEventListener('click', async ()=>{
+    const ok = await ensureAccessAllowed(true);
+    if (!ok) return;
+    if (list.hasAttribute('hidden')) {
+      renderPeopleList(list);
+      list.removeAttribute('hidden');
+    } else {
+      list.setAttribute('hidden', '');
+    }
+  });
+
+  const doRefresh = async () => {
+    try{
+      const ok = await ensureAccessAllowed(false);
+      if (!ok) return;
+      const res = await (window.CabrioAPI?.apiGet ? window.CabrioAPI.apiGet('/api/user-locations') : Promise.resolve(null));
+      if (res && res.success && Array.isArray(res.data)) {
+        activeUsers = res.data.slice().sort((a,b)=>{
+          const ta = Date.parse(String(a.updated_at).replace(' ', 'T')+'Z') || 0;
+          const tb = Date.parse(String(b.updated_at).replace(' ', 'T')+'Z') || 0;
+          return tb - ta;
+        });
+        toggle.textContent = `Online - ${activeUsers.length}`;
+        // если список открыт — перерисуем
+        if (!list.hasAttribute('hidden')) renderPeopleList(list);
+      }
+    }catch{}
+  };
+
+  function restartUsersInterval(movingFlag){
+    if (usersRefreshTimer) { try { clearInterval(usersRefreshTimer); } catch {} usersRefreshTimer = null; }
+    const sec = Math.max(10, movingFlag ? movingSec : idleSec);
+    usersRefreshTimer = setInterval(()=>{ if (document.visibilityState==='visible') doRefresh(); }, sec*1000);
+  }
+
+  // Экспорт внутрь окна, чтобы таймер можно было переключать при изменении движения и принудительно обновлять список
+  try { window.__setUsersMoving = function(flag){ restartUsersInterval(!!flag); }; } catch {}
+  try { window.__refreshUsersNow = function(){ return doRefresh(); }; } catch {}
+
+  // начальная загрузка и периодическое обновление
+  doRefresh();
+  restartUsersInterval(false);
+}
+
+function renderPeopleList(container){
+  const items = activeUsers.map(loc => {
+    const name = (loc.user?.first_name) || 'Участник';
+    const username = loc.user?.username ? `@${loc.user.username}` : '';
+    const avatar = (loc.user?.photo?.mini) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo_url) || '';
+    const ts = Date.parse(String(loc.updated_at).replace(' ', 'T')+'Z') || 0;
+    const mins = Math.max(0, Math.floor((Date.now() - ts)/60000));
+    const rel = mins < 1 ? 'только что' : (mins < 60 ? (mins + 'м') : (Math.floor(mins/60) + 'ч' + (mins % 60 ? ' ' + (mins % 60) + 'м' : '')));
+    return `
+      <div class="people-item" data-user-id="${loc.user_id}">
+        <div class="pi-avatar">${avatar ? `<img src="${avatar}" alt="avatar" onerror="this.style.display='none'"/>` : ''}</div>
+        <div class="pi-main">
+          <div class="pi-name">${name}</div>
+          ${username ? `<div class=\"pi-username\">${username}</div>` : ''}
+        </div>
+        <div class="pi-time">${rel}</div>
+      </div>`;
+  }).join('');
+  container.innerHTML = items || '<div class="people-item"><div class="pi-main"><div class="pi-name">Никого онлайн</div></div></div>';
+}
+
