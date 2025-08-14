@@ -3,7 +3,7 @@
 <html lang="ru">
   <head>
     <?php render_meta('Профиль — CabrioRide'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
+    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/styles.css'); ?>" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>

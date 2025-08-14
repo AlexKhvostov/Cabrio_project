@@ -6,7 +6,7 @@ require __DIR__ . '/partials/meta.php';
 <html lang="ru">
   <head>
     <?php render_meta('CabrioRide'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
+    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css?v=<?php echo filemtime(__DIR__ . '/assets/css/styles.css'); ?>" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
@@ -70,7 +70,7 @@ require __DIR__ . '/partials/meta.php';
       </section>
     </main>
     <?php include __DIR__ . '/components/footer.php'; ?>
-    <script src="/app/frontend/assets/js/app.js" type="module"></script>
+    <script src="/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/assets/js/app.js'); ?>" type="module"></script>
     <script type="module">
       import '/app/frontend/assets/js/app.js'
       // Простая статистика: берём размеры списков

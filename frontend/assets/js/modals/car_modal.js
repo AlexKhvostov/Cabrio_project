@@ -77,7 +77,7 @@ export function openCarModal(car){
 
   const canEdit = !!(car.permissions && car.permissions.canEdit)
   overlay.innerHTML = `
-    <div class="modal-content">
+    <div class="modal-content modal-compact">
       <div class="modal-header">
         <div class="modal-title">${escapeHtml(title)}</div>
         <div id="carHeaderActions" style="display:flex;gap:6px;align-items:center;">
@@ -87,7 +87,7 @@ export function openCarModal(car){
       </div>
       <div class="modal-body">
         <div class=\"main-photo-compact\">
-          ${photos.length ? `<img src=\"${escapeHtml(photos[0].url)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\" id=\"carMainPhoto\"/>` : `<div class=\"car-placeholder\" id=\"carMainPhotoPlaceholder\" style=\"width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,var(--border-color) 0%, rgba(255,255,255,.08) 100%);display:flex;align-items:center;justify-content:center;color:#aaa;border-radius:10px;\">Нет фото</div>`}
+          ${photos.length ? `<img src=\"${escapeHtml(photos[0].url)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\" id=\"carMainPhoto\"/>` : `<div class=\"car-placeholder\" id=\"carMainPhotoPlaceholder\" style=\"width:100%;display:flex;align-items:center;justify-content:center;color:#aaa;\">Нет фото</div>`}
           <div class=\"photo-upload-overlay\" id=\"carUploadOverlay\" style=\"display:none\"> <div class=\"spinner\"></div> <span>Загрузка…</span> </div>
         </div>
         
@@ -212,7 +212,7 @@ export function openCarModal(car){
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['model'])}</span><span class="detail-value"><input data-edit-key="model" class="filter-input" value="${escapeHtml(car.model||'')}" placeholder="${escapeHtml(modelPlaceholder)}" ${disAttr} /></span></div>
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['color'])}</span><span class="detail-value"><input data-edit-key="color" class="filter-input" value="${escapeHtml(car.color||'')}" ${disAttr} /></span></div>
         <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['year'])}</span><span class="detail-value"><input data-edit-key="year" class="filter-input" inputmode="numeric" value="${escapeHtml(car.year||'')}" ${disAttr} /></span></div>
-        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['roof_type'])}</span><span class="detail-value"><select data-edit-key="roof_type" class="filter-input" ${disAttr}><option value="soft" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value="hard" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value="targa" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value="none" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
+        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['roof_type'])}</span><span class="detail-value"><select data-edit-key="roof_type" class="filter-select" ${disAttr}><option value="soft" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value="hard" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value="targa" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value="none" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
       `
       if (isEditing) {
         // по бренду — только в редактировании показываем подсказки
@@ -247,8 +247,8 @@ export function openCarModal(car){
     const reg = overlay.querySelector('#carDetailsReg')
     if (reg) {
       reg.innerHTML = `
-        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['vin'])}</span><span class="detail-value"><input data-edit-key="vin" class="filter-input" value="${escapeHtml(car.vin||'')}" ${disAttr} /></span></div>
-        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['reg_number'])}</span><span class="detail-value"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input data-edit-key="reg_number" class="filter-input" value="${escapeHtml(car.reg_number||'')}" ${disAttr} /> <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" data-edit-key="show_reg_number" ${car.show_reg_number? 'checked':''} ${disAttr}/> <span>Показать рег номер участникам</span></label></div></span></div>
+        <div class="detail-item-compact detail-col-full"><span class="detail-label">${escapeHtml(fieldLabels['vin'])}</span><span class="detail-value"><input data-edit-key="vin" class="filter-input" value="${escapeHtml(car.vin||'')}" ${disAttr} /></span></div>
+        <div class="detail-item-compact"><span class="detail-label">${escapeHtml(fieldLabels['reg_number'])}</span><span class="detail-value"><div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap;justify-content:flex-start;"><input data-edit-key="reg_number" class="filter-input input-half" value="${escapeHtml(car.reg_number||'')}" ${disAttr} /> <label style="display:flex;align-items:center;gap:6px;white-space:nowrap;"><input type="checkbox" data-edit-key="show_reg_number" ${car.show_reg_number? 'checked':''} ${disAttr}/> <span>Показывать номер</span></label></div></span></div>
       `
     }
     // Other
@@ -312,7 +312,7 @@ export function openCarModal(car){
           <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['model'])}</span><span class=\"detail-value\"><input data-edit-key=\"model\" class=\"filter-input\" value=\"${escapeHtml(car.model||'')}\" /></span></div>
           <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['color'])}</span><span class=\"detail-value\"><input data-edit-key=\"color\" class=\"filter-input\" value=\"${escapeHtml(car.color||'')}\" /></span></div>
           <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['year'])}</span><span class=\"detail-value\"><input data-edit-key=\"year\" class=\"filter-input\" inputmode=\"numeric\" value=\"${escapeHtml(car.year||'')}\" /></span></div>
-          <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['roof_type'])}</span><span class=\"detail-value\"><select data-edit-key=\"roof_type\" class=\"filter-input\"><option value=\"soft\" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value=\"hard\" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value=\"targa\" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value=\"none\" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
+          <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['roof_type'])}</span><span class=\"detail-value\"><select data-edit-key=\"roof_type\" class=\"filter-select\"><option value=\"soft\" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value=\"hard\" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value=\"targa\" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value=\"none\" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
         `
       }
       // Двигатель
@@ -326,10 +326,10 @@ export function openCarModal(car){
       // Регистрация
       const reg = overlay.querySelector('#carDetailsReg')
       if (reg) {
-        reg.innerHTML = [
-          ['vin', `<input data-edit-key=\"vin\" class=\"filter-input\" value=\"${escapeHtml(car.vin||'')}\" />`],
-          ['reg_number', `<div style=\"display:flex;align-items:center;gap:10px;flex-wrap:wrap;\"><input data-edit-key=\"reg_number\" class=\"filter-input\" value=\"${escapeHtml(car.reg_number||'')}\" /> <label style=\"display:flex;align-items:center;gap:6px\"><input type=\"checkbox\" data-edit-key=\"show_reg_number\" ${car.show_reg_number? 'checked':''}/> <span>Показать рег номер участникам</span></label></div>`]
-        ].map(([k,v])=>`<div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels[k]||k)}</span><span class=\"detail-value\">${v}</span></div>`).join('')
+        reg.innerHTML = `
+          <div class=\"detail-item-compact detail-col-full\"><span class=\"detail-label\">${escapeHtml(fieldLabels['vin'])}</span><span class=\"detail-value\"><input data-edit-key=\"vin\" class=\"filter-input\" value=\"${escapeHtml(car.vin||'')}\" /></span></div>
+          <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['reg_number'])}</span><span class=\"detail-value\"><div style=\"display:flex;align-items:center;gap:10px;flex-wrap:nowrap;justify-content:flex-start;\"><input data-edit-key=\"reg_number\" class=\"filter-input input-half\" value=\"${escapeHtml(car.reg_number||'')}\" /> <label style=\"display:flex;align-items:center;gap:6px;white-space:nowrap;\"><input type=\"checkbox\" data-edit-key=\"show_reg_number\" ${car.show_reg_number? 'checked':''}/> <span>Показывать номер</span></label></div></span></div>
+        `
       }
       // Прочее
       const other = overlay.querySelector('#carDetailsOther')

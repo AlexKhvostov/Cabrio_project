@@ -3,7 +3,7 @@
 <html lang="ru">
   <head>
     <?php render_meta('Карта — CabrioRide'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
+    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/styles.css'); ?>" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=<?php echo getenv('map_ya_key') ?: ''; ?>&lang=ru_RU" type="text/javascript"></script>
     <style>
@@ -60,8 +60,8 @@
       </div>
     </main>
     <?php include __DIR__ . '/../components/footer.php'; ?>
-    <script src="/app/frontend/assets/js/app.js"></script>
-    <script src="/app/frontend/assets/js/map.js"></script>
+    <script src="/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>"></script>
+    <script src="/app/frontend/assets/js/map.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/map.js'); ?>"></script>
     <script>
       console.log('🧪 Тест: JavaScript загружен!');
       console.log('🧪 Тест: app.js загружен?', !!window.CabrioAPI);

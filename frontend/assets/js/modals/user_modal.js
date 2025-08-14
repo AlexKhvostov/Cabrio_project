@@ -15,7 +15,7 @@ export async function openUserModal(member){
   const lastName = member.last_name_app || member.last_name || member.last_name_tg || ''
   const initials = (firstName?.[0]||'').toUpperCase() + (lastName?.[0]||'').toUpperCase()
   overlay.innerHTML = `
-    <div class="modal-content">
+    <div class="modal-content modal-compact">
       <div class="modal-header">
         <div class="modal-title">Профиль</div>
         <button class="modal-close" aria-label="close">×</button>
