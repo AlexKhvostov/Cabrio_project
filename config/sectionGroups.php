@@ -155,7 +155,7 @@ class FunctionRoles {
     
     // API endpoints - Photos
     const API_PHOTOS_GET_LIST = 'member';
-    const API_PHOTOS_UPLOAD = 'member';
+    const API_PHOTOS_UPLOAD = 'user';
 
     // API endpoints - Reference Data
     const API_REF_CAR_BRANDS_GET_LIST = 'guest';
