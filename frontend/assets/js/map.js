@@ -29,6 +29,24 @@ let currentUserRole = null;
 let currentUserId = null;
 const ROLE_ORDER = ['external','guest','new','registered','member','moderator','admin'];
 
+function mapRoleIdToCode(roleId){
+	try{
+		const num = Number(roleId);
+		if (!isFinite(num)) return null;
+		// Соответствие числовых id к строковым кодам ролей
+		// 1-external, 2-guest, 3-user, 4-member, 5-moderator, 6-admin
+		const idToCode = {
+			1: 'external',
+			2: 'guest',
+			3: 'user',
+			4: 'member',
+			5: 'moderator',
+			6: 'admin'
+		};
+		return idToCode[num] || null;
+	}catch{ return null }
+}
+
 function showAccessDenied(message){
 	try{
 		if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.showAlert === 'function') {
@@ -62,6 +80,13 @@ async function fetchCurrentUserRole(){
 		else if (d.user && typeof d.user.role === 'string') code = d.user.role;
 		else if (d.user && d.user.role && typeof d.user.role.code === 'string') code = d.user.role.code;
 		else if (typeof d.role_code === 'string') code = d.role_code;
+		// Фолбэк: если код не найден, пробуем определить по числовому id
+		if (!code) {
+			const idFromRole = (d.role && typeof d.role.id !== 'undefined') ? d.role.id : null;
+			const idFromUserRole = (d.user && d.user.role && typeof d.user.role.id !== 'undefined') ? d.user.role.id : null;
+			const idDirect = typeof d.role_id !== 'undefined' ? d.role_id : null;
+			code = mapRoleIdToCode(idFromRole) || mapRoleIdToCode(idFromUserRole) || mapRoleIdToCode(idDirect);
+		}
 		currentUserId = (typeof d.id === 'number' ? d.id : (typeof d.user?.id === 'number' ? d.user.id : null));
 		currentUserRole = code ? String(code).toLowerCase() : 'guest';
 		return currentUserRole;
@@ -295,31 +320,43 @@ function showFollowBtn(visible) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.ymaps && typeof ymaps.ready === 'function') {
-    ymaps.ready(() => { try { initMap(); } catch {} });
-  }
-	const gpsBtn = document.getElementById('sendLocationBtn');
-	if (gpsBtn) {
-		gpsBtn.addEventListener('click', async () => {
-			const ok = await ensureAccessAllowed(true);
-			if (!ok) return;
-			if (isTracking) stopTracking(); else startTracking();
-		});
-		setGpsBtnState(false);
-	}
-	// WakeLock safety on visibility changes
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-			if (isTracking) acquireWakeLock();
-    } else {
-      releaseWakeLock();
-    }
-  });
+	(async () => {
+		// Мгновенная проверка доступа при открытии страницы
+		const allowed = await ensureAccessAllowed(true);
+		if (!allowed) {
+			// Прячем элементы управления, не запускаем обновления/таймеры
+			try { document.querySelector('.map-fab-bar')?.setAttribute('hidden',''); } catch {}
+			try { document.querySelector('.map-people-panel')?.setAttribute('hidden',''); } catch {}
+			return;
+		}
 
-  // People panel (Online - X)
-  setupOnlinePanel();
-  // если GPS не активен, запускаем таймер исчезновения
-  if (!isTracking) startViewFadeTimer();
+		if (window.ymaps && typeof ymaps.ready === 'function') {
+			 ymaps.ready(() => { try { initMap(); } catch {} });
+		}
+
+		const gpsBtn = document.getElementById('sendLocationBtn');
+		if (gpsBtn) {
+			gpsBtn.addEventListener('click', async () => {
+				const ok = await ensureAccessAllowed(true);
+				if (!ok) return;
+				if (isTracking) stopTracking(); else startTracking();
+			});
+			setGpsBtnState(false);
+		}
+		// WakeLock safety on visibility changes
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') {
+				if (isTracking) acquireWakeLock();
+			} else {
+				releaseWakeLock();
+			}
+		});
+
+		// People panel (Online - X)
+		setupOnlinePanel();
+		// если GPS не активен, запускаем таймер исчезновения
+		if (!isTracking) startViewFadeTimer();
+	})();
 });
 
 // expose minimal API for debugging
