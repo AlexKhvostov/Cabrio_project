@@ -1,7 +1,9 @@
 // Simple map implementation (Yandex Maps) with GPS tracking and "follow me" toggle
 
 let map;
-let selfPlacemark = null;
+let selfPlacemark = null; // legacy blue dot (disabled)
+let selfPinPlacemark = null;
+let usersLayer = null;
 let isTracking = false;
 let followMe = false; // appears when GPS is on; default true on start
 let watchId = null;
@@ -20,9 +22,11 @@ const MOVE_THRESHOLD_M = Number(window.MAP_MOVE_THRESHOLD_M || 25);
 let lastLocation = null;
 let lastSentCoords = null;
 let isMoving = false;
+let viewFadeTimer = null;
 
 // Роль текущего пользователя (кешируем после первого запроса)
 let currentUserRole = null;
+let currentUserId = null;
 const ROLE_ORDER = ['external','guest','new','registered','member','moderator','admin'];
 
 function showAccessDenied(message){
@@ -58,6 +62,7 @@ async function fetchCurrentUserRole(){
 		else if (d.user && typeof d.user.role === 'string') code = d.user.role;
 		else if (d.user && d.user.role && typeof d.user.role.code === 'string') code = d.user.role.code;
 		else if (typeof d.role_code === 'string') code = d.role_code;
+		currentUserId = (typeof d.id === 'number' ? d.id : (typeof d.user?.id === 'number' ? d.user.id : null));
 		currentUserRole = code ? String(code).toLowerCase() : 'guest';
 		return currentUserRole;
 	}catch{ currentUserRole = 'guest'; return currentUserRole; }
@@ -104,6 +109,7 @@ function initMap() {
 	mapBehaviors = map.behaviors;
     // На мобильном лучше отключить скролл зум колесом/жестом страницы
     try { map.behaviors.disable('scrollZoom'); } catch {}
+    try { usersLayer = new ymaps.GeoObjectCollection(); map.geoObjects.add(usersLayer); } catch {}
 }
 
 function acquireWakeLock() {
@@ -121,17 +127,38 @@ function releaseWakeLock() {
 	wakeLock = null;
 }
 
-function ensureSelfPlacemark() {
+function ensureSelfPlacemark() { /* disabled: use selfPinPlacemark only */ }
+
+function ensureSelfPinPlacemark() {
 	if (!map || !window.ymaps) return;
-	if (selfPlacemark) return;
-	selfPlacemark = new ymaps.Placemark([0, 0], {}, { preset: 'islands#blueCircleDotIcon' });
-	map.geoObjects.add(selfPlacemark);
+	if (selfPinPlacemark) return;
+    const contentLayout = createAvatarLayout((window.getSelfAvatarUrl ? window.getSelfAvatarUrl() : ''), 1, true, false, '#3b82f6');
+	const opts = {
+        iconLayout: 'default#imageWithContent',
+        iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+        iconImageSize: [1,1],
+        iconContentLayout: contentLayout,
+		iconContentOffset: [0, 4],
+		zIndex: 10000,
+		zIndexActive: 10001,
+        hideIconOnBalloonOpen: false,
+        balloonShadow: false,
+		balloonPanelMaxMapArea: 0
+	};
+	selfPinPlacemark = new ymaps.Placemark([0, 0], {}, opts);
+	// Добавляем поверх синего круга
+	map.geoObjects.add(selfPinPlacemark);
 }
 
 function updateSelfMarker(lat, lon) {
 	if (!map || !window.ymaps) return;
-	ensureSelfPlacemark();
-	try { selfPlacemark.geometry.setCoordinates([lat, lon]); } catch { try { selfPlacemark = new ymaps.Placemark([lat, lon]); map.geoObjects.add(selfPlacemark); } catch {} }
+	ensureSelfPinPlacemark();
+    try {
+        selfPinPlacemark.geometry.setCoordinates([lat, lon]);
+        const url = (window.getSelfAvatarUrl ? window.getSelfAvatarUrl() : '') || '';
+        selfPinPlacemark.options.set('iconContentLayout', createAvatarLayout(url, 1, true, false, '#3b82f6'));
+        try { selfPinPlacemark.options.set('avatarUrl', url); } catch {}
+    } catch {}
 }
 
 async function sendLocation(minIntervalSec = UPDATE_SEC) {
@@ -225,6 +252,8 @@ function stopTracking() {
   if (watchId !== null) { try { navigator.geolocation.clearWatch(watchId); } catch {} watchId = null; }
   stopHeartbeat();
   releaseWakeLock();
+  // запускаем таймер исчезновения меток при выключенном GPS
+  startViewFadeTimer();
 }
 
 function setGpsBtnState(active) {
@@ -289,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // People panel (Online - X)
   setupOnlinePanel();
+  // если GPS не активен, запускаем таймер исчезновения
+  if (!isTracking) startViewFadeTimer();
 });
 
 // expose minimal API for debugging
@@ -321,6 +352,7 @@ function setupOnlinePanel(){
       if (!ok) return;
       const res = await (window.CabrioAPI?.apiGet ? window.CabrioAPI.apiGet('/api/user-locations') : Promise.resolve(null));
       if (res && res.success && Array.isArray(res.data)) {
+        const LIVE_TIME_MIN = Number(window.MAP_LIVE_TIME_MIN || res.live_time_minutes || 60);
         activeUsers = res.data.slice().sort((a,b)=>{
           const ta = Date.parse(String(a.updated_at).replace(' ', 'T')+'Z') || 0;
           const tb = Date.parse(String(b.updated_at).replace(' ', 'T')+'Z') || 0;
@@ -329,6 +361,8 @@ function setupOnlinePanel(){
         toggle.textContent = `Online - ${activeUsers.length}`;
         // если список открыт — перерисуем
         if (!list.hasAttribute('hidden')) renderPeopleList(list);
+        // отрисовываем метки на карте
+        renderUsersOnMap(activeUsers, LIVE_TIME_MIN);
       }
     }catch{}
   };
@@ -346,6 +380,31 @@ function setupOnlinePanel(){
   // начальная загрузка и периодическое обновление
   doRefresh();
   restartUsersInterval(false);
+}
+
+function startViewFadeTimer(){
+  try { if (viewFadeTimer) { clearInterval(viewFadeTimer); viewFadeTimer = null; } } catch {}
+  const sec = Number(window.MAP_VIEW_FADE_SEC || 30);
+  if (!isFinite(sec) || sec <= 0) return;
+  const startTs = Date.now();
+  viewFadeTimer = setInterval(()=>{
+    if (isTracking) { try{ clearInterval(viewFadeTimer); }catch{} viewFadeTimer=null; return; }
+    const elapsed = (Date.now() - startTs)/1000;
+    const k = Math.max(0, 1 - (elapsed / sec));
+    // уменьшаем прозрачность всех контентных маркеров слоя пользователей
+    try{
+      usersLayer && usersLayer.each && usersLayer.each(obj => {
+        try{
+          if (obj && obj.geometry) {
+            const url = obj.options && obj.options.get ? (obj.options.get('avatarUrl') || '') : '';
+            const layout = createAvatarLayout(url, k, true, false);
+            obj.options.set('iconContentLayout', layout);
+          }
+        }catch{}
+      });
+    }catch{}
+    if (k <= 0) { try{ usersLayer && usersLayer.removeAll(); }catch{} try{ clearInterval(viewFadeTimer); }catch{} viewFadeTimer=null; }
+  }, 500);
 }
 
 function renderPeopleList(container){
@@ -367,5 +426,70 @@ function renderPeopleList(container){
       </div>`;
   }).join('');
   container.innerHTML = items || '<div class="people-item"><div class="pi-main"><div class="pi-name">Никого онлайн</div></div></div>';
+}
+
+function ageMinutesFromSql(s){
+  const ts = Date.parse(String(s||'').replace(' ', 'T')+'Z') || 0;
+  return Math.max(0, Math.floor((Date.now() - ts)/60000));
+}
+
+function createAvatarLayout(_urlIgnored, opacity, isFresh, isPulse, strokeColor){
+  const cls = 'avatar-marker' + (isFresh ? ' fresh' : '') + (isPulse ? ' pulse' : '');
+  const style = 'opacity:' + String(Math.max(0, Math.min(1, opacity))).substring(0,5) + ';'
+              + 'transform: translate(-50%, -100%); position: relative;';
+  // SVG-капля (без костылей): круг + плавный хвост в одном path
+  // Более “каплевидная” форма с острым кончиком
+  const svg = "<svg width=\"36\" height=\"48\" viewBox=\"0 0 498.923 498.923\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">" +
+              "<defs>" +
+              "<linearGradient id=\"g1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">" +
+              "<stop offset=\"0%\" stop-color=\"#2aa87a\" stop-opacity=\"" + (isFresh? '0.95':'0.3') + "\"/>" +
+              "<stop offset=\"100%\" stop-color=\"#2aa87a\" stop-opacity=\"" + (isFresh? '0.95':'0.3') + "\"/>" +
+              "</linearGradient>" +
+              "</defs>" +
+              "<path d=\"M249.462,498.923C354.788,356.17,427.963,272.725,427.963,178.511C427.963,80.106,347.886,0,249.462,0C151.018,0,70.951,80.106,70.951,178.511C70.951,272.725,144.135,356.17,249.462,498.923Z\" fill=\"#222\" />" +
+              "<path d=\"M249.462,498.923C354.788,356.17,427.963,272.725,427.963,178.511C427.963,80.106,347.886,0,249.462,0C151.018,0,70.951,80.106,70.951,178.511C70.951,272.725,144.135,356.17,249.462,498.923Z\" fill=\"url(#g1)\" fill-opacity=\"0\" stroke=\"" + (strokeColor || '#2aa87a') + "\" stroke-opacity=\"" + (isFresh? '0.9':'0.3') + "\" stroke-width=\"20\" />" +
+              "</svg>";
+  const avatar = _urlIgnored ? ('<span class="marker-avatar"><img src="' + String(_urlIgnored).replace(/"/g,'&quot;') + '" alt="" onerror="this.style.display=\'none\'"/></span>') : '';
+  const html = '<div class="' + cls + '" style="' + style + '">' + avatar + svg + '</div>';
+  try { return ymaps.templateLayoutFactory.createClass(html); } catch { return null; }
+}
+
+function renderUsersOnMap(list, liveTimeMin){
+  if (!map || !window.ymaps || !usersLayer) return;
+  try { usersLayer.removeAll(); } catch {}
+  const meId = currentUserId;
+  for (const loc of list){
+    const lat = Number(loc.latitude), lon = Number(loc.longitude);
+    if (!isFinite(lat) || !isFinite(lon)) continue;
+    if (typeof liveTimeMin === 'number' && liveTimeMin > 0) {
+      const age = ageMinutesFromSql(loc.updated_at);
+      if (age > liveTimeMin) continue;
+    }
+    if (meId && Number(loc.user_id) === Number(meId)) continue; // не дублируем свою метку
+    const ageMin = ageMinutesFromSql(loc.updated_at);
+    const alpha = Math.max(0.2, Math.min(1, (liveTimeMin - ageMin) / liveTimeMin));
+    const isFresh = ageMin <= liveTimeMin; // в пределах окна
+    const isPulse = ageMin < 3;
+    const url = (loc.user?.photo?.mini) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo_url) || '';
+    const contentLayout = createAvatarLayout(url, alpha, isFresh, isPulse);
+    const opts = {
+      iconLayout: 'default#imageWithContent',
+      iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+      iconImageSize: [1,1],
+      iconContentLayout: contentLayout,
+      // Тонкая юстировка якоря кончика капли (эмпирически ~4px вниз)
+      iconContentOffset: [0, 4],
+      zIndex: 5000,
+      hideIconOnBalloonOpen: false,
+      balloonShadow: false,
+      balloonPanelMaxMapArea: 0
+    };
+    const data = { balloonContent: '' };
+    try {
+      const pm = new ymaps.Placemark([lat, lon], data, opts);
+      try { pm.options.set('avatarUrl', url); } catch {}
+      usersLayer.add(pm);
+    } catch {}
+  }
 }
 

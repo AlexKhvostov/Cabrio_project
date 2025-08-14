@@ -47,6 +47,31 @@ async function apiGet(route){
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
   return data
 }
+  function getCached(key){ try{ return window.CabrioCache?.getWithTTL(key) }catch{ return null } }
+  function setCached(key,val,ttl){ try{ return window.CabrioCache?.setWithTTL(key,val,ttl) }catch{ return null } }
+  function readNavBarAvatarCache(){
+    try{
+      const raw = localStorage.getItem('cr:v1:me_avatar_mini');
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (o && o.exp && Date.now() > o.exp) { try{ localStorage.removeItem('cr:v1:me_avatar_mini') }catch{}; return null }
+      return (o && typeof o.url === 'string') ? o.url : null;
+    }catch{ return null }
+  }
+  function getSelfAvatarUrl(){
+    // 1) Используем тот же кэш, что и навбар
+    const fromNav = readNavBarAvatarCache();
+    if (fromNav) return fromNav;
+    // 2) Резервный наш общий кэш
+    const fromCache = getCached('photo:user:me:mini');
+    if (fromCache) return fromCache;
+    // 3) Фолбэк Telegram
+    try{ const tgPhoto = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url; if (tgPhoto) return String(tgPhoto) }catch{}
+    return '';
+  }
+  window.getSelfAvatarUrl = getSelfAvatarUrl;
+  // expose for map.js fallback if module order differs
+  window.CabrioAPI = { apiGet, apiPost };
 
 async function apiPost(route, payload){
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`

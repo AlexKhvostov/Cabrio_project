@@ -23,6 +23,9 @@ function render_meta(string $title = 'CabrioRide') {
 	$usersRefreshSec = getenv('MAP_USERS_REFRESH_IDLE_SEC') ?: '60';
 	echo '<script>window.MAP_UPD_SEC = ' . json_encode((int)$updSec, JSON_UNESCAPED_SLASHES) . ';</script>';
 	echo '<script>window.MAP_USERS_REFRESH_IDLE_SEC = ' . json_encode((int)$usersRefreshSec, JSON_UNESCAPED_SLASHES) . ';</script>';
+	// Время жизни координат (минуты) для визуального затухания маркеров
+	$liveTimeMin = getenv('MAP_LIVE_TIME_MIN') ?: '60';
+	echo '<script>window.MAP_LIVE_TIME_MIN = ' . json_encode((int)$liveTimeMin, JSON_UNESCAPED_SLASHES) . ';</script>';
 	// Порог движения (в метрах) и минимальные интервалы при движении
 	$moveThresholdM = getenv('MAP_MOVE_THRESHOLD_M') ?: '25';
 	$updMovingSec = getenv('MAP_UPD_MOVING_SEC') ?: '10';
@@ -30,5 +33,8 @@ function render_meta(string $title = 'CabrioRide') {
 	echo '<script>window.MAP_MOVE_THRESHOLD_M = ' . json_encode((int)$moveThresholdM, JSON_UNESCAPED_SLASHES) . ';</script>';
 	echo '<script>window.MAP_UPD_MOVING_SEC = ' . json_encode((int)$updMovingSec, JSON_UNESCAPED_SLASHES) . ';</script>';
 	echo '<script>window.MAP_USERS_REFRESH_MOVING_SEC = ' . json_encode((int)$usersRefreshMovingSec, JSON_UNESCAPED_SLASHES) . ';</script>';
+	// Время затухания видимости меток, если GPS не включён (сек)
+	$viewFadeSec = getenv('MAP_VIEW_FADE_SEC') ?: '30';
+	echo '<script>window.MAP_VIEW_FADE_SEC = ' . json_encode((int)$viewFadeSec, JSON_UNESCAPED_SLASHES) . ';</script>';
 }
 
