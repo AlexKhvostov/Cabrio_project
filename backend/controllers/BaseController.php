@@ -152,7 +152,14 @@ class BaseController
     public function isAdmin()
     {
         $userRole = $this->getCurrentUserRole();
-        return $userRole === 6; // admin = 6
+        // Поддержка как числовых ID, так и строковых кодов роли
+        if (is_int($userRole) || ctype_digit((string)$userRole)) {
+            return (int)$userRole === Roles::getRoleId(Roles::ADMIN);
+        }
+        if (is_string($userRole)) {
+            return $userRole === Roles::ADMIN;
+        }
+        return false;
     }
 
     /**
@@ -163,7 +170,16 @@ class BaseController
     public function isModerator()
     {
         $userRole = $this->getCurrentUserRole();
-        return $userRole === 5 || $userRole === 6; // moderator = 5, admin = 6
+        // Числовые ID: moderator (5) и admin (6)
+        if (is_int($userRole) || ctype_digit((string)$userRole)) {
+            $roleId = (int)$userRole;
+            return $roleId >= Roles::getRoleId(Roles::MODERATOR);
+        }
+        // Строковые коды: 'moderator' и 'admin'
+        if (is_string($userRole)) {
+            return $userRole === Roles::MODERATOR || $userRole === Roles::ADMIN;
+        }
+        return false;
     }
 
     /**
@@ -174,7 +190,16 @@ class BaseController
     public function isMember()
     {
         $userRole = $this->getCurrentUserRole();
-        return $userRole === 4 || $userRole === 5 || $userRole === 6; // member = 4, moderator = 5, admin = 6
+        // Числовые ID: member (4) и выше
+        if (is_int($userRole) || ctype_digit((string)$userRole)) {
+            $roleId = (int)$userRole;
+            return $roleId >= Roles::getRoleId(Roles::MEMBER);
+        }
+        // Строковые коды: 'member', 'moderator', 'admin'
+        if (is_string($userRole)) {
+            return in_array($userRole, [Roles::MEMBER, Roles::MODERATOR, Roles::ADMIN], true);
+        }
+        return false;
     }
 
         /**

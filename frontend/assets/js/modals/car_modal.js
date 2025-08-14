@@ -266,9 +266,28 @@ export function openCarModal(car){
   // Начальная отрисовка — read-only
   renderFields(false)
 
-  // Режим редактирования авто — только если есть права
-  if (canEdit) {
-    const editBtn = overlay.querySelector('#carEditBtn')
+  // Функция подключения логики редактирования (можно вызывать и динамически)
+  function attachEditingControls(){
+    const actions = overlay.querySelector('#carHeaderActions')
+    if (!actions) return
+
+    // Гарантируем наличие кнопки (если прав не было на момент рендера)
+    let editBtn = actions.querySelector('#carEditBtn')
+    if (!editBtn) {
+      editBtn = document.createElement('button')
+      editBtn.id = 'carEditBtn'
+      editBtn.className = 'btn-warning'
+      editBtn.style.cssText = 'padding:6px 10px;font-size:13px'
+      editBtn.textContent = 'Редактировать'
+      const closeBtn = actions.querySelector('.modal-close')
+      if (closeBtn && closeBtn.parentNode === actions) {
+        actions.insertBefore(editBtn, closeBtn)
+      } else {
+        actions.appendChild(editBtn)
+      }
+    }
+    if (editBtn.dataset.bound === '1') return
+
     const editableKeys = ['car_brand_id','model','color','year','roof_type','engine_power','engine_volume','vin','description','reg_number','show_reg_number']
     const getValue = (key) => {
       const el = overlay.querySelector(`[data-edit-key="${key}"]`)
@@ -300,8 +319,8 @@ export function openCarModal(car){
       const eng = overlay.querySelector('#carDetailsEngine')
       if (eng) {
         eng.innerHTML = [
-          ['engine_power', `<input data-edit-key="engine_power" class="filter-input" value="${escapeHtml(car.engine_power||'')}" />`],
-          ['engine_volume', `<input data-edit-key="engine_volume" class="filter-input" value="${escapeHtml(car.engine_volume||'')}" />`]
+          ['engine_power', `<input data-edit-key=\"engine_power\" class=\"filter-input\" value=\"${escapeHtml(car.engine_power||'')}\" />`],
+          ['engine_volume', `<input data-edit-key=\"engine_volume\" class=\"filter-input\" value=\"${escapeHtml(car.engine_volume||'')}\" />`]
         ].map(([k,v])=>`<div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels[k]||k)}</span><span class=\"detail-value\">${v}</span></div>`).join('')
       }
       // Регистрация
@@ -316,7 +335,7 @@ export function openCarModal(car){
       const other = overlay.querySelector('#carDetailsOther')
       if (other) {
         other.innerHTML = [
-          ['description', `<textarea data-edit-key="description" class="filter-input" rows=\"3\">${escapeHtml(car.description||'')}</textarea>`]
+          ['description', `<textarea data-edit-key=\"description\" class=\"filter-input\" rows=\"3\">${escapeHtml(car.description||'')}</textarea>`]
         ].map(([k,v])=>`<div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels[k]||k)}</span><span class=\"detail-value\">${v}</span></div>`).join('')
       }
       // Инициализация поискового выпадающего списка брендов
@@ -435,7 +454,8 @@ export function openCarModal(car){
       }
     }
 
-    editBtn?.addEventListener('click', async ()=>{
+    editBtn.dataset.bound = '1'
+    editBtn.addEventListener('click', async ()=>{
       if (!isEditing) {
         isEditing = true
         editBtn.textContent = 'Сохранить'
@@ -465,6 +485,29 @@ export function openCarModal(car){
         }
       }
     })
+  }
+
+  // Если права уже есть — подключаем сразу
+  if (canEdit) {
+    attachEditingControls()
+  } else {
+    // Вариант Б: открываем модалку сразу и фоном проверяем права модератора/админа через API
+    ;(async ()=>{
+      try {
+        let resp = null
+        if (window.CabrioAPI?.apiGet) {
+          resp = await window.CabrioAPI.apiGet(`/api/cars/${car.id}`)
+        } else {
+          const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+          const url = `${base}/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}`
+          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
+          resp = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+        }
+        if (resp && resp.success !== false && resp.data && resp.data.permissions && resp.data.permissions.canEdit) {
+          attachEditingControls()
+        }
+      } catch {}
+    })()
   }
 }
 
