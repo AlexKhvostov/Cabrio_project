@@ -1,7 +1,7 @@
 // user_modal.js — модальное окно профиля пользователя
 
 function escapeHtml(str){
-  return String(str||'').replace(/[&<>"]|'/g, s=>({
+  return String(str||'').replace(/[&<>"']/g, s=>({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[s]))
 }
@@ -40,7 +40,6 @@ export async function openUserModal(member){
           ${(() => {
             const rows = []
             const val = (v) => (v===null || v===undefined || String(v).trim()==='') ? 'не указано' : String(v)
-            // Поля профиля приложения (которые можно вносить)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Имя (приложение):</span><span class=\"detail-value\">${escapeHtml(val(member.first_name_app))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Фамилия (приложение):</span><span class=\"detail-value\">${escapeHtml(val(member.last_name_app))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Email:</span><span class=\"detail-value\">${escapeHtml(val(member.email))}</span></div>`)
@@ -48,14 +47,12 @@ export async function openUserModal(member){
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Город:</span><span class=\"detail-value\">${escapeHtml(val(member.city))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Страна:</span><span class=\"detail-value\">${escapeHtml(val(member.country))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">О себе:</span><span class=\"detail-value\">${escapeHtml(val(member.about))}</span></div>`)
-            // Telegram данные (read-only)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Telegram ID:</span><span class=\"detail-value\">${escapeHtml(val(member.telegram_id))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Username (TG):</span><span class=\"detail-value\">${escapeHtml(val(member.username))}</span></div>`)
             const fnTg = member.first_name_tg || member.first_name || ''
             const lnTg = member.last_name_tg || member.last_name || ''
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Имя (TG):</span><span class=\"detail-value\">${escapeHtml(val(fnTg))}</span></div>`)
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Фамилия (TG):</span><span class=\"detail-value\">${escapeHtml(val(lnTg))}</span></div>`)
-            // Кол-во авто
             rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Автомобили:</span><span class=\"detail-value\">${escapeHtml(String((member.cars||[]).length))}</span></div>`)
             return rows.join('')
           })()}
@@ -90,7 +87,6 @@ export async function openUserModal(member){
   overlay.querySelector('.modal-close')?.addEventListener('click', close)
   document.body.appendChild(overlay)
 
-  // Просмотр большого фото пользователя по клику на аватар
   const avatarEl = overlay.querySelector('.profile-avatar-compact img')
   const openUserPhoto = () => {
     const url = (member.photo && (member.photo.url || member.photo.urls?.medium)) || photoUrl
@@ -111,6 +107,19 @@ export async function openUserModal(member){
     avatarEl.style.cursor = 'zoom-in'
     avatarEl.addEventListener('click', openUserPhoto)
   }
+
+  // Делегирование: клик по карточке авто → выделить бордером
+  try{
+    const carsGrid = overlay.querySelector('.cars-grid')
+    if (carsGrid) {
+      carsGrid.addEventListener('click', (e)=>{
+        const card = e.target.closest('.car-card-compact')
+        if (!card) return
+        e.preventDefault(); e.stopPropagation();
+        card.classList.toggle('selected')
+      })
+    }
+  }catch{}
 
   // Разрешаем редактирование роли только модераторам+
   try {

@@ -102,12 +102,18 @@ h2{margin:8px 0}
 .filter-select,.filter-input{padding:var(--control-pad-y) var(--control-pad-x);border:1px solid var(--control-border);border-radius:var(--control-radius);background:var(--control-bg);color:#fff;font-size:var(--control-font-size)}
 .filter-select:hover,.filter-input:hover{background:var(--control-bg-hover);border-color:#5a5a5a}
 .filter-select:focus,.filter-input:focus{outline:none;border-color:var(--control-border-focus);box-shadow:0 0 0 3px rgba(42,168,122,0.15)}
-.filter-select{appearance:none;-webkit-appearance:none;-moz-appearance:none}
+.filter-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-color:var(--control-bg)!important;color:#fff!important;border-color:var(--control-border)!important;background-clip:padding-box}
+/* Платформенные фиксы для селекта (Telegram WebView) */
+select.filter-select::-ms-expand{display:none}
+select.filter-select option{background:#1a1a1a;color:#fff}
+html{color-scheme: dark}
 .filter-input::placeholder{opacity:.7}
 
 /* MemberCard */
 .member-card{position:relative;display:flex;align-items:center;gap:12px;padding:12px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;cursor:pointer}
 .member-card:hover{background:var(--hover-bg);border-color:var(--primary-color)}
+.member-card.selected{border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(42,168,122,0.25) inset}
+.page #users .member-card{margin-bottom:8px}
 .member-avatar{position:relative;width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--primary-color);display:flex;align-items:center;justify-content:center}
 .member-avatar .avatar-image{width:100%;height:100%;object-fit:cover}
 .member-avatar .avatar-initials{color:#fff;font-weight:700}
@@ -129,6 +135,7 @@ h2{margin:8px 0}
 
 /* CarCard (упрощённая) */
 .car-card-compact{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer}
+.car-card-compact.selected{border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(42,168,122,0.25) inset}
 .car-image-container{position:relative;width:100%;height:120px;overflow:hidden}
 .car-image-container img{width:100%;height:100%;object-fit:cover}
 .car-status-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.8);color:#fff;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:500;z-index:2;backdrop-filter:blur(4px)}
@@ -295,7 +302,7 @@ h2{margin:8px 0}
 /* Upload FAB and overlay for car modal */
 .main-photo-compact { position: relative; }
 .modal-content .main-photo-compact{border:1px solid var(--control-border);border-radius:12px;overflow:hidden;background:#0f0f0f}
-.modal-content .main-photo-compact .main-image{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:cover}
+.modal-content .main-photo-compact .main-image{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:cover;pointer-events:none}
 .modal-content .main-photo-compact .car-placeholder{aspect-ratio:2/1;border-radius:12px;background:linear-gradient(135deg,var(--border-color) 0%, rgba(255,255,255,.08) 100%)}
 .photo-upload-fab {
   display: inline-flex;
@@ -315,6 +322,14 @@ h2{margin:8px 0}
   margin-top: 10px;
 }
 .photo-upload-fab:active { transform: scale(0.98); }
+.photo-upload-center{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); margin-top:0; opacity:.95 }
+.photo-upload-center{ z-index:3 }
+.photo-upload-center{ user-select:none; -webkit-user-select:none; -ms-user-select:none }
+/* Чтобы кнопка не "прыгала" при нажатии: сохраняем translate при активном состоянии */
+.photo-upload-center:active{ transform: translate(-50%,-50%) scale(0.98) }
+
+/* Статусный селект в шапке модалки авто — такой же стиль, как у остальных */
+/* Селект статуса наследует общий стиль filter-select, дополнительных правок не требуется */
 .photo-upload-overlay {
   position: absolute;
   inset: 0;

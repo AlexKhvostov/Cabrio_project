@@ -1,8 +1,8 @@
 // car_modal.js — модальное окно автомобиля
 
 function escapeHtml(str){
-  return String(str||'').replace(/[&<>"]|'/g, s=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  return String(str||'').replace(/[&<>"']/g, s=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'
   }[s]))
 }
 
@@ -37,6 +37,17 @@ export function openCarModal(car){
     created_at: 'Создано',
     updated_at: 'Обновлено'
   }
+
+  // Справочник статусов авто (id → название)
+  const carStatuses = [
+    { id: 1, code: 'noticed', name: 'Замечен' },
+    { id: 2, code: 'business_card', name: 'Визитка' },
+    { id: 3, code: 'deleted', name: 'Удалён' },
+    { id: 4, code: 'archived', name: 'В архиве' },
+    { id: 5, code: 'blocked', name: 'Заблокирован' },
+    { id: 6, code: 'pending', name: 'На модерации' },
+    { id: 7, code: 'active', name: 'Активен' }
+  ]
 
   // Локальный маппер для отображения названий типа крыши на русском
   const roofTypeName = (code) => {
@@ -86,17 +97,16 @@ export function openCarModal(car){
         </div>
       </div>
       <div class="modal-body">
-        <div class=\"main-photo-compact\">
+        <div class=\"main-photo-compact\"> 
           ${photos.length ? `<img src=\"${escapeHtml(photos[0].url)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\" id=\"carMainPhoto\"/>` : `<div class=\"car-placeholder\" id=\"carMainPhotoPlaceholder\" style=\"width:100%;display:flex;align-items:center;justify-content:center;color:#aaa;\">Нет фото</div>`}
           <div class=\"photo-upload-overlay\" id=\"carUploadOverlay\" style=\"display:none\"> <div class=\"spinner\"></div> <span>Загрузка…</span> </div>
         </div>
         
-
         <div class="car-info-section-compact">
           <div class="car-header-compact">
-          <div class="car-title-compact">
-            <span class="status-badge status-primary">${escapeHtml(statusLabel)}</span>
-          </div>
+            <div class="car-title-compact">
+              <span id="carStatusControl" class="status-badge status-primary">${escapeHtml(statusLabel)}</span>
+            </div>
             ${(car.reg_number!==undefined && car.reg_number!==null && String(car.reg_number)!=='') ? `
               <div class=\"car-number-compact\"><span class=\"detail-label\">Номер:</span> <span class=\"detail-value\">${escapeHtml(String(car.reg_number))}</span></div>
             ` : ''}
@@ -108,7 +118,7 @@ export function openCarModal(car){
           const first = o.first_name_app || o.first_name || o.first_name_tg || ''
           const last = o.last_name_app || o.last_name || o.last_name_tg || ''
           const normalized = { ...o, first_name: first, last_name: last }
-          return `<div class=\\\"member-card-container\\\">${window.CabrioComponents.renderMemberCard(normalized, { showCars: false })}</div>`
+          return `<div class=\"member-card-container\">${window.CabrioComponents.renderMemberCard(normalized, { showCars: false })}</div>`
         })() : ''}
 
         <div class="detail-grid-compact" id="carDetailsBasic"></div>
@@ -193,9 +203,14 @@ export function openCarModal(car){
 
   // Клик по карточке владельца внутри модалки → открыть модалку профиля
   if (car.owner) {
-    overlay.querySelector('.member-card-container')?.addEventListener('click', ()=>{
-      if (window.CabrioModals?.openUserModal) window.CabrioModals.openUserModal(car.owner)
-    })
+    const ownerCard = overlay.querySelector('.member-card-container')
+    if (ownerCard) {
+      ownerCard.style.cursor = 'pointer'
+      ownerCard.addEventListener('click', (e)=>{
+        e.preventDefault(); e.stopPropagation();
+        ownerCard.classList.toggle('selected')
+      })
+    }
   }
 
   // Единая отрисовка полей: всегда инпуты, в чтении disabled
@@ -288,7 +303,7 @@ export function openCarModal(car){
     }
     if (editBtn.dataset.bound === '1') return
 
-    const editableKeys = ['car_brand_id','model','color','year','roof_type','engine_power','engine_volume','vin','description','reg_number','show_reg_number']
+    const editableKeys = ['car_brand_id','model','color','year','roof_type','engine_power','engine_volume','vin','description','reg_number','show_reg_number','status_id']
     const getValue = (key) => {
       const el = overlay.querySelector(`[data-edit-key="${key}"]`)
       if (!el) return car[key]
@@ -315,6 +330,16 @@ export function openCarModal(car){
           <div class=\"detail-item-compact\"><span class=\"detail-label\">${escapeHtml(fieldLabels['roof_type'])}</span><span class=\"detail-value\"><select data-edit-key=\"roof_type\" class=\"filter-select\"><option value=\"soft\" ${car.roof_type==='soft'?'selected':''}>Мягкая</option><option value=\"hard\" ${car.roof_type==='hard'?'selected':''}>Жёсткая</option><option value=\"targa\" ${car.roof_type==='targa'?'selected':''}>Тарга</option><option value=\"none\" ${car.roof_type==='none'?'selected':''}>Нет</option></select></span></div>
         `
       }
+      // Подменяем бейдж статуса на селект (слева под фото)
+      try{
+        const statusWrap = overlay.querySelector('#carStatusControl')
+        if (statusWrap && statusWrap.parentElement) {
+          const currentId = Number(car.status?.id || 0)
+          const options = carStatuses.map(s=>`<option value=\"${s.id}\" ${Number(s.id)===currentId?'selected':''}>${escapeHtml(s.name)}</option>`).join('')
+          const selectHtml = `<span class=\"detail-value\"><select data-edit-key=\"status_id\" class=\"filter-select\">${options}</select></span>`
+          statusWrap.outerHTML = selectHtml
+        }
+      }catch{}
       // Двигатель
       const eng = overlay.querySelector('#carDetailsEngine')
       if (eng) {
@@ -384,19 +409,20 @@ export function openCarModal(car){
 
     // Кнопка загрузки фото (добавляем при входе в режим редактирования)
     const ensureUploadControls = () => {
-      const actions = overlay.querySelector('#carHeaderActions')
-      if (!actions) return
-      // Скрытый input (один на модалку)
-      let input = actions.querySelector('#carPhotoInput')
-      if (!input) {
-        input = document.createElement('input')
-        input.type = 'file'
-        input.id = 'carPhotoInput'
-        input.accept = 'image/*'
-        input.style.display = 'none'
-        actions.appendChild(input)
-        input.addEventListener('change', async ()=>{
-          const file = input.files && input.files[0]
+      const photoContainer = overlay.querySelector('.main-photo-compact')
+      if (!photoContainer) return
+
+      // Локальный input[type=file] прямо в контейнере фото для максимальной совместимости
+      let localInput = photoContainer.querySelector('#carPhotoInputLocal')
+      if (!localInput) {
+        localInput = document.createElement('input')
+        localInput.type = 'file'
+        localInput.id = 'carPhotoInputLocal'
+        localInput.accept = 'image/*'
+        localInput.style.display = 'none'
+        photoContainer.appendChild(localInput)
+        localInput.addEventListener('change', async ()=>{
+          const file = localInput.files && localInput.files[0]
           if (!file) return
           try {
             const overlayEl = overlay.querySelector('#carUploadOverlay'); if (overlayEl) overlayEl.style.display='flex'
@@ -433,24 +459,23 @@ export function openCarModal(car){
             alert('Ошибка загрузки')
           } finally {
             const overlayEl = overlay.querySelector('#carUploadOverlay'); if (overlayEl) overlayEl.style.display='none'
-            input.value = ''
+            localInput.value = ''
           }
         })
       }
-      // FAB под фото
-      const container = overlay.querySelector('.main-photo-compact')
-      if (container && !container.querySelector('#carUploadFab')) {
+
+      // Центрированная кнопка загрузки поверх фото
+      if (!photoContainer.querySelector('#carUploadFab')) {
         const fabBtn = document.createElement('button')
         fabBtn.id = 'carUploadFab'
-        fabBtn.className = 'photo-upload-fab'
+        fabBtn.className = 'photo-upload-fab photo-upload-center'
         fabBtn.innerHTML = '<span>📷</span><span>Загрузить фото</span>'
-        const wrapper = document.createElement('div')
-        wrapper.style.cssText = 'display:flex;justify-content:flex-end'
-        wrapper.appendChild(fabBtn)
-        container.appendChild(wrapper)
-        fabBtn.addEventListener('click', ()=> actions.querySelector('#carPhotoInput')?.click())
-        const placeholder = container.querySelector('.car-placeholder')
-        if (placeholder) placeholder.addEventListener('click', ()=> actions.querySelector('#carPhotoInput')?.click())
+        photoContainer.appendChild(fabBtn)
+        const trigger = () => localInput?.click()
+        fabBtn.addEventListener('click', trigger)
+        fabBtn.addEventListener('touchstart', trigger, { passive: true })
+        const placeholder = photoContainer.querySelector('.car-placeholder')
+        if (placeholder) placeholder.addEventListener('click', trigger)
       }
     }
 

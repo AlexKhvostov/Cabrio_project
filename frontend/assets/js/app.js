@@ -100,6 +100,17 @@ loadRefCarBrands()
 
 window.CabrioAPI = { apiGet, apiPost }
 
+// Если Telegram WebApp недоступен — перенаправим на заглушку (кроме самой заглушки)
+;(function(){
+  try{
+    const inTg = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user)
+    const isLanding = /\/frontend\/pages\/landing\.php$/.test(window.location.pathname)
+    if (!inTg && !isLanding) {
+      window.location.replace('/app/frontend/pages/landing.php')
+    }
+  }catch{}
+})()
+
 // Навигации активный пункт
 function setActiveNav(){
   const path = window.location.pathname
