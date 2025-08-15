@@ -133,7 +133,7 @@ class FunctionRoles {
     
     // API endpoints - Cars
     const API_CARS_GET_LIST = 'user';
-    const API_CARS_GET_BY_ID = 'user';
+    const API_CARS_GET_BY_ID = 'member';
     const API_CARS_CREATE = 'guest';
     // Включение владельца в ответе по авто (приватность)
     const API_CARS_INCLUDE_OWNER = 'member';
