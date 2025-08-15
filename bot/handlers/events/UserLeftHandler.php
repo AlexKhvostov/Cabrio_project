@@ -67,15 +67,6 @@ class UserLeftHandler {
             // Обновляем роль пользователя в БД
             $updateResult = $this->updateUserRole($user);
             
-            // Временно отключаем API для тестирования сообщений
-            $updateResult = [
-                'success' => true,
-                'data' => [
-                    'action' => 'updated',
-                    'user_id' => $user['id']
-                ]
-            ];
-            
             if ($updateResult['success']) {
                 // Помечаем как обработанное перед отправкой сообщения
                 markProcessed($dedupKey);

@@ -20,7 +20,10 @@
         </div>
 
         <div class="profile-avatar-row" id="profileAvatarRow">
-          <div class="profile-avatar" id="profileAvatar"></div>
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatar"></div>
+            <button type="button" id="userUploadBtn" class="photo-upload-fab photo-upload-center" style="display:none;" aria-label="Загрузить фото">📷</button>
+          </div>
           <div class="profile-info-stack">
             <div class="profile-line">
               <div class="profile-name" id="profileName">&nbsp;</div>
@@ -28,9 +31,6 @@
             <div class="profile-subline">
               <div class="profile-username" id="profileUsername">&nbsp;</div>
               <div id="role" class="role-badge" aria-live="polite"></div>
-            </div>
-            <div class="profile-upload-line">
-              <button type="button" id="userUploadBtn" class="btn-secondary" style="display:none;">Загрузить фото</button>
             </div>
           </div>
         </div>

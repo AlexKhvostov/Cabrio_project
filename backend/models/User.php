@@ -231,7 +231,9 @@ class User {
             'email', 'phone',
             'city', 'country',
             'about', 'notes',
-            'telegram_photo_id'
+            'telegram_photo_id',
+            // Даты членства
+            'join_date', 'left_date'
         ];
         
         foreach ($fields as $field) {

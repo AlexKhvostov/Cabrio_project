@@ -160,9 +160,16 @@ class SystemController extends BaseController
      */
     private function requireSystemAccess()
     {
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        // Пытаемся получить Authorization из разных источников (под прокси/CGI может отсутствовать в $_SERVER)
+        $headers = function_exists('getallheaders') ? @getallheaders() : [];
+        $authHeader = '';
+        if (is_array($headers) && isset($headers['Authorization'])) {
+            $authHeader = $headers['Authorization'];
+        } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        }
         
-        if (empty($authHeader) || !str_starts_with($authHeader, 'Bearer ')) {
+        if (empty($authHeader) || strpos($authHeader, 'Bearer ') !== 0) {
             $this->json([
                 'success' => false,
                 'error' => [

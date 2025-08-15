@@ -1,26 +1,6 @@
-2025-08-05T19:15:44+02:00 [ERROR] Failed to create photo record: {"code":"USER_NOT_FOUND","message":"\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"}
-2025-08-05T19:19:50+02:00 [ERROR] CarController: addCarToGarage error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:23:57+02:00 [ERROR] CarController: checkCarInClub error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:24:08+02:00 [ERROR] CarController: checkCarInClub error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:24:31+02:00 [ERROR] CarController: checkCarInClub error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:31:13+02:00 [ERROR] CarController: addCarToGarage error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:34:01+02:00 [ERROR] CarController: addCarToGarage error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:44:27+02:00 [ERROR] CarController: addCarToGarage error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:48:41+02:00 [ERROR] CarController: addCarToGarage error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:51:21+02:00 [ERROR] CarController: checkCarInClub error | Context: {"error":"Illegal offset type","user_id":639}
-2025-08-05T19:54:45+02:00 [ERROR] IntegrationHelper::recognizePlateNumberFromBase64 failed: Номер автомобиля не найден на изображении
-2025-08-05T19:54:45+02:00 [ERROR] RecognizeCarNumberFromPhotoAction::handleFromBase64 failed: Не удалось распознать номер автомобиля: Номер автомобиля не найден на изображении
-2025-08-06T03:46:44+02:00 [ERROR] FileHelper::savePhoto failed: Файл не был загружен
-2025-08-06T03:46:44+02:00 [ERROR] _SavePhotoAction failed: Файл не был загружен
-2025-08-06T03:46:44+02:00 [ERROR] Failed to create photo car record: {"code":"INTERNAL_ERROR","message":"\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u0424\u0430\u0439\u043b \u043d\u0435 \u0431\u044b\u043b \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"}
-2025-08-06T03:46:44+02:00 [ERROR] Failed to save photo: {"code":"PHOTO_SAVE_FAILED","message":"\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u0424\u0430\u0439\u043b \u043d\u0435 \u0431\u044b\u043b \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"}
-2025-08-06T03:49:38+02:00 [ERROR] FileHelper::savePhoto failed: Файл не был загружен
-2025-08-06T03:49:38+02:00 [ERROR] _SavePhotoAction failed: Файл не был загружен
-2025-08-06T03:49:38+02:00 [ERROR] Failed to create photo car record: {"code":"INTERNAL_ERROR","message":"\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u0424\u0430\u0439\u043b \u043d\u0435 \u0431\u044b\u043b \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"}
-2025-08-06T03:49:38+02:00 [ERROR] Failed to save photo: {"code":"PHOTO_SAVE_FAILED","message":"\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u0424\u0430\u0439\u043b \u043d\u0435 \u0431\u044b\u043b \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"}
-2025-08-06T03:50:43+02:00 [ERROR] FileHelper::savePhoto failed: Файл не был загружен
-2025-08-06T03:50:43+02:00 [ERROR] _SavePhotoAction failed: Файл не был загружен
-2025-08-06T03:50:43+02:00 [ERROR] Failed to create photo business card record: {"code":"INTERNAL_ERROR","message":"\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f \u0444\u043e\u0442\u043e: \u0424\u0430\u0439\u043b \u043d\u0435 \u0431\u044b\u043b \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"}
-2025-08-06T03:52:33+02:00 [ERROR] FileHelper::createTempFileFromBase64 failed: Неверный формат base64 данных
-2025-08-06T03:52:33+02:00 [ERROR] _SavePhotoAction failed: Неверный формат base64 данных
-2025-08-06T03:52:59+02:00 [ERROR] Failed to create photo record: {"code":"USER_NOT_FOUND","message":"\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"}
+2025-08-14T21:32:55+00:00 [ERROR] DB connection failed: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+2025-08-14T21:32:55+00:00 [ERROR] _CheckUserByTelegramIdAction failed: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+2025-08-14T21:32:59+00:00 [ERROR] DB connection failed: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+2025-08-14T21:32:59+00:00 [ERROR] _CreateUserAction failed: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+2025-08-14T21:33:03+00:00 [ERROR] DB connection failed: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение
+2025-08-14T21:33:03+00:00 [ERROR] Ошибка получения координат: SQLSTATE[HY000] [2002] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение | Context: {"trace":"#0 C:\\xampp\\htdocs\\app\\backend\\utils\\Database.php(30): PDO->__construct('mysql:host=loca...', '', '', Array)\n#1 C:\\xampp\\htdocs\\app\\backend\\models\\UserLocation.php(57): Database::getInstance()\n#2 C:\\xampp\\htdocs\\app\\backend\\controllers\\UserLocationController.php(122): UserLocation::getActiveLocations('2025-08-14 20:5...')\n#3 C:\\xampp\\htdocs\\app\\backend\\routes\\api.php(150): UserLocationController->index()\n#4 {main}"}

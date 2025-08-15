@@ -140,9 +140,13 @@ setActiveNav()
     }
     const writeCache = (url, ttlMs) => { try { localStorage.setItem(KEY, JSON.stringify({ url, exp: ttlMs ? now()+ttlMs : null })) } catch {} }
     const show = (url) => {
-      if (!url) return
+      if (!url) {
+        try { if (emojiEl) { emojiEl.style.display = ''; } if (wrapEl) { wrapEl.style.display = 'none'; } } catch {}
+        return
+      }
       if (imgEl.src === url) return
       imgEl.onload = () => { try { wrapEl.style.display = ''; if (emojiEl) emojiEl.style.display = 'none' } catch {} }
+      imgEl.onerror = () => { try { if (emojiEl) { emojiEl.style.display = ''; } if (wrapEl) { wrapEl.style.display = 'none'; } } catch {} }
       imgEl.src = url
     }
 
@@ -152,8 +156,8 @@ setActiveNav()
       try { wrapEl.style.display = ''; if (emojiEl) emojiEl.style.display = 'none' } catch {}
       imgEl.src = cached
     } else {
-      // Нет кэша — пока ничего не показываем (без заглушки), чтобы избежать мигания
-      try { if (emojiEl) emojiEl.style.display = 'none' } catch {}
+      // Нет кэша — сразу показываем силуэт
+      try { if (emojiEl) emojiEl.style.display = ''; if (wrapEl) wrapEl.style.display = 'none' } catch {}
     }
 
     // 1) Обновляем из backend профиля (и обновляем кэш)
