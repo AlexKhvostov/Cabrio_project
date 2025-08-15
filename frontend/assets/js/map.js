@@ -104,14 +104,9 @@ function isRoleAtLeast(role, minRole){
 }
 
 async function ensureAccessAllowed(showDialog){
-    try{
-        const role = await fetchCurrentUserRole();
-        const allowed = isRoleAtLeast(role, 'member');
-        if (!allowed && showDialog) {
-            showAccessDenied('Карта доступна только подтверждённым участникам клуба (роль "Участник" и выше).');
-        }
-        return !!allowed;
-    }catch{ return false }
+    // Фронтенд больше не блокирует функциональность по ролям —
+    // проверка перенесена на backend. Всегда разрешаем.
+    return true;
 }
 
 function distanceMeters(lat1, lon1, lat2, lon2) {
@@ -212,8 +207,6 @@ function stopHeartbeat() {
 }
 
 async function startTracking() {
-  const allowed = await ensureAccessAllowed(true);
-  if (!allowed) return;
   if (isTracking) return;
 	if (!navigator.geolocation) return;
     isTracking = true;
@@ -373,8 +366,6 @@ function setupOnlinePanel(){
 
   toggle.textContent = 'Online - 0';
   toggle.addEventListener('click', async ()=>{
-    const ok = await ensureAccessAllowed(true);
-    if (!ok) return;
     if (list.hasAttribute('hidden')) {
       renderPeopleList(list);
       list.removeAttribute('hidden');
@@ -385,9 +376,14 @@ function setupOnlinePanel(){
 
   const doRefresh = async () => {
     try{
-      const ok = await ensureAccessAllowed(false);
-      if (!ok) return;
       const res = await (window.CabrioAPI?.apiGet ? window.CabrioAPI.apiGet('/api/user-locations') : Promise.resolve(null));
+      if (res && res.__httpStatus === 403) {
+        toggle.textContent = 'Online - 0';
+        if (!list.hasAttribute('hidden')) {
+          list.innerHTML = '<div class="people-item"><div class="pi-main"><div class="pi-name">Для загрузки участников на карту нужно быть подтверждённым участником</div></div></div>';
+        }
+        return;
+      }
       if (res && res.success && Array.isArray(res.data)) {
         const LIVE_TIME_MIN = Number(window.MAP_LIVE_TIME_MIN || res.live_time_minutes || 60);
         activeUsers = res.data.slice().sort((a,b)=>{

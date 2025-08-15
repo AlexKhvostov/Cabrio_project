@@ -175,7 +175,7 @@ class FunctionRoles {
 
     // API endpoints - User Locations (Map)
     const API_USER_LOCATIONS_INDEX = 'member';
-    const API_USER_LOCATIONS_STORE = 'member';
+    const API_USER_LOCATIONS_STORE = 'user';
 
     /**
      * Получить массив всех функций с их минимальными ролями
