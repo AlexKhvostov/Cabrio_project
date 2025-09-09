@@ -85,7 +85,7 @@ require __DIR__ . '/partials/meta.php';
     <?php include __DIR__ . '/components/footer.php'; ?>
     <script src="/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/assets/js/app.js'); ?>" type="module"></script>
     <script type="module">
-      import '/app/frontend/assets/js/app.js'
+      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/assets/js/app.js'); ?>'
       // Простая статистика: берём размеры списков
       Promise.all([
         CabrioAPI.apiGet('/api/users'),
