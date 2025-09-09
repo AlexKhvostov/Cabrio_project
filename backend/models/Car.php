@@ -280,15 +280,16 @@ class Car {
              LEFT JOIN users u ON c.owner_user_id = u.id
              LEFT JOIN ref_statuses s ON c.status_id = s.id
              LEFT JOIN photos p ON p.id = (
-                 SELECT id FROM photos 
-                 WHERE entity_type = "car" AND entity_id = c.id 
-                 ORDER BY id DESC LIMIT 1
-             )
-             LEFT JOIN photos up ON up.id = (
-                 SELECT id FROM photos
-                 WHERE entity_type = "user" AND entity_id = u.id
-                 ORDER BY id DESC LIMIT 1
-             )'
+                SELECT id FROM photos 
+                WHERE entity_type = "car" AND entity_id = c.id 
+                  AND (c.owner_user_id IS NULL OR uploaded_by = c.owner_user_id)
+                ORDER BY id DESC LIMIT 1
+            )
+            LEFT JOIN photos up ON up.id = (
+                SELECT id FROM photos
+                WHERE entity_type = "user" AND entity_id = u.id
+                ORDER BY id DESC LIMIT 1
+            )'
         );
         $rows = $stmt->fetchAll();
         $cars = [];
@@ -395,6 +396,7 @@ class Car {
              LEFT JOIN photos p ON p.id = (
                  SELECT id FROM photos 
                  WHERE entity_type = "car" AND entity_id = c.id 
+                   AND (c.owner_user_id IS NULL OR uploaded_by = c.owner_user_id)
                  ORDER BY id DESC LIMIT 1
              )
              WHERE c.owner_user_id IN (' . $placeholders . ')'
