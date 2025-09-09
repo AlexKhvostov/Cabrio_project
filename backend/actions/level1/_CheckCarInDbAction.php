@@ -37,10 +37,11 @@ class _CheckCarInDbAction {
                 ];
             }
             
-            // Ищем автомобиль по номеру с развернутыми данными
-            $carData = Car::findByPlateNumberWithDetails($data['plate_number']);
+            // Нормализуем номер в нижний регистр и ищем авто (сравнение регистронезависимо)
+            $plate = strtolower(trim($data['plate_number']));
+            $carData = Car::findByPlateNumberWithDetails($plate);
             
-            Logger::info("Car check by plate_number: {$data['plate_number']}, found: " . ($carData ? 'yes' : 'no'));
+            Logger::info("Car check by plate_number: {$plate}, found: " . ($carData ? 'yes' : 'no'));
             
             return [
                 'success' => true,

@@ -4,24 +4,26 @@ function getApiRoot() {
   return (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
 }
 
-function buildTelegramHeaders() {
-  const headers = {}
+function readTelegramUser() {
   try {
     const tg = window.Telegram?.WebApp
     const u = tg?.initDataUnsafe?.user || {}
-    if (u.id) headers['X-Telegram-User-Id'] = String(u.id)
-    if (u.first_name) headers['X-Telegram-First-Name'] = String(u.first_name)
-    if (u.last_name) headers['X-Telegram-Last-Name'] = String(u.last_name)
-    if (u.username) headers['X-Telegram-Username'] = String(u.username)
-    if (tg?.initData) headers['X-Telegram-Init-Data'] = String(tg.initData)
-  } catch {}
-  return headers
+    return {
+      telegram_id: u?.id ? String(u.id) : undefined,
+      first_name: u?.first_name ? String(u.first_name) : undefined,
+      last_name: u?.last_name ? String(u.last_name) : undefined,
+      username: u?.username ? String(u.username) : undefined,
+    }
+  } catch { return {} }
 }
 
 async function apiGet(route) {
   if (window.CabrioAPI?.apiGet) return window.CabrioAPI.apiGet(route)
-  const url = `${getApiRoot()}/routes/api.php?route=${encodeURIComponent(route)}`
-  const res = await fetch(url, { headers: buildTelegramHeaders() })
+  const tgUser = readTelegramUser()
+  const qp = new URLSearchParams()
+  Object.entries(tgUser).forEach(([k,v])=>{ if (v !== undefined) qp.append(k, v) })
+  const url = `${getApiRoot()}/routes/api.php?route=${encodeURIComponent(route)}${qp.toString() ? ('&' + qp.toString()) : ''}`
+  const res = await fetch(url, { headers: {} })
   const data = await res.json().catch(()=>null)
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
   return data
@@ -29,11 +31,12 @@ async function apiGet(route) {
 
 async function apiPost(route, payload) {
   if (window.CabrioAPI?.apiPost) return window.CabrioAPI.apiPost(route, payload)
+  const tgUser = readTelegramUser()
   const url = `${getApiRoot()}/routes/api.php?route=${encodeURIComponent(route)}`
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...buildTelegramHeaders() },
-    body: JSON.stringify(payload || {})
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({}, payload || {}, tgUser))
   })
   const data = await res.json().catch(()=>null)
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
@@ -47,6 +50,86 @@ export async function initProfilePage() {
   const carsSection = document.getElementById('my-cars')
   const carsListEl = document.getElementById('cars-list')
   const dbg = document.getElementById('debug')
+
+  // ===== Диагностика сети и окружения: привязка кнопки сразу =====
+  try {
+    const btn = document.getElementById('runNetTestBtn')
+    const out = document.getElementById('netDebug')
+    if (btn && out && !btn.__bound) {
+      btn.__bound = true
+      btn.addEventListener('click', async () => {
+        const tg = window.Telegram?.WebApp
+        const u = tg?.initDataUnsafe?.user
+        const tgUser = readTelegramUser()
+        const qp = new URLSearchParams(); Object.entries(tgUser).forEach(([k,v])=>{ if (v!==undefined) qp.append(k,v) })
+        const apiRoot = getApiRoot()
+        const tests = []
+        const push = (name, value) => tests.push({ name, value })
+        const fetchWithTimeout = async (url, options, timeoutMs) => {
+          const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null
+          const id = controller ? setTimeout(() => { try{ controller.abort() }catch{} }, Math.max(1000, timeoutMs||8000)) : null
+          try {
+            const opts = Object.assign({}, options || {})
+            if (controller) opts.signal = controller.signal
+            return await fetch(url, opts)
+          } finally { if (id) { try{ clearTimeout(id) }catch{} } }
+        }
+        const tryFetch = async (route, options, timeoutMs) => {
+          const url = `${apiRoot}/routes/api.php?route=${encodeURIComponent(route)}${qp.toString()?('&'+qp.toString()):''}`
+          const started = Date.now()
+          try {
+            const opts = Object.assign({ headers: {} }, options || {})
+            // если POST без body — добавим tgUser
+            if ((opts.method||'GET').toUpperCase()==='POST' && !opts.body) {
+              opts.headers['Content-Type'] = 'application/json'
+              opts.body = JSON.stringify(tgUser)
+            }
+            const res = await fetchWithTimeout(url, opts, timeoutMs || 8000)
+            const ms = Date.now() - started
+            let json = null
+            try { json = await res.clone().json() } catch {}
+            return { ok: res.ok, status: res.status, ms, json }
+          } catch (e) {
+            return { ok: false, error: e && (e.name + ': ' + e.message) }
+          }
+        }
+
+        try { btn.disabled = true; btn.textContent = 'Тест идёт…' } catch {}
+        try { out.textContent = 'Запускаю тест…' } catch {}
+
+        // Системная информация
+        push('time', new Date().toISOString())
+        push('location', window.location.href)
+        push('apiRoot', apiRoot)
+        push('userAgent', navigator.userAgent)
+        push('platform', navigator.platform)
+        push('language', navigator.language)
+        push('online', navigator.onLine)
+        push('tg_present', !!(window.Telegram && window.Telegram.WebApp))
+        push('tg_user_present', !!u)
+        push('tg_initData_len', (tg?.initData ? String(tg.initData).length : 0))
+        push('headers_sent', [])
+
+        const [r1, r2, r3, r4] = await Promise.all([
+          tryFetch('/api/health', {}, 6000),
+          tryFetch('/api/users/profile', {}, 8000),
+          tryFetch('/api/user-locations', {}, 8000),
+          tryFetch('/api/users/profile', {}, 6000)
+        ])
+        push('health', r1)
+        push('profile', r2)
+        push('userLocations', r3)
+        push('profile_no_headers', r4)
+
+        try {
+          out.textContent = JSON.stringify(tests, null, 2)
+        } catch {
+          out.textContent = String(tests)
+        }
+        try { btn.disabled = false; btn.textContent = 'Тест соединения' } catch {}
+      })
+    }
+  } catch {}
 
   try {
     const tg = window.Telegram?.WebApp
@@ -124,7 +207,8 @@ export async function initProfilePage() {
           if (!car) return
           try {
             if (!(window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function')) {
-              await import('/app/frontend/assets/js/modals/car_modal.js')
+              const v = String(Date.now())
+              await import(`/app/frontend/assets/js/modals/car_modal.js?v=${v}`)
             }
           } catch {}
           if (window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function') {
@@ -177,7 +261,9 @@ export async function initProfilePage() {
             fd.append('entity_type','user')
             fd.append('entity_id', String(d.id))
             fd.append('photo', file)
-            const res = await fetch(url, { method:'POST', headers: buildTelegramHeaders(), body: fd }).then(r=>r.json().catch(()=>null))
+            const tgUser = readTelegramUser()
+            Object.entries(tgUser).forEach(([k,v])=>{ if(v!==undefined) fd.append(k, v) })
+            const res = await fetch(url, { method:'POST', body: fd }).then(r=>r.json().catch(()=>null))
             if (!res || res.success === false) { alert((res && res.error && res.error.message) || 'Не удалось загрузить'); return }
             const newPhoto = res.data
             if (avatarEl) {

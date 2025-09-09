@@ -42,9 +42,19 @@ export function openMemberModal(member){
   document.body.appendChild(overlay)
 }
 
-import { renderCarCard } from '/app/frontend/assets/js/components/cards/car_card.js'
+import { renderCarCard } from '/app/frontend/assets/js/components/cards/car_card.js?v=2'
 
 export function openCarModal(car){
+  try {
+    if (!(window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function')) {
+      const v = String(Date.now())
+      import(`/app/frontend/assets/js/modals/car_modal.js?v=${v}`).then(()=>{
+        try { if (window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function') { window.CabrioModals.openCarModal(car); } } catch {}
+      }).catch(()=>{})
+      return
+    }
+    return window.CabrioModals.openCarModal(car)
+  } catch {}
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
   const title = `${car.brand?.name||''} ${car.model||''}`.trim()

@@ -13,7 +13,7 @@
     <?php $FILTERS_CONFIG = [
       'searchPlaceholder' => 'Поиск по имени или нику...',
       'filters' => [
-        ['id' => 'cityFilter', 'placeholder' => 'Все города']
+        ['id' => 'roleFilter', 'placeholder' => 'Все роли']
       ]
     ]; include __DIR__ . '/../components/filters.php'; ?>
 <div id="usersAccessBanner" class="card" style="margin-bottom:12px">
@@ -29,13 +29,13 @@
 
     </main>
     <script type="module">
-      import '/app/frontend/assets/js/app.js'
-      import '/app/frontend/assets/js/components.js'
-      import '/app/frontend/assets/js/modals/user_modal.js?v=2'
+      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>'
+      import '/app/frontend/assets/js/components.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components.js'); ?>'
+      import '/app/frontend/assets/js/modals/user_modal.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/modals/user_modal.js'); ?>'
       const usersEl = document.getElementById('users')
       const usersAccessBanner = document.getElementById('usersAccessBanner')
       const searchInput = document.getElementById('filters-search')
-      const citySelect = document.getElementById('cityFilter')
+      const roleSelect = document.getElementById('roleFilter')
       const { renderMemberCard } = window.CabrioComponents
       const { openUserModal } = window.CabrioModals
       let list = []
@@ -48,11 +48,25 @@
         }
         if (usersAccessBanner) usersAccessBanner.style.display = 'none'
         list = json.data||[]
-        // Заполним города
-        const cities = Array.from(new Set(list.map(u=>u.city).filter(Boolean))).sort()
-        if(citySelect){
-          cities.forEach(c=>{ const opt=document.createElement('option'); opt.value=c; opt.textContent=c; citySelect.appendChild(opt) })
-          citySelect.addEventListener('change', render)
+        // Заполним роли
+        const ROLE_ORDER = ['external','guest','user','member','moderator','admin']
+        const roleOptions = [
+          { value: 'user_plus', label: 'Пользователь и выше' },
+          { value: 'all', label: 'Все роли' },
+          { value: 'admin', label: 'Администраторы' },
+          { value: 'moderator', label: 'Модераторы' },
+          { value: 'member', label: 'Участники' },
+          { value: 'user', label: 'Пользователи' },
+          { value: 'guest', label: 'Гости' },
+          { value: 'external', label: 'Внешние' }
+        ]
+        if (roleSelect){
+          // Очистим и добавим варианты
+          roleSelect.innerHTML = ''
+          roleOptions.forEach(r=>{ const opt=document.createElement('option'); opt.value=r.value; opt.textContent=r.label; roleSelect.appendChild(opt) })
+          // Значение по умолчанию — пользователь и выше
+          roleSelect.value = 'user_plus'
+          roleSelect.addEventListener('change', render)
         }
         if(searchInput){ searchInput.addEventListener('input', render) }
         render()
@@ -68,15 +82,36 @@
       function render(){
         const qRaw = (searchInput?.value||'').toLowerCase().trim()
         const qUser = qRaw.replace(/^@+/, '')
-        const city = citySelect?.value||''
+        const roleFilter = roleSelect?.value||''
+        const getRoleCode = (u)=>{
+          if (u.role && typeof u.role.code === 'string') return String(u.role.code).toLowerCase()
+          if (typeof u.role === 'string') return String(u.role).toLowerCase()
+          if (u.role_id) {
+            const map = {1:'external',2:'guest',3:'user',4:'member',5:'moderator',6:'admin'}
+            return map[Number(u.role_id)]||'guest'
+          }
+          return 'guest'
+        }
+        const ROLE_ORDER_SORT = ['admin','moderator','member','user','guest','external']
         const filtered = list.filter(u=>{
           const first = (u.first_name_app || u.first_name_tg || u.first_name || '').toLowerCase()
           const last  = (u.last_name_app  || u.last_name_tg  || u.last_name  || '').toLowerCase()
           const full  = (first + ' ' + last).trim()
           const usern = (u.username || '').toLowerCase()
           const matchesQ = !qRaw || full.includes(qRaw) || first.includes(qRaw) || last.includes(qRaw) || usern.includes(qUser)
-          const matchesCity = !city || (u.city===city)
-          return matchesQ && matchesCity
+          const code = getRoleCode(u)
+          let matchesRole = true
+          if (roleFilter === 'user_plus') {
+            matchesRole = ['user','member','moderator','admin'].includes(code)
+          } else if (roleFilter && roleFilter !== 'all') {
+            matchesRole = (code === roleFilter)
+          }
+          return matchesQ && matchesRole
+        })
+        // Сортировка по ролям: admin → moderator → member → user → guest → external
+        filtered.sort((a,b)=>{
+          const ra = getRoleCode(a), rb = getRoleCode(b)
+          return ROLE_ORDER_SORT.indexOf(ra) - ROLE_ORDER_SORT.indexOf(rb)
         })
         usersEl.innerHTML = filtered.map(u=>renderMemberCard(u)).join('') || 'Пусто'
       }

@@ -80,8 +80,8 @@ class Car {
      */
     public static function findByPlateNumber($plateNumber) {
         $pdo = Database::getInstance();
-        $stmt = $pdo->prepare('SELECT * FROM cars WHERE reg_number = ?');
-        $stmt->execute([$plateNumber]);
+        $stmt = $pdo->prepare('SELECT * FROM cars WHERE LOWER(reg_number) = ?');
+        $stmt->execute([strtolower($plateNumber)]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
     }
@@ -94,8 +94,8 @@ class Car {
      */
     public static function findByPlateNumberWithDetails($plateNumber) {
         $pdo = Database::getInstance();
-        $stmt = $pdo->prepare('SELECT * FROM cars WHERE reg_number = ?');
-        $stmt->execute([$plateNumber]);
+        $stmt = $pdo->prepare('SELECT * FROM cars WHERE LOWER(reg_number) = ?');
+        $stmt->execute([strtolower($plateNumber)]);
         $data = $stmt->fetch();
         
         if (!$data) {
@@ -268,6 +268,8 @@ class Car {
                     u.id as owner_id,
                     u.first_name_app as owner_first_name,
                     u.last_name_app as owner_last_name,
+                    u.first_name_tg as owner_first_name_tg,
+                    u.last_name_tg as owner_last_name_tg,
                     u.username as owner_username,
                     u.telegram_id as owner_telegram_id,
                     up.id as owner_photo_id, up.url as owner_photo_url, up.description as owner_photo_description,
@@ -306,6 +308,10 @@ class Car {
                 'id' => $row['owner_id'],
                 'first_name' => $row['owner_first_name'],
                 'last_name' => $row['owner_last_name'],
+                'first_name_app' => $row['owner_first_name'],
+                'last_name_app' => $row['owner_last_name'],
+                'first_name_tg' => $row['owner_first_name_tg'],
+                'last_name_tg' => $row['owner_last_name_tg'],
                 'username' => $row['owner_username'],
                 'telegram_id' => $row['owner_telegram_id'],
                 'photo' => $row['owner_photo_id'] ? [
@@ -318,6 +324,8 @@ class Car {
                 $car['owner_id'],
                 $car['owner_first_name'],
                 $car['owner_last_name'],
+                $car['owner_first_name_tg'],
+                $car['owner_last_name_tg'],
                 $car['owner_username'],
                 $car['owner_telegram_id'],
                 $car['owner_photo_id'],

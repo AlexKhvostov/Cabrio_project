@@ -102,32 +102,39 @@
       <details id="debug-wrap" style="margin-top:12px;">
         <summary>Диагностика (временная)</summary>
         <pre id="debug" style="white-space:pre-wrap;background:rgba(255,255,255,0.05);padding:8px;border-radius:8px;border:1px solid var(--border-color);"></pre>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button type="button" id="runNetTestBtn" class="btn-secondary">Тест соединения</button>
+          <small style="opacity:0.8">Покажет состояние окружения и ответ от /api/health, /api/users/profile</small>
+        </div>
+        <pre id="netDebug" style="white-space:pre-wrap;background:rgba(255,255,255,0.05);padding:8px;border-radius:8px;border:1px solid var(--border-color);margin-top:8px;"></pre>
       </details>
     </main>
     <?php include __DIR__ . '/../components/footer.php'; ?>
     <script type="module">
-      import '/app/frontend/assets/js/app.js'
-      import '/app/frontend/assets/js/components.js'
-      import { initProfilePage } from '/app/frontend/assets/js/components/profile_view.js'
+      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>'
+      import '/app/frontend/assets/js/components.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components.js'); ?>'
+      import { initProfilePage } from '/app/frontend/assets/js/components/profile_view.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components/profile_view.js'); ?>'
       // Локальный клиент на случай, если глобальный не инициализировался
       const API_ROOT = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
-      const buildTelegramHeaders = () => {
-        const headers = {}
+      const readTelegramUser = () => {
         try {
           const tg = window.Telegram?.WebApp
           const u = tg?.initDataUnsafe?.user || {}
-          if (u.id) headers['X-Telegram-User-Id'] = String(u.id)
-          if (u.first_name) headers['X-Telegram-First-Name'] = String(u.first_name)
-          if (u.last_name) headers['X-Telegram-Last-Name'] = String(u.last_name)
-          if (u.username) headers['X-Telegram-Username'] = String(u.username)
-          if (tg?.initData) headers['X-Telegram-Init-Data'] = String(tg.initData)
-        } catch {}
-        return headers
+          return {
+            telegram_id: u?.id ? String(u.id) : undefined,
+            first_name: u?.first_name ? String(u.first_name) : undefined,
+            last_name: u?.last_name ? String(u.last_name) : undefined,
+            username: u?.username ? String(u.username) : undefined,
+          }
+        } catch { return {} }
       }
       const callApi = async (route) => {
         if (window.CabrioAPI?.apiGet) return window.CabrioAPI.apiGet(route)
-        const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
-        const res = await fetch(url, { headers: buildTelegramHeaders() })
+        const tgUser = readTelegramUser()
+        const qp = new URLSearchParams()
+        Object.entries(tgUser).forEach(([k,v])=>{ if (v !== undefined) qp.append(k, v) })
+        const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}${qp.toString() ? ('&' + qp.toString()) : ''}`
+        const res = await fetch(url, { headers: {} })
         const data = await res.json().catch(()=>null)
         if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
         return data

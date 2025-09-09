@@ -19,9 +19,9 @@
       <div id="cars" class="cars-grid">Загрузка...</div>
     </main>
     <script type="module">
-      import '/app/frontend/assets/js/app.js'
-      import '/app/frontend/assets/js/components.js'
-      import '/app/frontend/assets/js/modals/car_modal.js'
+      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>'
+      import '/app/frontend/assets/js/components.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components.js'); ?>'
+      import '/app/frontend/assets/js/modals/car_modal.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/modals/car_modal.js'); ?>'
       const carsEl = document.getElementById('cars')
       const { renderCarCard } = window.CabrioComponents
       const { openCarModal } = window.CabrioModals

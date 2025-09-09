@@ -22,6 +22,20 @@ export function openCarModal(car){
     return { url: best }
   })
 
+  // Хелпер: читаем пользователя Telegram для передачи через query/body (вместо заголовков)
+  function readTelegramUser(){
+    try{
+      const tg = window.Telegram?.WebApp
+      const u = tg?.initDataUnsafe?.user || {}
+      return {
+        telegram_id: u?.id ? String(u.id) : undefined,
+        first_name: u?.first_name ? String(u.first_name) : undefined,
+        last_name: u?.last_name ? String(u.last_name) : undefined,
+        username: u?.username ? String(u.username) : undefined,
+      }
+    }catch{ return {} }
+  }
+
   const fieldLabels = {
     brand: 'Марка',
     model: 'Модель',
@@ -115,8 +129,8 @@ export function openCarModal(car){
 
         ${car.owner ? (()=>{ 
           const o = car.owner || {}
-          const first = o.first_name_app || o.first_name || o.first_name_tg || ''
-          const last = o.last_name_app || o.last_name || o.last_name_tg || ''
+          const first = o.first_name_app || o.first_name_tg || o.first_name || ''
+          const last = o.last_name_app || o.last_name_tg || o.last_name || ''
           const normalized = { ...o, first_name: first, last_name: last }
           return `<div class=\"member-card-container\">${window.CabrioComponents.renderMemberCard(normalized, { showCars: false })}</div>`
         })() : ''}
@@ -145,9 +159,11 @@ export function openCarModal(car){
           if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
         } else {
           const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
-          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
-          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
-          const res = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+          const tgUser = readTelegramUser()
+          const qp = new URLSearchParams({ entity_type: 'car', entity_id: String(car.id) })
+          Object.entries(tgUser).forEach(([k,v])=>{ if (v!==undefined) qp.append(k,v) })
+          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}&${qp.toString()}`
+          const res = await fetch(url, { headers: {} }).then(r=>r.json().catch(()=>null))
           if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
         }
       } catch {}
@@ -155,9 +171,11 @@ export function openCarModal(car){
       try {
         if (!fullList || fullList.length < 2) {
           const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
-          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}\u0026entity_type=car\u0026entity_id=${encodeURIComponent(String(car.id))}`
-          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
-          const res2 = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+          const tgUser = readTelegramUser()
+          const qp2 = new URLSearchParams({ entity_type: 'car', entity_id: String(car.id) })
+          Object.entries(tgUser).forEach(([k,v])=>{ if (v!==undefined) qp2.append(k,v) })
+          const url = `${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}&${qp2.toString()}`
+          const res2 = await fetch(url, { headers: {} }).then(r=>r.json().catch(()=>null))
           if (res2 && res2.success !== false && Array.isArray(res2.data)) fullList = res2.data
         }
       } catch {}
@@ -199,7 +217,20 @@ export function openCarModal(car){
     ov.addEventListener('touchstart', (e)=>{ sx = e.touches[0].clientX })
     ov.addEventListener('touchend', (e)=>{ const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40){ if (dx < 0) index = (index + 1) % viewerPhotos.length; else index = (index - 1 + viewerPhotos.length) % viewerPhotos.length; apply() } })
   }
-  overlay.querySelector('#carMainPhoto')?.addEventListener('click', ()=> openPhotoViewer(0))
+  // Клик по основному фото → открываем просмотрщик
+  try { overlay.querySelector('#carMainPhoto') && overlay.querySelector('#carMainPhoto').addEventListener('click', ()=> openPhotoViewer(0)) } catch {}
+  // На случай перекрытий: кликабельна вся зона .main-photo-compact
+  try {
+    const mainWrap = overlay.querySelector('.main-photo-compact')
+    if (mainWrap) {
+      mainWrap.addEventListener('click', (e)=>{
+        // игнор если активно перекрытие загрузки
+        const up = overlay.querySelector('#carUploadOverlay')
+        if (up && getComputedStyle(up).display !== 'none') return
+        openPhotoViewer(0)
+      })
+    }
+  } catch {}
 
   // Клик по карточке владельца внутри модалки → открыть модалку профиля
   if (car.owner) {
@@ -432,18 +463,9 @@ export function openCarModal(car){
             fd.append('entity_type','car')
             fd.append('entity_id', String(car.id))
             fd.append('photo', file)
-            const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
-            const resp = await new Promise((resolve)=>{
-              const xhr = new XMLHttpRequest()
-              xhr.open('POST', url, true)
-              Object.entries(headers||{}).forEach(([k,v])=>{ try{ xhr.setRequestHeader(k,v) }catch{} })
-              xhr.onreadystatechange = ()=>{
-                if (xhr.readyState===4){
-                  try{ resolve(JSON.parse(xhr.responseText)) }catch{ resolve(null) }
-                }
-              }
-              xhr.send(fd)
-            })
+            const tgUser = readTelegramUser()
+            Object.entries(tgUser).forEach(([k,v])=>{ if (v!==undefined) fd.append(k, v) })
+            const resp = await fetch(url, { method:'POST', body: fd }).then(r=>r.json().catch(()=>null))
             if (!resp || resp.success === false) {
               alert((resp && resp.error && resp.error.message) || 'Не удалось загрузить фото')
               return
@@ -495,8 +517,8 @@ export function openCarModal(car){
         try {
           const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
           const url = `${base}/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}`
-          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={ 'Content-Type':'application/json' }; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {'Content-Type':'application/json'}} })()
-          const res = await fetch(url, { method:'PATCH', headers, body: JSON.stringify(payload) }).then(r=>r.json().catch(()=>null))
+          const tgUser = readTelegramUser()
+          const res = await fetch(url, { method:'PATCH', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(Object.assign({}, payload, tgUser)) }).then(r=>r.json().catch(()=>null))
           if (!res || res.success === false || res.__httpStatus === 403) {
             alert((res && res.error && res.error.message) || 'Не удалось сохранить')
             return
@@ -524,9 +546,10 @@ export function openCarModal(car){
           resp = await window.CabrioAPI.apiGet(`/api/cars/${car.id}`)
         } else {
           const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
-          const url = `${base}/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}`
-          const headers = (()=>{ try{ const tg=window.Telegram?.WebApp; const u=tg?.initDataUnsafe?.user||{}; const h={}; if(u.id) h['X-Telegram-User-Id']=String(u.id); if(u.first_name) h['X-Telegram-First-Name']=String(u.first_name); if(u.last_name) h['X-Telegram-Last-Name']=String(u.last_name); if(u.username) h['X-Telegram-Username']=String(u.username); if(tg?.initData) h['X-Telegram-Init-Data']=String(tg.initData); return h }catch{return {}} })()
-          resp = await fetch(url, { headers }).then(r=>r.json().catch(()=>null))
+          const tgUser = readTelegramUser()
+          const qp = new URLSearchParams(); Object.entries(tgUser).forEach(([k,v])=>{ if (v!==undefined) qp.append(k,v) })
+          const url = `${base}/routes/api.php?route=${encodeURIComponent(`/api/cars/${car.id}`)}${qp.toString()?('&'+qp.toString()):''}`
+          resp = await fetch(url, { headers: {} }).then(r=>r.json().catch(()=>null))
         }
         if (resp && resp.success !== false && resp.data && resp.data.permissions && resp.data.permissions.canEdit) {
           attachEditingControls()

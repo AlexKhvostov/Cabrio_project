@@ -26,23 +26,25 @@ try {
 // Ожидается, что window.__API_URL указывает на корень backend, например: https://<host>/app/backend
 const API_ROOT = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
 
-function buildTelegramHeaders(){
-  const headers = {}
+function readTelegramUser(){
   try {
     const tg = window.Telegram?.WebApp
     const u = tg?.initDataUnsafe?.user || {}
-    if (u.id) headers['X-Telegram-User-Id'] = String(u.id)
-    if (u.first_name) headers['X-Telegram-First-Name'] = String(u.first_name)
-    if (u.last_name) headers['X-Telegram-Last-Name'] = String(u.last_name)
-    if (u.username) headers['X-Telegram-Username'] = String(u.username)
-    if (tg?.initData) headers['X-Telegram-Init-Data'] = String(tg.initData)
-  } catch {}
-  return headers
+    return {
+      telegram_id: u?.id ? String(u.id) : undefined,
+      first_name: u?.first_name ? String(u.first_name) : undefined,
+      last_name: u?.last_name ? String(u.last_name) : undefined,
+      username: u?.username ? String(u.username) : undefined,
+    }
+  } catch { return {} }
 }
 
 async function apiGet(route){
-  const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
-  const res = await fetch(url, { headers: buildTelegramHeaders() })
+  const tgUser = readTelegramUser()
+  const qp = new URLSearchParams()
+  Object.entries(tgUser).forEach(([k,v])=>{ if (v !== undefined) qp.append(k, v) })
+  const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}${qp.toString() ? ('&' + qp.toString()) : ''}`
+  const res = await fetch(url, { headers: {} })
   const data = await res.json().catch(()=>null)
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
   return data
@@ -74,11 +76,13 @@ async function apiGet(route){
   window.CabrioAPI = { apiGet, apiPost };
 
 async function apiPost(route, payload){
+  const tgUser = readTelegramUser()
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
+  const body = Object.assign({}, payload || {}, tgUser)
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...buildTelegramHeaders() },
-    body: JSON.stringify(payload || {})
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   })
   const data = await res.json().catch(()=>null)
   if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
