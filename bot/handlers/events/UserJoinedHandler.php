@@ -169,15 +169,17 @@ class UserJoinedHandler {
      * @param array $syncData Данные синхронизации
      */
     private function sendWelcomeMessage($chatId, $user, $syncData) {
-        $username = $user['first_name'] ?? $user['username'] ?? 'Участник';
+        // Формируем обращение к пользователю так же, как в PhotoPlusPlusHandler:
+        // если есть username — используем формат @username; иначе используем имя
+        $displayName = isset($user['username']) ? '@' . $user['username'] : ($user['first_name'] ?? 'Участник');
         $action = $syncData['action'] ?? 'joined';
         $botUsername = $_ENV['BOT_USERNAME'] ?? 'CabrioRideBot';
         
-        $message = "🎉 <b>✅ Добро пожаловать, $username!</b>\n\n";
+        $message = "🎉 <b>✅ Добро пожаловать, $displayName!</b>\n\n";
         
         if ($action === 'created') {
-            $message .= "📝 <b>Расскажите пару слов о себе</b>\n";
-            $message .= "📸 <b>Покажите фото авто авто</b> с текстом<code>++</code>\n\n";
+            $message .= "📝 <b>Расскажи пару слов о себе</b>\n";
+            $message .= "📸 <b>Присылай фото авто </b>с текстом <code>\"++\"</code>\n\n";
         } else {
             $message .= "✅ С возвращением в клуб!\n\n";
         }
