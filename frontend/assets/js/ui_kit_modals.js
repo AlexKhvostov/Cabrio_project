@@ -1,12 +1,35 @@
 // Макеты модалок для UI Kit — эталон до внедрения в разделы приложения.
 // Используем те же классы и функции sheet.js, что и в боевых модалках.
 
-import { phUser, phCar } from './components/media.js?v=cabrio18'
+import { phUser, phCar } from './components/media.js?v=cabrio20'
 import {
-  escapeHtml, viewVal, sheetField, renderPersonLink, renderCarLink, headerActions
-} from './components/sheet.js?v=write1'
+  escapeHtml, viewVal, sheetField, renderPersonLink, renderCarLink, renderAddMyCarButton, headerActions, renderLabelChips
+} from './components/sheet.js?v=tags1'
 
-/** Обёртка «затемнённый фон + карточка», как modal-overlay в приложении */
+function createFoot(){
+  return `<div class="modal-footer create-foot">
+    <button type="button" class="btn-ghost" data-create-cancel>Отмена</button>
+    <button type="button" class="btn-primary" data-create-save>Сохранить</button>
+  </div>`
+}
+
+function createShell(title, bodyHtml){
+  return `<div class="modal-content modal-compact sheet-card create-sheet editing">
+    <div class="modal-header create-head">
+      <div class="modal-title">${escapeHtml(title)}</div>
+      <div class="sheet-actions"><button type="button" class="modal-close">×</button></div>
+    </div>
+    <div class="modal-body">${bodyHtml}</div>
+    ${createFoot()}
+  </div>`
+}
+
+function occupancyLine(going, spots, maybe){
+  const mid = spots == null ? '∞' : String(spots)
+  return `<div class="event-fill">
+    <span class="event-fill-nums"><b>${going}</b><i>·</i><b>${escapeHtml(mid)}</b><i>·</i><b>${maybe}</b></span>
+  </div>`
+}
 export function kitModalShell(inner, { asPage = false } = {}){
   const cls = asPage ? 'kit-modal-shell kit-modal-shell--page' : 'kit-modal-shell'
   return `<div class="${cls}">${inner}</div>`
@@ -147,57 +170,101 @@ export function renderKitEventModal(event){
     sheetField('Дата', viewVal(event.dateLabel)),
     sheetField('Время', viewVal(event.time)),
     sheetField('Город', viewVal(event.city)),
+    sheetField('Место', viewVal(event.location || 'Парк у набережной'), 'full'),
   ].join('')
   const eventFields = [
     sheetField('Тип', viewVal(event.type)),
     sheetField('Статус', viewVal(event.status)),
     sheetField('Описание', viewVal(event.description), 'full'),
   ].join('')
+  const rsvp = `<div class="sheet-section-title">Участие</div>
+    ${occupancyLine(4, 2, 1)}
+    <div class="sheet-label">Кто едет</div>
+    <div class="rsvp-people">
+      <div class="rsvp-person">Иван Петров<em> · +1 гость</em></div>
+      <div class="rsvp-person">Анна К.</div>
+    </div>
+    <div class="sheet-section-title">Будете участвовать?</div>
+    <div class="rsvp-row">
+      <button type="button" class="rsvp-btn is-on">Да</button>
+      <button type="button" class="rsvp-btn">Возможно</button>
+      <button type="button" class="rsvp-btn">Нет</button>
+    </div>`
 
   const actions = `<button type="button" class="btn-ghost">Изменить</button><button type="button" class="modal-close">×</button>`
 
   return kitModalShell(sheetCard(
     'Событие',
     actions,
-    cover + sheetSection('Когда и где', scheduleFields) + sheetSection('О событии', eventFields)
+    cover + sheetSection('Когда и где', scheduleFields) + sheetSection('О событии', eventFields) + rsvp
   ))
 }
 
-/** п. 59 — Гид: карточка места */
+/** п. 64 — создание события, как п. 66 */
+export function renderKitEventCreate(){
+  const cover = `<div class="main-photo-compact">
+    <div class="ph ph-event" style="position:relative;height:160px"><span class="ph-fallback"></span></div>
+    <button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>
+  </div>`
+  const when = [
+    sheetField('Дата', `<input class="filter-input" type="date" value="2026-06-15">`),
+    sheetField('Время', `<input class="filter-input" type="time" value="19:00">`),
+    sheetField('Город', `<input class="filter-input" value="Минск">`),
+    sheetField('Место', `<input class="filter-input" value="Парк у набережной">`, 'full'),
+  ].join('')
+  const about = [
+    sheetField('Название', `<input class="filter-input" value="Вечерний заезд">`),
+    sheetField('Тип', `<select class="filter-select"><option>Поездка</option></select>`),
+    sheetField('Лимит', `<input class="filter-input" type="number" value="6">`),
+    sheetField('Описание', `<textarea class="filter-input" rows="2">Сбор у парка.</textarea>`, 'full'),
+  ].join('')
+  return kitModalShell(createShell('Создание события', cover + sheetSection('Когда и где', when) + sheetSection('О событии', about)))
+}
+
+/** п. 59 — Отзывы: карточка */
 export function renderKitGuideModal(place){
   const title = place.title || 'Место'
+  const labels = place.labels || ['мойка']
   const cover = place.photo
     ? `<div class="main-photo-compact">
         <img class="main-image ph-img" src="${escapeHtml(place.photo)}" alt="">
-        ${place.type ? `<span class="sheet-photo-badge" style="position:absolute;top:10px;left:10px">${escapeHtml(place.type)}</span>` : ''}
         <div class="sheet-photo-caption">
           <div class="sheet-photo-title">${escapeHtml(title)}</div>
-          <div class="sheet-photo-meta">${escapeHtml(place.city || '')}</div>
+          <div class="sheet-photo-meta">${labels.map(n => '#' + n).join(' ')}</div>
         </div>
       </div>`
     : ''
 
-  const placeFields = [
-    sheetField('Тип', viewVal(place.type)),
-    sheetField('Город', viewVal(place.city)),
-    sheetField('Адрес', viewVal(place.address)),
+  const body = [
+    sheetField('Ярлыки', renderLabelChips(labels)),
+    sheetField('Описание', viewVal(place.description), 'full'),
   ].join('')
-  const contactFields = [
-    sheetField('Телефон', viewVal(place.phone)),
-    sheetField('Сайт', viewVal(place.website)),
+
+  const actions = `<button type="button" class="btn-ghost">Изменить</button><button type="button" class="modal-close">×</button>`
+  const reviews = `<div class="sheet-section-title">Оценки</div>
+    <div class="review-avg">Средняя 8.2 из 10 · 4 отзыва</div>
+    <div class="review-avg-parts">качество 8.5 · скорость 8.0 · цена 8.0</div>
+    <button type="button" class="btn-ghost" style="width:100%">Написать отзыв</button>
+    <div class="sheet-section-title">Отзывы</div>
+    <div class="review-list">
+      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Иван Петров</span><span class="review-row-text">Удобный заезд, быстро сушат верх.</span></span><span class="review-row-score">8.3</span><span class="review-row-go">›</span></button>
+    </div>`
+
+  return kitModalShell(sheetCard('Карточка', actions, cover + `<div class="sheet-grid">${body}</div>` + reviews))
+}
+
+/** п. 65 — создание места, как п. 66 */
+export function renderKitGuideCreate(){
+  const cover = `<div class="main-photo-compact">
+    <div class="ph ph-place" style="position:relative;height:160px"><span class="ph-fallback"></span></div>
+    <button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>
+  </div>`
+  const main = [
+    sheetField('Название', `<input class="filter-input" value="Автомойка SelfWash">`, 'full'),
+    sheetField('Ярлыки', `<div class="label-editor">${renderLabelChips(['мойка', 'минск'], { editing: true, wrap: false })}<input class="filter-input" placeholder="+"></div>`),
+    sheetField('Описание', `<textarea class="filter-input" rows="2">Бесконтактная мойка.</textarea>`, 'full'),
   ].join('')
-  const description = sheetField('Описание', viewVal(place.description), 'full')
-
-  const actions = `<button type="button" class="modal-close">×</button>`
-
-  return kitModalShell(sheetCard(
-    'Место',
-    actions,
-    cover
-      + sheetSection('Основное', placeFields)
-      + sheetSection('Контакты', contactFields)
-      + sheetSection('Описание', description)
-  ))
+  return kitModalShell(createShell('Добавить', cover + `<div class="sheet-grid">${main}</div>`))
 }
 
 /** п. 60 — Профиль: та же карточка на странице, без затемнения и без × */
@@ -229,7 +296,7 @@ export function renderKitProfilePage(user, cars = []){
         ${sheetField('О себе', viewVal(user.about || ''), 'full')}
       </div>
       <div class="sheet-section-title">Автомобили</div>
-      <div class="sheet-links">${cars.map(c => renderCarLink(c)).join('')}</div>
+      <div class="sheet-links">${cars.map(c => renderCarLink(c)).join('')}${renderAddMyCarButton('kit-add-my-car')}</div>
     </div>
   </div>`
 
@@ -257,4 +324,22 @@ export function renderKitEditModal(car){
   </div>`
 
   return kitModalShell(sheetCard('Редактирование авто', actions, cover + fields, 'editing'))
+}
+
+/** п. 66 — Режим создания (шапка «Создание…», кнопки внизу, светлые поля) */
+export function renderKitCreateModal(car){
+  const cover = `<div class="main-photo-compact">
+    ${phCar(car, 'medium', true)}
+    <button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>
+  </div>`
+  const fields = `<div class="sheet-grid">
+    <div class="sheet-field"><span class="sheet-label">Модель</span><input class="filter-input" value="${escapeHtml(car.model || '')}"></div>
+    <div class="sheet-field"><span class="sheet-label">Год</span><input class="filter-input" value="${escapeHtml(String(car.year || ''))}"></div>
+    <div class="sheet-field"><span class="sheet-label">Цвет</span><input class="filter-input" value="${escapeHtml(car.color || '')}"></div>
+    <div class="sheet-field"><span class="sheet-label">Крыша</span>
+      <select class="filter-select"><option>Мягкая</option><option>Жёсткая</option></select>
+    </div>
+    <div class="sheet-field full"><span class="sheet-label">Описание</span><textarea class="filter-input" rows="2">${escapeHtml(car.description || '')}</textarea></div>
+  </div>`
+  return kitModalShell(createShell('Создание авто', cover + fields))
 }

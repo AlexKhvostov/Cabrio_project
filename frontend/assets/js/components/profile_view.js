@@ -1,9 +1,10 @@
 // Страница «Профиль» — та же карточка человека, те же кнопки Изменить / Отмена / Сохранить
 
-import { phUser, liveTelegramPhotoUrl, selfAvatarFallbacks } from './media.js?v=cabrio18'
+import { phUser, liveTelegramPhotoUrl, selfAvatarFallbacks } from './media.js?v=cabrio20'
+import { openCarModal } from '../modals/car_modal.js?v=create-car1'
 import {
-  escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, bindRelLinks, headerActions, openPhotoViewer
-} from './sheet.js?v=write1'
+  escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, renderAddMyCarButton, bindRelLinks, headerActions, openPhotoViewer
+} from './sheet.js?v=write2'
 
 function getApiRoot() {
   return (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
@@ -100,14 +101,27 @@ export async function initProfilePage() {
       })
     }
 
-    const cars = d.cars || []
     const carsListEl = document.getElementById('cars-list')
-    if (carsListEl) {
-      carsListEl.innerHTML = cars.length
-        ? cars.map(c => renderCarLink(c)).join('')
-        : `<p class="sheet-empty" style="margin:0">Автомобилей пока нет</p>`
-      bindRelLinks(carsListEl)
+    const paintCars = (list) => {
+      const cars = Array.isArray(list) ? list : []
+      if (!carsListEl) return
+      const emptyHint = cars.length ? '' : `<p class="sheet-empty profile-no-cars">Пока нет автомобилей — добавьте свой кабриолет</p>`
+      carsListEl.innerHTML = emptyHint + cars.map(c => renderCarLink(c)).join('') + renderAddMyCarButton()
+      if (!carsListEl.__relBound) {
+        bindRelLinks(carsListEl)
+        carsListEl.__relBound = true
+      }
+      carsListEl.querySelector('#btn-add-my-car')?.addEventListener('click', () => {
+        openCarModal({}, {
+          onChanged: async () => {
+            try { window.CabrioAPI?.invalidateMe?.() } catch {}
+            const fresh = await (window.CabrioAPI?.getMe ? window.CabrioAPI.getMe() : apiGet('/api/users/profile'))
+            if (fresh && fresh.success && fresh.data) paintCars(fresh.data.cars)
+          }
+        })
+      })
     }
+    paintCars(d.cars || [])
 
     const fieldsRoot = document.getElementById('profileFields')
     const actions = document.getElementById('profileActions')

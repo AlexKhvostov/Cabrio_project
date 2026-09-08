@@ -1,10 +1,10 @@
 // Большая карточка участника. Пустые поля на месте. Авто — ссылки на полную карточку, не плитки списка.
 
-import { phUser } from '../components/media.js?v=cabrio18'
+import { phUser } from '../components/media.js?v=cabrio20'
 import {
-  escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, bindRelLinks, headerActions, openPhotoViewer,
+  escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, renderAddMyCarButton, bindRelLinks, headerActions, openPhotoViewer,
   tgUsername, isSameTelegramUser, openTelegramDialog
-} from '../components/sheet.js?v=write1'
+} from '../components/sheet.js?v=write2'
 
 function readTelegramUser(){
   try{
@@ -107,11 +107,27 @@ export async function openUserModal(member){
   bindRelLinks(overlay)
 
   const carsBox = overlay.querySelector('#userCars')
-  if (cars.length) {
-    carsBox.innerHTML = cars.map(c => renderCarLink(c)).join('')
-  } else {
-    carsBox.innerHTML = `<p class="sheet-empty" style="margin:0">Автомобилей пока нет</p>`
+  const isOwnProfile = () => (meId && Number(meId) === Number(member.id)) || isSameTelegramUser(member)
+  const paintCars = (list) => {
+    const items = Array.isArray(list) ? list : []
+    const emptyHint = items.length ? '' : `<p class="sheet-empty profile-no-cars">${isOwnProfile() ? 'Пока нет автомобилей — добавьте свой кабриолет' : 'Автомобилей пока нет'}</p>`
+    carsBox.innerHTML = emptyHint + items.map(c => renderCarLink(c)).join('') + (isOwnProfile() ? renderAddMyCarButton('btn-add-my-car-modal') : '')
+    carsBox.querySelector('#btn-add-my-car-modal')?.addEventListener('click', async () => {
+      if (!window.CabrioModals?.openCarModal) {
+        const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
+        await import(`${front}/assets/js/modals/car_modal.js?v=create-car1`)
+      }
+      window.CabrioModals?.openCarModal?.({}, {
+        onChanged: async () => {
+          try { window.CabrioAPI?.invalidateMe?.() } catch {}
+          const me = await window.CabrioAPI?.getMe?.()
+          member.cars = me?.data?.cars || member.cars
+          paintCars(member.cars)
+        }
+      })
+    })
   }
+  paintCars(cars)
 
   overlay.querySelector('.sheet-hero .ph')?.addEventListener('click', () => {
     const url = (member.photo && (member.photo.url || member.photo.urls?.orig || member.photo.urls?.medium)) || photoUrl
@@ -215,6 +231,7 @@ export async function openUserModal(member){
       const me = await (window.CabrioAPI?.getMe ? window.CabrioAPI.getMe() : null)
       meId = me?.data?.id || null
       paintHeader()
+      paintCars(member.cars || [])
       const myRole = me?.data?.role?.code || ''
       const isStaff = ['moderator','admin'].includes(String(myRole).toLowerCase())
       if (!(isStaff && Number(meId) !== Number(member.id))) return

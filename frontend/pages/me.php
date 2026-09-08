@@ -49,7 +49,6 @@
     <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script type="module">
       import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
-      import '<?php echo cabrio_asset_href('assets/js/components.js'); ?>'
       import { initProfilePage } from '<?php echo cabrio_asset_href('assets/js/components/profile_view.js'); ?>'
       initProfilePage()
     </script>

@@ -21,6 +21,8 @@
  *   $type = GuideObjectType::findById(1);
  *   $type = GuideObjectType::findByCode('service');
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class GuideObjectType {
     public $id;
     public $code;
@@ -54,5 +56,11 @@ class GuideObjectType {
         $stmt->execute([$code]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    public static function getAll() {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query('SELECT id, code, name FROM ref_guide_object_types ORDER BY id');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 } 

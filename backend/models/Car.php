@@ -155,26 +155,60 @@ class Car {
      */
     public static function create($data) {
         $pdo = Database::getInstance();
-        
-        // Подготовка данных для вставки
-        $fields = ['reg_number', 'show_reg_number', 'car_brand_id', 'model', 'color', 'year', 'owner_user_id', 'status_id', 'create_user_id'];
+
+        // Основные поля + то, что участник заполняет в форме «мой авто»
+        $fields = [
+            'reg_number', 'show_reg_number', 'car_brand_id', 'model', 'color', 'year',
+            'roof_type', 'description', 'vin', 'engine_power', 'engine_volume',
+            'owner_user_id', 'status_id', 'create_user_id',
+        ];
         $placeholders = implode(', ', array_fill(0, count($fields), '?'));
         $fieldNames = implode(', ', $fields);
-        
+
         $stmt = $pdo->prepare("INSERT INTO cars ($fieldNames, created_at, updated_at) VALUES ($placeholders, NOW(), NOW())");
-        
+
+        $year = $data['year'] ?? null;
+        if ($year === '' || $year === null || !is_numeric($year)) {
+            $year = null;
+        } else {
+            $year = (int)$year;
+        }
+        $brandId = $data['car_brand_id'] ?? null;
+        if ($brandId === '' || $brandId === null || !is_numeric($brandId)) {
+            $brandId = null;
+        } else {
+            $brandId = (int)$brandId;
+        }
+        $nullIfEmpty = static function ($v) {
+            if ($v === null) return null;
+            if (is_string($v)) {
+                $v = trim($v);
+                return $v === '' ? null : $v;
+            }
+            return $v;
+        };
+        $numOrNull = static function ($v) {
+            if ($v === '' || $v === null || !is_numeric($v)) return null;
+            return $v + 0;
+        };
+
         $values = [
-            $data['reg_number'] ?? null,
+            $nullIfEmpty($data['reg_number'] ?? null),
             self::isRegNumberPublic($data['show_reg_number'] ?? 0) ? 1 : 0,
-            $data['car_brand_id'] ?? null,
-            $data['model'] ?? null,
-            $data['color'] ?? null,
-            $data['year'] ?? null,
+            $brandId,
+            $nullIfEmpty($data['model'] ?? null),
+            $nullIfEmpty($data['color'] ?? null),
+            $year,
+            $nullIfEmpty($data['roof_type'] ?? null),
+            $nullIfEmpty($data['description'] ?? null),
+            $nullIfEmpty($data['vin'] ?? null),
+            $numOrNull($data['engine_power'] ?? null),
+            $numOrNull($data['engine_volume'] ?? null),
             $data['owner_user_id'] ?? null,
-            $data['status_id'] ?? 1, // "Замечена" по умолчанию
-            $data['create_user_id'] ?? null
+            $data['status_id'] ?? 6, // по умолчанию «на модерации»
+            $data['create_user_id'] ?? null,
         ];
-        
+
         $stmt->execute($values);
         return $pdo->lastInsertId();
     }

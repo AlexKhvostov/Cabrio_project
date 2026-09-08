@@ -7,9 +7,16 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=<?php echo getenv('map_ya_key') ?: ''; ?>&lang=ru_RU" type="text/javascript"></script>
     <style>
-      /* Страница карты: карта на весь экран, список людей ниже системной шапки */
+      /* Карта на весь экран. Список и подсказки — ниже кнопок Telegram, не в padding (absolute его игнорирует). */
       .page{ padding:0; height:var(--app-height, 100vh); overflow:hidden }
-      .map-container{ position:relative; width:100%; height:calc(var(--app-height, 100vh) - var(--nav-safe)); }
+      .map-container{
+        position:relative; width:100%;
+        height:calc(var(--app-height, 100vh) - var(--nav-safe));
+      }
+      .map-people-panel,
+      .map-error{
+        top: calc(12px + var(--safe-top));
+      }
       .yandex-map{ width:100%; height:100%; }
     </style>
     <script>
@@ -30,16 +37,14 @@
         <div class="map-people-panel">
           <button id="peopleToggle" type="button" class="people-toggle" aria-expanded="false">Сейчас на карте — 0</button>
           <div id="peopleList" class="people-list" hidden></div>
+          <div id="mapShareHint" class="map-share-hint">
+            Чтобы свои видели тебя — включи геолокацию кнопкой ⏻
+          </div>
         </div>
 
         <div id="mapError" class="map-error" hidden></div>
 
         <div id="map" class="yandex-map"></div>
-
-        <!-- Подсказка, пока ты не делишься геолокацией: карту всё равно можно смотреть -->
-        <div id="mapShareHint" class="map-share-hint">
-          Чтобы свои видели тебя — включи геолокацию кнопкой ⏻
-        </div>
 
         <div class="map-fab-bar">
           <button id="sendLocationBtn" type="button" class="fab fab--power" aria-pressed="false" title="Показывать меня на карте" aria-label="Показывать меня на карте">
@@ -55,7 +60,7 @@
       </div>
     </main>
     <?php include __DIR__ . '/../components/footer.php'; ?>
-    <script src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
+    <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script src="<?php echo cabrio_asset_href('assets/js/map.js'); ?>"></script>
   </body>
 </html>

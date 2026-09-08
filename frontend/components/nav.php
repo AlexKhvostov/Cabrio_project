@@ -22,10 +22,10 @@ require_once __DIR__ . '/nav_icons.php';
     <span class="nav-icon"><?php echo cabrio_nav_pic('events'); ?></span>
     <span class="nav-label">События</span>
   </a>
-  <!-- Места и сервисы -->
+  <!-- Отзывы: мойки, масла, сервисы -->
   <a class="nav-item" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/services.php'), ENT_QUOTES); ?>">
     <span class="nav-icon"><?php echo cabrio_nav_pic('guide'); ?></span>
-    <span class="nav-label">Гид</span>
+    <span class="nav-label">Отзывы</span>
   </a>
   <!-- Свой профиль: своё фото, если есть, иначе картинка-заглушка -->
   <a class="nav-item" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/me.php'), ENT_QUOTES); ?>">

@@ -45,7 +45,7 @@ $toc = [
   'Фото' => [27=>'Аватар-заглушка',28=>'Аватар с фото',29=>'Рамка авто-заглушка',30=>'Рамка авто с фото',31=>'Большая обложка 16:9',32=>'Кнопка загрузки фото',62=>'Все заглушки'],
   'Списки' => [33=>'Бейдж роли',34=>'Бейдж статуса авто',35=>'Карточка человека',36=>'Компоновка авто',37=>'Карточка авто в сетке',38=>'Ссылка хозяин ↔ авто'],
   'Большая карточка' => [39=>'Шапка карточки',40=>'Шапка человека (фото + имя)',41=>'Поля большой карточки',42=>'Карточка целиком'],
-  'Экраны' => [43=>'Статистика главной',44=>'Пустой / инфо-блок',45=>'Нижнее меню',46=>'Название в шапке Telegram',63=>'Подсказка раздела'],
+  'Экраны' => [43=>'Статистика главной',44=>'Пустой / инфо-блок',45=>'Нижнее меню',46=>'Название в шапке Telegram',63=>'Всплывающая подсказка i'],
   'Карта и прочее' => [47=>'Переключатель геолокации',48=>'Круглые кнопки карты',49=>'Метка на карте',50=>'Кто сейчас на карте',51=>'Просмотр фото',52=>'Спиннер',53=>'Ошибка / тост'],
   'Модалки разделов' => [
     54=>'Каркас модалки',
@@ -53,9 +53,12 @@ $toc = [
     56=>'Авто — карточка машины',
     57=>'Карта — открытие с метки',
     58=>'События — карточка встречи',
-    59=>'Гид — карточка места',
+    59=>'Отзывы — карточка',
     60=>'Профиль — sheet на странице',
     61=>'Режим редактирования',
+    66=>'Режим создания',
+    64=>'События — создание',
+    65=>'Отзывы — добавление',
   ],
 ];
 
@@ -512,7 +515,7 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
       <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('car'); ?></span><span class="nav-label">Авто</span></a>
       <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('map'); ?></span><span class="nav-label">Карта</span></a>
       <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('events'); ?></span><span class="nav-label">События</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('guide'); ?></span><span class="nav-label">Гид</span></a>
+      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('guide'); ?></span><span class="nav-label">Отзывы</span></a>
       <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('profile'); ?></span><span class="nav-label">Профиль</span></a>
     </nav>
   </div>
@@ -523,30 +526,25 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
     <div class="app-topbar-inner has-section" style="height:48px;padding:0 16px">
       <span class="app-topbar-name">Cabrio<span>Ride</span></span>
       <div class="app-topbar-section-row">
-        <span class="app-topbar-section">Гид</span>
-        <button type="button" class="app-hint-btn" aria-expanded="false">i</button>
+        <span class="app-topbar-section">Отзывы</span>
+        <span class="hint-wrap">
+          <button type="button" class="app-hint-btn" aria-expanded="false" aria-label="О разделе">i</button>
+          <span class="hint-pop" hidden>Карточки для отзывов: мойки, масла, средства, кафе.
+
+Ярлыки вроде #мойка. Кнопка + — добавить карточку.</span>
+        </span>
       </div>
     </div>
   </div>
 <?php kit_close(); ?>
 
-<?php kit_open(63, 'Подсказка раздела', 'Кнопка i в шапке. Окно висит под шапкой, список под ним не сдвигается'); ?>
-  <p class="kit-note">Нажмите i — панель поверх экрана. Текст по ТЗ: что в этом разделе и зачем.</p>
-  <div class="kit-hint-demo">
-    <div class="app-topbar" style="display:flex;position:relative;height:48px;min-height:48px;z-index:2;pointer-events:auto">
-      <div class="app-topbar-inner has-section" style="height:48px;padding:0 16px">
-        <span class="app-topbar-name">Cabrio<span>Ride</span></span>
-        <div class="app-topbar-section-row">
-          <span class="app-topbar-section">Гид</span>
-          <button type="button" class="app-hint-btn" id="kitHintBtn" aria-expanded="true" aria-controls="kitHintPanel">i</button>
-        </div>
-      </div>
-    </div>
-    <div class="app-hint" id="kitHintPanel" style="position:relative;top:auto;left:auto;right:auto;z-index:1">
-      <div class="app-hint-card" style="margin:0;border-radius:0 0 14px 14px">
-        <p>Проверенные рекомендации клуба: места (кафе, мойки, сервисы, маршруты, парковки, специалисты), полезные средства ухода за кабриолетом и чёрный список мест и средств, которых лучше избегать. Участники добавляют объекты и отзывы.</p>
-      </div>
-    </div>
+<?php kit_open(63, 'Всплывающая подсказка i', 'Шапка раздела, галка «по приглашению»'); ?>
+  <p class="kit-note">Тап по i — пузырь внутри экрана, не за край. Повторный тап или тап снаружи — закрыть. Цифры события объясняет i в шапке раздела.</p>
+  <div class="kit-hint-demo" style="position:relative;min-height:80px;padding:12px;border:1px dashed var(--line);border-radius:12px">
+    <span class="hint-wrap">
+      <button type="button" class="app-hint-btn" aria-expanded="false" aria-label="О разделе">i</button>
+      <span class="hint-pop" hidden>Пример: текст остаётся внутри экрана, даже если кнопка почти у края.</span>
+    </span>
   </div>
 <?php kit_close(); ?>
 
@@ -635,23 +633,38 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_open(58, 'События — карточка встречи', 'Экран События, тап по событию в списке'); ?>
-  <p class="kit-note">Новый вид на базе sheet-card (старый event_modal.js пока другой — приводим к этому макету).</p>
+  <p class="kit-note">Просмотр: шапка и тело до меню, счётчики участия, ответ «еду / возможно / нет».</p>
   <div id="d-modal-event"></div>
 <?php kit_close(); ?>
 
-<?php kit_open(59, 'Гид — карточка места', 'Экран Гид, тап по объекту в списке'); ?>
-  <p class="kit-note">Мойки, СТО, кафе — тот же каркас, без «Изменить» для гостя (только ×).</p>
+<?php kit_open(59, 'Отзывы — карточка', 'Экран Отзывы, тап по объекту в списке'); ?>
+  <p class="kit-note">Средняя оценка на обложке и в блоке отзывов. Написать / посмотреть отзыв — модалка поверх.</p>
   <div id="d-modal-guide"></div>
 <?php kit_close(); ?>
 
 <?php kit_open(60, 'Профиль — sheet на странице', 'Раздел Профиль в меню, без overlay'); ?>
-  <p class="kit-note">Тот же контент, что п. 55, но без затемнения и без крестика — только «Изменить».</p>
+  <p class="kit-note">Тот же контент, что п. 55, но без затемнения и без крестика — только «Изменить». Внизу списка авто — кнопка «Добавить мой авто».</p>
   <div id="d-modal-profile"></div>
 <?php kit_close(); ?>
 
-<?php kit_open(61, 'Режим редактирования', 'Любая модалка с правами: Отмена + Сохранить, кнопка «Фото»'); ?>
-  <p class="kit-note">Пример на авто. У человека — те же кнопки в шапке и инпуты в плитках полей.</p>
+<?php kit_open(61, 'Режим редактирования', 'Любая модалка с правами: Отмена + Сохранить в шапке, кнопка «Фото»'); ?>
+  <p class="kit-note">Пример на авто. Светлые поля. Кнопки в шапке рядом с крестиком.</p>
   <div id="d-modal-edit"></div>
+<?php kit_close(); ?>
+
+<?php kit_open(66, 'Режим создания', 'Кнопка + : шапка «Создание…», Отмена и Сохранить внизу'); ?>
+  <p class="kit-note">Поля как в п. 61. Кнопки внизу те же компактные, что в п. 16 — не на всю ширину и не выше остальных.</p>
+  <div id="d-modal-create"></div>
+<?php kit_close(); ?>
+
+<?php kit_open(64, 'События — создание', 'Кнопка + на экране События'); ?>
+  <p class="kit-note">Как п. 66: «Создание события» в шапке, кнопки внизу, светлые поля.</p>
+  <div id="d-modal-event-create"></div>
+<?php kit_close(); ?>
+
+<?php kit_open(65, 'Отзывы — добавление', 'Кнопка + на экране Отзывы'); ?>
+  <p class="kit-note">Как п. 66: название, описание, фото и ярлыки (#мойка).</p>
+  <div id="d-modal-guide-create"></div>
 <?php kit_close(); ?>
 
         </main>

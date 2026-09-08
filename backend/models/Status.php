@@ -21,6 +21,8 @@
  *   $status = Status::findById(1);
  *   $status = Status::findByCode('active');
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class Status {
     public $id;
     public $code;
@@ -55,5 +57,16 @@ class Status {
         $stmt->execute([$code]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    /**
+     * Числовой id статуса по коду (active, deleted…). Если нет — запасной id из справочника.
+     */
+    public static function idByCode($code, $fallback = 1) {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare('SELECT id FROM ref_statuses WHERE LOWER(code) = LOWER(?) LIMIT 1');
+        $stmt->execute([$code]);
+        $id = $stmt->fetchColumn();
+        return $id ? (int)$id : (int)$fallback;
     }
 } 

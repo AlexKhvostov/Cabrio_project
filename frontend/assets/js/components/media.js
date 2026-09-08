@@ -125,3 +125,18 @@ export function phUser(src, initials = '', size = 'medium', eager = false){
 export function phCar(src, size = 'medium', eager = false){
   return phBox('car', photoSrcAttrs(src, size), CAR_PH, eager)
 }
+
+const PLACE_PH_SRC = new URL('../../img/ph-place.png?v=1', import.meta.url).href
+const PLACE_PH = `<img class="ph-draw" src="${PLACE_PH_SRC}" alt="" decoding="async">`
+const EVENT_PH_SRC = new URL('../../img/ph-event.png?v=1', import.meta.url).href
+const EVENT_PH = `<img class="ph-draw" src="${EVENT_PH_SRC}" alt="" decoding="async">`
+
+/** Обложка места гида: своё фото или иллюстрация-заглушка */
+export function phPlace(src, size = 'medium', eager = false){
+  return phBox('place', photoSrcAttrs(src, size), PLACE_PH, eager)
+}
+
+/** Обложка события: своё фото или иллюстрация-заглушка */
+export function phEvent(src, size = 'medium', eager = false){
+  return phBox('event', photoSrcAttrs(src, size), EVENT_PH, eager)
+}

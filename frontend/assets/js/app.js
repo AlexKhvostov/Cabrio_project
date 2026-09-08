@@ -1,8 +1,25 @@
 // Высота экрана и отступ сверху. Считаем сразу, даже если Telegram ещё не ответил —
 // иначе страница получается нулевой высоты и контент «пропадает».
+import { bindHintPops } from './components/hints.js?v=tip2'
+
 function readCssPx(name) {
   const n = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))
   return Number.isFinite(n) ? n : 0
+}
+
+let lastFullHeight = 0
+
+function isTypingField() {
+  const el = document.activeElement
+  return !!(el && el.matches?.('input,textarea,select'))
+}
+
+function lockPageScroll() {
+  try { window.scrollTo(0, 0) } catch {}
+  try {
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+  } catch {}
 }
 
 function setAppHeight() {
@@ -11,13 +28,18 @@ function setAppHeight() {
     || window.innerHeight
     || document.documentElement.clientHeight
     || 700
-  const height = Math.max(240, Math.round(rawH))
+  let height = Math.max(240, Math.round(rawH))
+  const typing = isTypingField()
+  // Клавиатура сжимает viewport — из-за этого экран чернел. Высоту приложения не трогаем.
+  if (typing && lastFullHeight >= 240) height = lastFullHeight
+  else lastFullHeight = height
   document.documentElement.style.setProperty('--app-height', height + 'px')
 
   const inTelegram = !!(tg && (String(tg.initData || '').length || tg.initDataUnsafe?.user))
   const isFullscreen = !!(tg && tg.isFullscreen)
   document.documentElement.classList.toggle('tg-fs', isFullscreen)
   document.documentElement.classList.toggle('tg-webapp', inTelegram)
+  document.documentElement.classList.toggle('kb-open', typing)
 
   // 1) часы и вырез экрана  2) кнопки Telegram «свернуть / закрыть»
   let statusTop = Number(tg?.safeAreaInset?.top) || readCssPx('--tg-safe-area-inset-top') || 0
@@ -55,11 +77,14 @@ function applyKeyboardInset(){
       if (vv) kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
     } catch {}
     if (kb < 80) kb = 0
+    lockPageScroll()
+    const box = el.closest?.('.modal-body')
+    if (box) {
+      try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }) } catch {}
+    }
   }
   document.documentElement.style.setProperty('--kb', kb + 'px')
-  if (focused && kb && el) {
-    try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }) } catch {}
-  }
+  document.documentElement.classList.toggle('kb-open', focused)
 }
 try {
   window.visualViewport?.addEventListener('resize', applyKeyboardInset)
@@ -72,7 +97,10 @@ document.addEventListener('focusin', (e)=>{
   setTimeout(applyKeyboardInset, 50)
   setTimeout(applyKeyboardInset, 320)
 })
-document.addEventListener('focusout', (e)=>{ e.target?.classList?.remove('field-focus') })
+document.addEventListener('focusout', (e)=>{
+  e.target?.classList?.remove('field-focus')
+  setTimeout(() => { applyKeyboardInset(); setAppHeight() }, 60)
+})
 
 let busyCount = 0
 function ensureBusyEl(){
@@ -96,7 +124,7 @@ window.CabrioUI.kickModalLayout = function(root){
     requestAnimationFrame(() => { try { body.scrollTop = 0 } catch {} })
   } catch {}
 }
-window.CabrioBusy = {
+window.CabrioUI.busy = {
   show(){
     busyCount++
     const el = ensureBusyEl()
@@ -110,23 +138,11 @@ window.CabrioBusy = {
     }
   }
 }
+window.CabrioBusy = window.CabrioUI.busy
 
-// Подсказка раздела: кнопка i в шапке, окно поверх экрана, список не сдвигается
+// Подсказка i: всплывашка у кнопки, экран не разъезжается
 function bindSectionIntros(){
-  const btn = document.querySelector('.app-hint-btn')
-  const panel = document.getElementById('appHintPanel')
-  if (!btn || !panel) return
-  const apply = (open)=>{
-    panel.hidden = !open
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false')
-  }
-  apply(false)
-  btn.addEventListener('click', (e)=>{
-    e.preventDefault()
-    e.stopPropagation()
-    apply(panel.hidden)
-  })
-  panel.querySelector('.app-hint-scrim')?.addEventListener('click', ()=> apply(false))
+  bindHintPops(document)
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindSectionIntros)
@@ -151,7 +167,7 @@ try {
     } catch {}
   }
   askFullscreen()
-  tg?.onEvent?.('viewportChanged', setAppHeight)
+  tg?.onEvent?.('viewportChanged', () => { applyKeyboardInset(); setAppHeight() })
   tg?.onEvent?.('fullscreenChanged', setAppHeight)
   tg?.onEvent?.('safeAreaChanged', setAppHeight)
   tg?.onEvent?.('contentSafeAreaChanged', setAppHeight)
@@ -232,6 +248,20 @@ async function apiPost(route, payload){
   return data
 }
 
+async function apiPatch(route, payload){
+  const tgUser = readTelegramUser()
+  const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
+  const body = Object.assign({}, payload || {}, tgUser)
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  const data = await res.json().catch(()=>null)
+  if (res.status === 401 || res.status === 403) return { __httpStatus: res.status, ...(data||{}) }
+  return data
+}
+
 // Снять себя с карты: тот же JSON с telegram_id, что и у POST
 async function apiDelete(route, payload){
   const tgUser = readTelegramUser()
@@ -249,15 +279,21 @@ async function apiDelete(route, payload){
 
 // Справочники для фронта (можно расширять)
 window.CabrioData = window.CabrioData || {}
-window.CabrioAPI = { apiGet, apiPost, apiDelete, getMe, invalidateMe }
+window.CabrioAPI = { apiGet, apiPost, apiPatch, apiDelete, getMe, invalidateMe }
 
 // Переходы между полноценными карточками: человек ↔ его авто
 async function ensureModalScript(kind){
   if (kind === 'car' && window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function') return
   if (kind === 'user' && window.CabrioModals && typeof window.CabrioModals.openUserModal === 'function') return
-  const file = kind === 'car' ? 'car_modal.js' : 'user_modal.js'
+  if (kind === 'event' && window.CabrioModals && typeof window.CabrioModals.openEventModal === 'function') return
+  if (kind === 'guide' && window.CabrioModals && typeof window.CabrioModals.openGuideModal === 'function') return
+  const file = ({ car:'car_modal.js', user:'user_modal.js', event:'event_modal.js', guide:'guide_modal.js' })[kind]
   const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
-  await import(`${front}/assets/js/modals/${file}?v=write2`)
+  try {
+    await import(`${front}/assets/js/modals/${file}?v=edit-same1`)
+  } catch (err) {
+    console.error('modal import', kind, err)
+  }
 }
 
 window.CabrioNav = {
@@ -296,6 +332,44 @@ window.CabrioNav = {
     if (window.CabrioModals && typeof window.CabrioModals.openUserModal === 'function') {
       window.CabrioModals.openUserModal(res.data)
     }
+    } finally { window.CabrioBusy?.hide() }
+  },
+  async openEvent(id, onChanged){
+    const n = Number(id)
+    if (!n) return
+    window.CabrioBusy?.show()
+    try {
+      const res = await apiGet('/api/events/' + n)
+      if (!res || res.success === false || !res.data) {
+        alert((res && res.error && res.error.message) || 'Не удалось открыть событие')
+        return
+      }
+      await ensureModalScript('event')
+      this.closeModals()
+      if (window.CabrioModals && typeof window.CabrioModals.openEventModal === 'function') {
+        window.CabrioModals.openEventModal(res.data, { onChanged })
+      } else {
+        alert('Карточка события не загрузилась. Обновите экран.')
+      }
+    } finally { window.CabrioBusy?.hide() }
+  },
+  async openGuide(id, onChanged){
+    const n = Number(id)
+    if (!n) return
+    window.CabrioBusy?.show()
+    try {
+      const res = await apiGet('/api/guide-objects/' + n)
+      if (!res || res.success === false || !res.data) {
+        alert((res && res.error && res.error.message) || 'Не удалось открыть карточку')
+        return
+      }
+      await ensureModalScript('guide')
+      this.closeModals()
+      if (window.CabrioModals && typeof window.CabrioModals.openGuideModal === 'function') {
+        window.CabrioModals.openGuideModal(res.data, { onChanged })
+      } else {
+        alert('Карточка не загрузилась. Обновите экран.')
+      }
     } finally { window.CabrioBusy?.hide() }
   }
 }

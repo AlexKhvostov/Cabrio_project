@@ -21,6 +21,8 @@
  *   $kind = GuideObjectKind::findById(1);
  *   $kind = GuideObjectKind::findByCode('breakfast');
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class GuideObjectKind {
     public $id;
     public $type_id;
@@ -54,5 +56,19 @@ class GuideObjectKind {
         $stmt->execute([$code]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    /**
+     * Все виды, при необходимости только для выбранного типа.
+     */
+    public static function getAll($typeId = null) {
+        $pdo = Database::getInstance();
+        if ($typeId) {
+            $stmt = $pdo->prepare('SELECT id, type_id, code, name, description FROM ref_guide_object_kinds WHERE type_id = ? ORDER BY name');
+            $stmt->execute([(int)$typeId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
+        $stmt = $pdo->query('SELECT id, type_id, code, name, description FROM ref_guide_object_kinds ORDER BY type_id, name');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 } 

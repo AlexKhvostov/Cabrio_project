@@ -22,7 +22,9 @@
 | cars                     | Автомобили участников                                    |
 | events                   | События/мероприятия                                      |
 | business_cards           | Визитки/приглашения                                      |
-| guide_objects            | Объекты гида (GuideObject)                               |
+| guide_objects            | Места клуба (guide_objects, раньше «гид»)                |
+| labels                   | Ярлыки-хештеги (мойка, кафе…)                            |
+| link_guide_object_labels | Какие ярлыки висят на месте                              |
 | reviews                  | Отзывы о GuideObject                                     |
 | photos                   | Фото, связанные с любыми сущностями                      |
 | link_user_cars           | Связь пользователей и автомобилей (владелец, пассажир)   |
@@ -212,8 +214,8 @@
 | id           | BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY | Уникальный идентификатор        |
 | created_at   | TIMESTAMP          | Дата и время создания записи    |
 | updated_at   | TIMESTAMP          | Дата и время обновления записи  |
-| guide_object_type_id | BIGINT UNSIGNED  | FK на ref_guide_object_types.id|
-| guide_object_kind_id | BIGINT UNSIGNED    | FK на ref_guide_object_kinds.id |
+| guide_object_type_id | BIGINT UNSIGNED NULL | Старый тип, в форме больше не нужен |
+| guide_object_kind_id | BIGINT UNSIGNED NULL | Старый вид, в форме больше не нужен |
 | name         | VARCHAR(255)       | Название                        |
 | city         | VARCHAR(100)       | Город                           |
 | address      | TEXT               | Адрес                           |
@@ -230,7 +232,24 @@
 | add_user_id  | BIGINT UNSIGNED    | Кто добавил                     |
 | status_id    | BIGINT UNSIGNED    | FK на ref_statuses.id           |
 
-> Фото GuideObject определяется как запись с максимальным id в таблице photos с entity_type = 'guide_object' и entity_id = guide_objects.id
+> Фото места: запись с максимальным id в photos с entity_type = 'guide_object' и entity_id = guide_objects.id.
+> В интерфейсе раздел называется «Места». Тип и вид в форме больше не спрашиваем — вместо них ярлыки.
+
+## Ярлыки (labels)
+
+| Поле       | Тип                | Описание |
+|------------|--------------------|----------|
+| id         | BIGINT UNSIGNED PK | |
+| code       | VARCHAR(80) UNIQUE | Без #, маленькими буквами |
+| name       | VARCHAR(80)        | Как видит человек |
+| created_at | TIMESTAMP          | |
+
+### link_guide_object_labels
+
+| Поле              | Тип |
+|-------------------|-----|
+| guide_object_id   | PK, FK → guide_objects.id |
+| label_id          | PK, FK → labels.id |
 
 ---
 

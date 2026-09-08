@@ -1,117 +1,163 @@
 <?php
 /**
- * GuideObjectController — контроллер для работы с гид-объектами (guide_objects).
- *
- * Назначение:
- *   Обрабатывает HTTP-запросы, связанные с гид-объектами: получение, создание, обновление, удаление и т.д.
- *
- * Зависимости:
- *   - GuideObject (модель)
- *   - GuideObjectKind (модель)
- *   - User (модель)
- *   - AuthHelper, ResponseHelper
- *
- * Основные методы:
- *   - getList() — получить список гид-объектов
- *   - getById($id) — получить гид-объект по id
- *   - create($data) — создать гид-объект
- *   - update($id, $data) — обновить гид-объект
- *   - delete($id) — удалить гид-объект
+ * Места клуба (в коде ещё guide_objects). Удаление — модератор/админ (статус «удалён»).
  */
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/GuideObject.php';
+require_once __DIR__ . '/../models/Status.php';
 
 class GuideObjectController extends BaseController
 {
-    /**
-     * Получить список гид-объектов
-     * 
-     * Требует авторизации: Да
-     * Минимальная роль: member
-     */
     public function getList()
     {
         try {
-            // Проверяем авторизацию и права доступа через централизованную конфигурацию
             if (!$this->requireAccess('api.guide-objects.getList')) {
-                return; // Ответ уже отправлен в requireAccess
+                return;
             }
-
             $guideObjects = GuideObject::getAll();
-            
-            // Логируем действие
-            $this->logUserAction('get_guide_objects_list', [
-                'count' => count($guideObjects)
-            ]);
-            
-            $this->json([
-                'success' => true, 
-                'data' => $guideObjects,
-                'meta' => $this->getRequestInfo()
-            ]);
-            
+            $uid = (int)$this->getCurrentUserId();
+            foreach ($guideObjects as &$g) {
+                $g['permissions'] = $this->guidePermissions($g, $uid);
+            }
+            unset($g);
+            $this->logUserAction('get_guide_objects_list', ['count' => count($guideObjects)]);
+            $this->json(['success' => true, 'data' => $guideObjects, 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
-            Logger::error('GuideObjectController: getList error', [
-                'error' => $e->getMessage(),
-                'user_id' => $this->getCurrentUserId()
+            Logger::error('GuideObjectController: getList error', ['error' => $e->getMessage()]);
+            $this->json(['success' => false, 'error' => ['code' => 'DB_ERROR', 'message' => $e->getMessage()]], 500);
+        }
+    }
+
+    public function getById($id)
+    {
+        try {
+            if (!$this->requireAccess('api.guide-objects.getById')) {
+                return;
+            }
+            $item = GuideObject::findExpanded((int)$id);
+            if (!$item) {
+                $this->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Место не найдено']], 404);
+                return;
+            }
+            $item['permissions'] = $this->guidePermissions($item, (int)$this->getCurrentUserId());
+            $this->json(['success' => true, 'data' => $item, 'meta' => $this->getRequestInfo()]);
+        } catch (Throwable $e) {
+            Logger::error('GuideObjectController: getById error', ['error' => $e->getMessage()]);
+            $this->json(['success' => false, 'error' => ['code' => 'DB_ERROR', 'message' => $e->getMessage()]], 500);
+        }
+    }
+
+    public function create()
+    {
+        try {
+            if (!$this->requireAccess('api.guide-objects.create')) {
+                return;
+            }
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $name = trim((string)($input['name'] ?? ''));
+            if ($name === '') {
+                $this->json(['success' => false, 'error' => ['code' => 'VALIDATION', 'message' => 'Нужно название места']], 400);
+                return;
+            }
+            $id = GuideObject::create([
+                'name' => $name,
+                'guide_object_type_id' => null,
+                'guide_object_kind_id' => null,
+                'city' => trim((string)($input['city'] ?? '')),
+                'address' => trim((string)($input['address'] ?? '')),
+                'website' => trim((string)($input['website'] ?? '')),
+                'phone' => trim((string)($input['phone'] ?? '')),
+                'description' => trim((string)($input['description'] ?? '')),
+                'add_user_id' => (int)$this->getCurrentUserId(),
             ]);
-            
-            $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'DB_ERROR',
-                    'message' => $e->getMessage()
-                ]
-            ], 500);
+            require_once __DIR__ . '/../models/Label.php';
+            if (array_key_exists('labels', $input)) {
+                Label::syncForGuideObject($id, $input['labels']);
+            }
+            $this->logUserAction('create_guide_object', ['id' => $id]);
+            $item = GuideObject::findExpanded($id);
+            $item['permissions'] = $this->guidePermissions($item, (int)$this->getCurrentUserId());
+            $this->json(['success' => true, 'data' => $item, 'meta' => $this->getRequestInfo()], 201);
+        } catch (Throwable $e) {
+            Logger::error('GuideObjectController: create error', ['error' => $e->getMessage()]);
+            $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
         }
     }
 
     /**
-     * Создать новый гид-объект
-     * 
-     * Требует авторизации: Да
-     * Минимальная роль: moderator
+     * Править место может тот, кто его добавил, либо модератор/админ.
      */
-    public function create()
+    public function update($id)
     {
         try {
-            // Проверяем авторизацию и права доступа через централизованную конфигурацию
-            if (!$this->requireAccess('api.guide-objects.create')) {
-                return; // Ответ уже отправлен в requireAccess
+            if (!$this->requireAccess('api.guide-objects.update')) {
+                return;
             }
-
-            // Получаем данные из запроса
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            // Логируем действие
-            $this->logUserAction('create_guide_object', [
-                'input_data' => $input
-            ]);
-
-            // TODO: Реализовать создание гид-объекта через модель
-            $this->json([
-                'success' => true, 
-                'data' => [
-                    'id' => 1, 
-                    'title' => 'Новый гид-объект',
-                    'created_by' => $this->getCurrentUserId()
-                ],
-                'meta' => $this->getRequestInfo()
-            ], 201);
-            
+            $item = GuideObject::findExpanded((int)$id);
+            if (!$item) {
+                $this->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Место не найдено']], 404);
+                return;
+            }
+            if (!$this->guidePermissions($item, (int)$this->getCurrentUserId())['canEdit']) {
+                $this->json(['success' => false, 'error' => ['code' => 'FORBIDDEN', 'message' => 'Править может автор или модератор']], 403);
+                return;
+            }
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $payload = [];
+            foreach (['name', 'city', 'address', 'website', 'phone', 'description'] as $k) {
+                if (array_key_exists($k, $input)) {
+                    $payload[$k] = trim((string)$input[$k]);
+                }
+            }
+            if (isset($payload['name']) && $payload['name'] === '') {
+                $this->json(['success' => false, 'error' => ['code' => 'VALIDATION', 'message' => 'Нужно название']], 400);
+                return;
+            }
+            GuideObject::updateById((int)$id, $payload);
+            if (array_key_exists('labels', $input)) {
+                require_once __DIR__ . '/../models/Label.php';
+                Label::syncForGuideObject((int)$id, $input['labels']);
+            }
+            $fresh = GuideObject::findExpanded((int)$id);
+            $fresh['permissions'] = $this->guidePermissions($fresh, (int)$this->getCurrentUserId());
+            $this->json(['success' => true, 'data' => $fresh, 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
-            Logger::error('GuideObjectController: create error', [
-                'error' => $e->getMessage(),
-                'user_id' => $this->getCurrentUserId()
-            ]);
-            
-            $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'INTERNAL_ERROR',
-                    'message' => $e->getMessage()
-                ]
-            ], 500);
+            Logger::error('GuideObjectController: update error', ['error' => $e->getMessage()]);
+            $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
         }
     }
-} 
+
+    public function delete($id)
+    {
+        try {
+            if (!$this->requireAccess('api.guide-objects.delete')) {
+                return;
+            }
+            if (!$this->isModerator() && !$this->isAdmin()) {
+                $this->json(['success' => false, 'error' => ['code' => 'FORBIDDEN', 'message' => 'Удалить место может модератор или админ']], 403);
+                return;
+            }
+            $item = GuideObject::findExpanded((int)$id);
+            if (!$item) {
+                $this->json(['success' => false, 'error' => ['code' => 'NOT_FOUND', 'message' => 'Место не найдено']], 404);
+                return;
+            }
+            GuideObject::updateStatus((int)$id, Status::idByCode('deleted', 3));
+            $this->json(['success' => true, 'data' => ['id' => (int)$id, 'status' => 'deleted'], 'meta' => $this->getRequestInfo()]);
+        } catch (Throwable $e) {
+            Logger::error('GuideObjectController: delete error', ['error' => $e->getMessage()]);
+            $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
+        }
+    }
+
+    private function guidePermissions($item, $uid)
+    {
+        $authorId = (int)($item['add_user_id'] ?? $item['author']['id'] ?? 0);
+        $canEdit = ($authorId && $authorId === $uid) || $this->isModerator() || $this->isAdmin();
+        return [
+            'canEdit' => $canEdit,
+            'canDelete' => $this->isModerator() || $this->isAdmin(),
+            'canReview' => $uid > 0,
+        ];
+    }
+}

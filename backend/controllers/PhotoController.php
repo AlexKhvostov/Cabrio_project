@@ -89,6 +89,18 @@ class PhotoController extends BaseController
                     if (!$car || (int)$car->owner_user_id !== $currentUserId) {
                         return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Можно загружать фото только для своих автомобилей']], 403);
                     }
+                } elseif ($entityType === 'event') {
+                    require_once __DIR__ . '/../models/Event.php';
+                    $event = Event::findById((int)$entityId);
+                    if (!$event || (int)$event->org_user_id !== $currentUserId) {
+                        return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Фото события может загрузить организатор']], 403);
+                    }
+                } elseif ($entityType === 'guide_object') {
+                    require_once __DIR__ . '/../models/GuideObject.php';
+                    $obj = GuideObject::findById((int)$entityId);
+                    if (!$obj || (int)$obj->add_user_id !== $currentUserId) {
+                        return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Фото места может загрузить тот, кто его добавил']], 403);
+                    }
                 } else {
                     return $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Недостаточно прав на загрузку для этой сущности']], 403);
                 }

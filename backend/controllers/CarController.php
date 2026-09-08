@@ -22,6 +22,7 @@
  */
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/Car.php';
+require_once __DIR__ . '/../models/Status.php';
 require_once __DIR__ . '/../actions/level3/___CheckCarInClubAction.php';
 require_once __DIR__ . '/../actions/level3/___LeaveBusinessCardAction.php';
 require_once __DIR__ . '/../actions/level3/___AddCarToGarageAction.php';
@@ -329,9 +330,16 @@ class CarController extends BaseController
 
             // Получаем данные из запроса
             $input = json_decode(file_get_contents('php://input'), true);
-            
-            // Добавляем ID создателя
-            $input['create_user_id'] = $this->getCurrentUserId();
+            if (!is_array($input)) {
+                $input = [];
+            }
+
+            // Владелец всегда тот, кто нажал «Добавить мой авто» — чужого id с клиента не принимаем
+            $uid = (int)$this->getCurrentUserId();
+            $input['create_user_id'] = $uid;
+            $input['owner_user_id'] = $uid;
+            // Новое авто участника сначала на модерации, не «замечено»
+            $input['status_id'] = Status::idByCode('pending', 6);
             
             // Логируем действие
             $this->logUserAction('create_car', [
@@ -352,6 +360,10 @@ class CarController extends BaseController
                 return;
             }
             
+            // Создатель = владелец, сразу можно править свою карточку
+            $car['permissions'] = [ 'canEdit' => true ];
+            $car = Car::applyRegNumberPrivacy($car, true);
+
             $this->json([
                 'success' => true,
                 'data' => $car, // Развернутые данные созданного автомобиля

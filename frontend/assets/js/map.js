@@ -118,11 +118,39 @@ function showFollowBtn(visible) {
 	}
 }
 
+function focusPerson(lat, lon, userId) {
+	followMe = false;
+	const followBtn = document.getElementById('followMeBtn');
+	if (followBtn && !followBtn.hidden) followBtn.setAttribute('aria-pressed', 'false');
+	if (map && isFinite(lat) && isFinite(lon)) {
+		try { map.setCenter([lat, lon], Math.max(map.getZoom(), 14), { duration: 300, checkZoomRange: true }); } catch {}
+	}
+	if (userId && window.CabrioNav?.openUser) window.CabrioNav.openUser(userId);
+}
+
+function markerOpts(contentLayout, zIndex) {
+	return {
+		iconLayout: 'default#imageWithContent',
+		iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+		iconImageSize: [1, 1],
+		iconContentLayout: contentLayout,
+		iconContentOffset: [0, 4],
+		zIndex: zIndex || 5000,
+		hasBalloon: false,
+		openBalloonOnClick: false,
+		hideIconOnBalloonOpen: false
+	};
+}
+
 function initMap() {
+	// Свои кнопки и карточка человека — без штатных плашек Яндекса по центру
 	map = new ymaps.Map('map', {
 		center: MINSK,
 		zoom: 12,
-		controls: ['zoomControl', 'fullscreenControl']
+		controls: []
+	}, {
+		suppressMapOpenBlock: true,
+		yandexMapDisablePoiInteractivity: true
 	});
 	try { map.behaviors.disable('scrollZoom'); } catch {}
 	try {
@@ -150,22 +178,8 @@ function ensureSelfPinPlacemark() {
 	if (!map || !window.ymaps) return;
 	if (selfPinPlacemark) return;
 	const contentLayout = createAvatarLayout((window.getSelfAvatarUrl ? window.getSelfAvatarUrl() : ''), 1, true, false, '#3b82f6');
-	const opts = {
-		iconLayout: 'default#imageWithContent',
-		iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-		iconImageSize: [1, 1],
-		iconContentLayout: contentLayout,
-		iconContentOffset: [0, 4],
-		zIndex: 10000,
-		zIndexActive: 10001,
-		hideIconOnBalloonOpen: false,
-		balloonShadow: false,
-		balloonPanelMaxMapArea: 0
-	};
-	selfPinPlacemark = new ymaps.Placemark([0, 0], {
-		balloonContentHeader: 'Это вы',
-		balloonContent: 'Вас видят те, кто сейчас на карте'
-	}, opts);
+	selfPinPlacemark = new ymaps.Placemark([0, 0], {}, markerOpts(contentLayout, 10000));
+	selfPinPlacemark.events.add('click', () => showToast('Это вы', 1600));
 	map.geoObjects.add(selfPinPlacemark);
 }
 
@@ -349,14 +363,7 @@ function setupOnlinePanel() {
 	list.addEventListener('click', (e) => {
 		const item = e.target.closest('.people-item');
 		if (!item || !item.dataset.lat) return;
-		const lat = Number(item.dataset.lat);
-		const lon = Number(item.dataset.lon);
-		if (!isFinite(lat) || !isFinite(lon) || !map) return;
-		// Смотрим на человека — карта больше не прилипает к нам
-		followMe = false;
-		const followBtn = document.getElementById('followMeBtn');
-		if (followBtn && !followBtn.hidden) followBtn.setAttribute('aria-pressed', 'false');
-		try { map.setCenter([lat, lon], Math.max(map.getZoom(), 14), { duration: 300, checkZoomRange: true }); } catch {}
+		focusPerson(Number(item.dataset.lat), Number(item.dataset.lon), item.dataset.userId);
 	});
 
 	const doRefresh = async () => {
@@ -455,28 +462,11 @@ function renderUsersOnMap(list, liveTimeMin) {
 		const isFresh = true;
 		const isPulse = ageMin < 3;
 		const url = (loc.user?.photo?.urls?.medium) || (loc.user?.photo?.urls?.mini) || (loc.user?.photo?.mini) || (loc.user?.photo_url) || '';
-		const name = (loc.user?.first_name) || 'Участник';
-		const username = loc.user?.username ? '@' + loc.user.username : '';
-		const rel = relativeTimeLabel(ageMin);
 		const contentLayout = createAvatarLayout(url, 1, isFresh, isPulse);
-		const opts = {
-			iconLayout: 'default#imageWithContent',
-			iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-			iconImageSize: [1, 1],
-			iconContentLayout: contentLayout,
-			iconContentOffset: [0, 4],
-			zIndex: 5000,
-			hideIconOnBalloonOpen: false,
-			balloonShadow: false,
-			balloonPanelMaxMapArea: 0
-		};
-		const data = {
-			balloonContentHeader: escapeHtml(name),
-			balloonContent: (username ? escapeHtml(username) + '<br>' : '') + escapeHtml(rel)
-		};
 		try {
-			const pm = new ymaps.Placemark([lat, lon], data, opts);
+			const pm = new ymaps.Placemark([lat, lon], { userId: loc.user_id }, markerOpts(contentLayout, 5000));
 			try { pm.options.set('avatarUrl', url); } catch {}
+			pm.events.add('click', () => focusPerson(lat, lon, loc.user_id));
 			usersLayer.add(pm);
 		} catch {}
 	}

@@ -51,6 +51,10 @@ try {
         '/api/business-cards' => ['GET', 'POST'],
         '/api/photos' => ['GET', 'POST'],
         '/api/ref/car-brands' => ['GET'],
+        '/api/ref/event-types' => ['GET'],
+        '/api/ref/guide-object-types' => ['GET'],
+        '/api/ref/guide-object-kinds' => ['GET'],
+        '/api/ref/labels' => ['GET'],
         '/api/reviews' => ['GET', 'POST'],
         '/api/health' => ['GET'],
         '/api/status' => ['GET'],
@@ -75,6 +79,15 @@ try {
         $routeExists = true;
     }
     if (!$routeExists && preg_match('/^\/api\/users\/\d+$/', $route) && $method === 'GET') {
+        $routeExists = true;
+    }
+    if (!$routeExists && preg_match('/^\/api\/events\/\d+$/', $route) && ($method === 'GET' || $method === 'PATCH' || $method === 'DELETE')) {
+        $routeExists = true;
+    }
+    if (!$routeExists && preg_match('/^\/api\/events\/\d+\/rsvp$/', $route) && $method === 'POST') {
+        $routeExists = true;
+    }
+    if (!$routeExists && preg_match('/^\/api\/guide-objects\/\d+$/', $route) && ($method === 'GET' || $method === 'PATCH' || $method === 'DELETE')) {
         $routeExists = true;
     }
     // Динамический маршрут для смены роли пользователя: /api/users/{id}/role
@@ -147,6 +160,18 @@ try {
     elseif ($route === '/api/ref/car-brands' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/RefController.php';
         (new RefController())->getCarBrands();
+    } elseif ($route === '/api/ref/event-types' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/RefController.php';
+        (new RefController())->getEventTypes();
+    } elseif ($route === '/api/ref/guide-object-types' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/RefController.php';
+        (new RefController())->getGuideObjectTypes();
+    } elseif ($route === '/api/ref/guide-object-kinds' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/RefController.php';
+        (new RefController())->getGuideObjectKinds();
+    } elseif ($route === '/api/ref/labels' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/RefController.php';
+        (new RefController())->getLabels();
     }
     // Маршруты для координат пользователей (карта)
     elseif ($route === '/api/user-locations' && $method === 'GET') {
@@ -166,6 +191,18 @@ try {
     } elseif ($route === '/api/events' && $method === 'POST') {
         require_once __DIR__ . '/../controllers/EventController.php';
         (new EventController())->create();
+    } elseif (preg_match('/^\/api\/events\/(\d+)\/rsvp$/', $route, $matches) && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->rsvp((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/events\/(\d+)$/', $route, $matches) && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->getById((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/events\/(\d+)$/', $route, $matches) && $method === 'PATCH') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->update((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/events\/(\d+)$/', $route, $matches) && $method === 'DELETE') {
+        require_once __DIR__ . '/../controllers/EventController.php';
+        (new EventController())->delete((int)$matches[1]);
     }
     // Маршруты для гид-объектов
     elseif ($route === '/api/guide-objects' && $method === 'GET') {
@@ -174,6 +211,15 @@ try {
     } elseif ($route === '/api/guide-objects' && $method === 'POST') {
         require_once __DIR__ . '/../controllers/GuideObjectController.php';
         (new GuideObjectController())->create();
+    } elseif (preg_match('/^\/api\/guide-objects\/(\d+)$/', $route, $matches) && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/GuideObjectController.php';
+        (new GuideObjectController())->getById((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/guide-objects\/(\d+)$/', $route, $matches) && $method === 'PATCH') {
+        require_once __DIR__ . '/../controllers/GuideObjectController.php';
+        (new GuideObjectController())->update((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/guide-objects\/(\d+)$/', $route, $matches) && $method === 'DELETE') {
+        require_once __DIR__ . '/../controllers/GuideObjectController.php';
+        (new GuideObjectController())->delete((int)$matches[1]);
     }
     // Маршруты для визиток
     elseif ($route === '/api/business-cards' && $method === 'GET') {

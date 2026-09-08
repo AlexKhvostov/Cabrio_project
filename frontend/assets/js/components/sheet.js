@@ -1,6 +1,6 @@
 // Общие куски больших карточек: поля, пустые значения, ссылка на связанный объект
 
-import { phCar, phUser } from './media.js?v=cabrio18'
+import { phCar, phUser } from './media.js?v=cabrio20'
 
 export function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g, s=>({
@@ -22,6 +22,32 @@ export function viewVal(v){
 
 export function sheetField(label, inner, extra=''){
   return `<div class="sheet-field ${extra}"><span class="sheet-label">${escapeHtml(label)}</span>${inner}</div>`
+}
+
+/** Код ярлыка: без #, маленькими буквами — так же ищем в списке мест */
+export function labelCode(raw){
+  if (raw && typeof raw === 'object') raw = raw.code || raw.name || ''
+  return String(raw || '').replace(/^#+/, '').trim().toLowerCase()
+}
+
+/**
+ * Компактные ярлыки-хештеги.
+ * data-label нужен поиску: по коду можно найти место в списке.
+ * editing — крестик снять ярлык; иначе тап поставит этот ярлык в поиск.
+ */
+export function renderLabelChips(labels, { editing = false, chipsId = '', wrap = true } = {}){
+  const names = (Array.isArray(labels) ? labels : []).map(labelCode).filter(Boolean)
+  if (!names.length && !editing && wrap) return emptyMark()
+  const inner = names.map(n => {
+    const safe = escapeHtml(n)
+    if (editing) {
+      return `<button type="button" class="label-chip is-edit" data-label="${safe}">#${safe}<span aria-hidden="true">×</span></button>`
+    }
+    return `<button type="button" class="label-chip" data-label="${safe}" title="Найти места с этим ярлыком">#${safe}</button>`
+  }).join('')
+  if (!wrap) return inner
+  const idAttr = chipsId ? ` id="${escapeHtml(chipsId)}"` : ''
+  return `<div class="label-chips"${idAttr}>${inner}</div>`
 }
 
 export function personName(u){
@@ -59,6 +85,14 @@ export function renderPersonLink(user){
 }
 
 // Строка-ссылка на авто внутри карточки человека (не плитка из списка)
+/** Кнопка «добавить своё авто» в профиле — под списком или вместо пустоты */
+export function renderAddMyCarButton(id = 'btn-add-my-car'){
+  return `<button type="button" class="btn-add-car" id="${escapeHtml(id)}">
+    <span class="btn-add-car-plus" aria-hidden="true">+</span>
+    <span>Добавить мой авто</span>
+  </button>`
+}
+
 export function renderCarLink(car){
   if (!car || !car.id) return ''
   const title = carTitle(car)

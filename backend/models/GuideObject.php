@@ -63,21 +63,54 @@ class GuideObject {
      * Создать новый гид-объект
      */
     public static function create($data) {
-        // ... реализация вставки в БД
+        $pdo = Database::getInstance();
+        require_once __DIR__ . '/Status.php';
+        $statusId = Status::idByCode('active', 1);
+        $stmt = $pdo->prepare(
+            'INSERT INTO guide_objects (
+                guide_object_type_id, guide_object_kind_id, name, city, address, website, phone,
+                description, add_user_id, status_id, created_at, updated_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())'
+        );
+        $stmt->execute([
+            $data['guide_object_type_id'] ?: null,
+            $data['guide_object_kind_id'] ?: null,
+            $data['name'],
+            $data['city'] ?? null,
+            $data['address'] ?? null,
+            $data['website'] ?? null,
+            $data['phone'] ?? null,
+            $data['description'] ?? null,
+            (int)$data['add_user_id'],
+            $statusId,
+        ]);
+        return (int)$pdo->lastInsertId();
     }
 
     /**
-     * Обновить гид-объект
+     * Обновить поля места (название, тип, адрес и т.д.)
      */
-    public function update($data) {
-        // ... реализация обновления в БД
-    }
-
-    /**
-     * Удалить гид-объект
-     */
-    public function delete() {
-        // ... реализация удаления из БД
+    public static function updateById($id, $data) {
+        $pdo = Database::getInstance();
+        $allowed = [
+            'guide_object_type_id', 'guide_object_kind_id', 'name', 'city', 'address',
+            'website', 'phone', 'description', 'status_id',
+        ];
+        $sets = [];
+        $vals = [];
+        foreach ($allowed as $key) {
+            if (array_key_exists($key, $data)) {
+                $sets[] = "$key = ?";
+                $vals[] = $data[$key] === '' ? null : $data[$key];
+            }
+        }
+        if (!$sets) {
+            return true;
+        }
+        $sets[] = 'updated_at = NOW()';
+        $vals[] = (int)$id;
+        $stmt = $pdo->prepare('UPDATE guide_objects SET ' . implode(', ', $sets) . ' WHERE id = ?');
+        return $stmt->execute($vals);
     }
 
     /**
@@ -94,13 +127,23 @@ class GuideObject {
      */
     public static function getAll()
     {
+        return self::fetchExpanded(null, true, false);
+    }
+
+    public static function findExpanded($id)
+    {
+        $rows = self::fetchExpanded((int)$id, false, true);
+        return $rows[0] ?? null;
+    }
+
+    private static function fetchExpanded($id, $hideDeleted, $withReviews = false)
+    {
         $pdo = Database::getInstance();
-        $stmt = $pdo->query(
-            'SELECT go.*, 
-                    got.id as guide_object_type_id, got.code as guide_object_type_code, got.name as guide_object_type_name,
-                    gok.id as guide_object_kind_id, gok.code as guide_object_kind_code, gok.name as guide_object_kind_name,
-                    u.id as add_user_id, u.first_name_app as author_first_name, u.last_name_app as author_last_name,
-                    s.id as status_id, s.code as status_code, s.name as status_name,
+        $sql = 'SELECT go.*,
+                    got.code as _type_code, got.name as _type_name,
+                    gok.code as _kind_code, gok.name as _kind_name,
+                    u.first_name_app as author_first_name, u.last_name_app as author_last_name,
+                    s.code as _st_code, s.name as _st_name,
                     p.id as photo_id, p.url as photo_url, p.description as photo_description
              FROM guide_objects go
              LEFT JOIN ref_guide_object_types got ON go.guide_object_type_id = got.id
@@ -108,52 +151,77 @@ class GuideObject {
              LEFT JOIN users u ON go.add_user_id = u.id
              LEFT JOIN ref_statuses s ON go.status_id = s.id
              LEFT JOIN photos p ON p.id = (
-                 SELECT id FROM photos 
-                 WHERE entity_type = "guide_object" AND entity_id = go.id 
+                 SELECT id FROM photos
+                 WHERE entity_type = "guide_object" AND entity_id = go.id
                  ORDER BY id DESC LIMIT 1
-             )'
-        );
+             )';
+        $params = [];
+        $where = [];
+        if ($id) {
+            $where[] = 'go.id = ?';
+            $params[] = $id;
+        }
+        if ($hideDeleted) {
+            $where[] = '(s.code IS NULL OR LOWER(s.code) NOT IN ("deleted","removed","удалён","удален"))';
+        }
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $sql .= ' ORDER BY go.id DESC';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll();
         $guideObjects = [];
         foreach ($rows as $row) {
-            $guideObject = $row;
-            $guideObject['guide_object_type'] = [
-                'id' => $row['guide_object_type_id'],
-                'code' => $row['guide_object_type_code'],
-                'name' => $row['guide_object_type_name'],
-            ];
-            unset($guideObject['guide_object_type_id'], $guideObject['guide_object_type_code'], $guideObject['guide_object_type_name']);
-
-            $guideObject['guide_object_kind'] = [
-                'id' => $row['guide_object_kind_id'],
-                'code' => $row['guide_object_kind_code'],
-                'name' => $row['guide_object_kind_name'],
-            ];
-            unset($guideObject['guide_object_kind_id'], $guideObject['guide_object_kind_code'], $guideObject['guide_object_kind_name']);
-
-            $guideObject['author'] = $row['add_user_id'] ? [
-                'id' => $row['add_user_id'],
-                'first_name' => $row['author_first_name'],
-                'last_name' => $row['author_last_name'],
-            ] : null;
-            unset($guideObject['add_user_id'], $guideObject['author_first_name'], $guideObject['author_last_name']);
-
-            $guideObject['status'] = [
-                'id' => $row['status_id'],
-                'code' => $row['status_code'],
-                'name' => $row['status_name'],
-            ];
-            unset($guideObject['status_id'], $guideObject['status_code'], $guideObject['status_name']);
-
-            $guideObject['photo'] = $row['photo_id'] ? [
-                'id' => $row['photo_id'],
-                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
-                'description' => $row['photo_description'],
-            ] : null;
-            unset($guideObject['photo_id'], $guideObject['photo_url'], $guideObject['photo_description']);
-
-            $guideObjects[] = $guideObject;
+            $guideObjects[] = self::hydrate($row, $withReviews);
         }
+        require_once __DIR__ . '/Label.php';
+        Label::attachToList($guideObjects);
         return $guideObjects;
+    }
+
+    private static function hydrate($row, $withReviews = false)
+    {
+        require_once __DIR__ . '/Review.php';
+        $guideObject = $row;
+        $guideObject['guide_object_type'] = [
+            'id' => $row['guide_object_type_id'],
+            'code' => $row['_type_code'],
+            'name' => $row['_type_name'],
+        ];
+        $guideObject['guide_object_kind'] = $row['guide_object_kind_id'] ? [
+            'id' => (int)$row['guide_object_kind_id'],
+            'code' => $row['_kind_code'] ?? null,
+            'name' => $row['_kind_name'] ?? null,
+        ] : null;
+        $guideObject['author'] = $row['add_user_id'] ? [
+            'id' => (int)$row['add_user_id'],
+            'first_name' => $row['author_first_name'],
+            'last_name' => $row['author_last_name'],
+        ] : null;
+        $guideObject['status'] = [
+            'id' => $row['status_id'],
+            'code' => $row['_st_code'],
+            'name' => $row['_st_name'],
+        ];
+        $guideObject['photo'] = $row['photo_id'] ? [
+            'id' => (int)$row['photo_id'],
+            'url' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'orig'),
+            'urls' => [
+                'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                'mini' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+            ],
+            'description' => $row['photo_description'],
+        ] : null;
+        unset(
+            $guideObject['_type_code'], $guideObject['_type_name'],
+            $guideObject['_kind_code'], $guideObject['_kind_name'],
+            $guideObject['author_first_name'], $guideObject['author_last_name'],
+            $guideObject['_st_code'], $guideObject['_st_name'],
+            $guideObject['photo_id'], $guideObject['photo_url'], $guideObject['photo_description']
+        );
+        $guideObject['reviews'] = $withReviews ? Review::getByGuideObject((int)$row['id']) : [];
+        $guideObject['rating'] = Review::averages((int)$row['id']);
+        return $guideObject;
     }
 } 

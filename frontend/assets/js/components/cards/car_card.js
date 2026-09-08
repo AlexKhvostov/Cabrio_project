@@ -1,6 +1,6 @@
 // Карточка авто в сетке: фото или контур кабриолета, название на снимке, владелец снизу
 
-import { phUser, phCar } from '../media.js?v=cabrio18'
+import { phUser, phCar } from '../media.js?v=cabrio20'
 
 function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g, s=>({

@@ -62,10 +62,25 @@ class ReviewController extends BaseController
                 return; // Ответ уже отправлен в requireAccess
             }
             
-            $input = json_decode(file_get_contents('php://input'), true);
-            $this->logUserAction('create_review', ['input_data' => $input]);
-            // TODO: Реализовать создание отзыва через модель
-            $this->json(['success' => true, 'data' => ['id' => 1, 'title' => 'Новый отзыв', 'created_by' => $this->getCurrentUserId()], 'meta' => $this->getRequestInfo()], 201);
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $guideId = (int)($input['guide_object_id'] ?? 0);
+            $feedback = trim((string)($input['feedback'] ?? ''));
+            if (!$guideId || $feedback === '') {
+                $this->json(['success' => false, 'error' => ['code' => 'VALIDATION', 'message' => 'Нужны место и текст отзыва']], 400);
+                return;
+            }
+            $id = Review::create([
+                'guide_object_id' => $guideId,
+                'quality_rating' => $input['quality_rating'] ?? 5,
+                'speed_rating' => $input['speed_rating'] ?? 5,
+                'price_rating' => $input['price_rating'] ?? 5,
+                'feedback' => $feedback,
+                'author_user_id' => (int)$this->getCurrentUserId(),
+            ]);
+            $this->logUserAction('create_review', ['review_id' => $id, 'guide_object_id' => $guideId]);
+            require_once __DIR__ . '/../models/GuideObject.php';
+            $place = GuideObject::findExpanded($guideId);
+            $this->json(['success' => true, 'data' => $place, 'meta' => $this->getRequestInfo()], 201);
         } catch (Throwable $e) {
             Logger::error('ReviewController: create error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);
             $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);

@@ -4,7 +4,7 @@
 
 
 
-import { phUser, phCar } from './components/media.js?v=cabrio18'
+import { phUser, phCar } from './components/media.js?v=cabrio20'
 
 import { renderUserCard, renderMemberCarStack } from './components/cards/user_card.js?v=cabrio14'
 
@@ -16,10 +16,12 @@ import {
 
 } from './components/sheet.js?v=write1'
 
+import { bindHintPops } from './components/hints.js?v=tip2'
 import {
   renderKitModalFrame, renderKitUserModal, renderKitCarModal, renderKitMapModalHint,
-  renderKitEventModal, renderKitGuideModal, renderKitProfilePage, renderKitEditModal
-} from './ui_kit_modals.js?v=4'
+  renderKitEventModal, renderKitGuideModal, renderKitProfilePage, renderKitEditModal,
+  renderKitEventCreate, renderKitGuideCreate, renderKitCreateModal
+} from './ui_kit_modals.js?v=tags1'
 
 const EVENT_IMG = new URL('../img/nav/events.png', import.meta.url).href
 const GUIDE_IMG = new URL('../img/nav/guide.png', import.meta.url).href
@@ -263,11 +265,7 @@ const demoEvent = {
 
 const demoGuide = {
   title: 'Автомойка SelfWash',
-  type: 'Мойка',
-  city: 'Минск',
-  address: 'ул. Примерная, 12',
-  phone: '+375 29 000-00-00',
-  website: 'selfwash.example',
+  labels: ['мойка', 'минск', 'кабрио'],
   description: 'Бесконтактная мойка, удобный заезд для кабриолетов.',
   photo: GUIDE_IMG,
 }
@@ -292,15 +290,10 @@ put('d-modal-event', renderKitEventModal(demoEvent))
 put('d-modal-guide', renderKitGuideModal(demoGuide))
 put('d-modal-profile', renderKitProfilePage({ ...demoUserBase, about: 'Люблю открытый верх.' }, demoUser2.cars))
 put('d-modal-edit', renderKitEditModal({ ...demoCarView, description: 'Люблю вечерние поездки с открытым верхом.' }))
+put('d-modal-create', renderKitCreateModal({ ...demoCarView, description: '' }))
+put('d-modal-event-create', renderKitEventCreate())
+put('d-modal-guide-create', renderKitGuideCreate())
 
-const kitHintBtn = document.getElementById('kitHintBtn')
-const kitHintPanel = document.getElementById('kitHintPanel')
-if (kitHintBtn && kitHintPanel) {
-  const apply = (open)=>{
-    kitHintPanel.hidden = !open
-    kitHintBtn.setAttribute('aria-expanded', open ? 'true' : 'false')
-  }
-  kitHintBtn.addEventListener('click', ()=> apply(kitHintPanel.hidden))
-}
+bindHintPops(document)
 
 

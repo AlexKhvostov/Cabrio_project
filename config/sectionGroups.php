@@ -145,12 +145,19 @@ class FunctionRoles {
     const API_CARS_UPDATE_BY_ID = 'moderator';
     
     // API endpoints - Events
-    const API_EVENTS_GET_LIST = 'member';
-    const API_EVENTS_CREATE = 'moderator';
+    const API_EVENTS_GET_LIST = 'guest';
+    const API_EVENTS_GET_BY_ID = 'guest';
+    const API_EVENTS_CREATE = 'member';
+    const API_EVENTS_UPDATE = 'member';
+    const API_EVENTS_DELETE = 'member';
+    const API_EVENTS_RSVP = 'member';
     
     // API endpoints - Guide Objects
-    const API_GUIDE_OBJECTS_GET_LIST = 'member';
-    const API_GUIDE_OBJECTS_CREATE = 'moderator';
+    const API_GUIDE_OBJECTS_GET_LIST = 'guest';
+    const API_GUIDE_OBJECTS_GET_BY_ID = 'guest';
+    const API_GUIDE_OBJECTS_CREATE = 'member';
+    const API_GUIDE_OBJECTS_UPDATE = 'member';
+    const API_GUIDE_OBJECTS_DELETE = 'moderator';
     
     // API endpoints - Business Cards
     const API_BUSINESS_CARDS_GET_LIST = 'member';
@@ -209,11 +216,18 @@ class FunctionRoles {
             
             // API endpoints - Events
             'api.events.getList' => self::API_EVENTS_GET_LIST,
+            'api.events.getById' => self::API_EVENTS_GET_BY_ID,
             'api.events.create' => self::API_EVENTS_CREATE,
+            'api.events.update' => self::API_EVENTS_UPDATE,
+            'api.events.delete' => self::API_EVENTS_DELETE,
+            'api.events.rsvp' => self::API_EVENTS_RSVP,
             
             // API endpoints - Guide Objects
             'api.guide-objects.getList' => self::API_GUIDE_OBJECTS_GET_LIST,
+            'api.guide-objects.getById' => self::API_GUIDE_OBJECTS_GET_BY_ID,
             'api.guide-objects.create' => self::API_GUIDE_OBJECTS_CREATE,
+            'api.guide-objects.update' => self::API_GUIDE_OBJECTS_UPDATE,
+            'api.guide-objects.delete' => self::API_GUIDE_OBJECTS_DELETE,
             
             // API endpoints - Business Cards
             'api.businessCards.getList' => self::API_BUSINESS_CARDS_GET_LIST,
@@ -225,6 +239,10 @@ class FunctionRoles {
 
             // API endpoints - Reference Data
             'api.ref.getCarBrands' => self::API_REF_CAR_BRANDS_GET_LIST,
+            'api.ref.getEventTypes' => self::API_REF_CAR_BRANDS_GET_LIST,
+            'api.ref.getGuideObjectTypes' => self::API_REF_CAR_BRANDS_GET_LIST,
+            'api.ref.getGuideObjectKinds' => self::API_REF_CAR_BRANDS_GET_LIST,
+            'api.ref.getLabels' => self::API_REF_CAR_BRANDS_GET_LIST,
             
             // API endpoints - Reviews
             'api.reviews.getList' => self::API_REVIEWS_GET_LIST,

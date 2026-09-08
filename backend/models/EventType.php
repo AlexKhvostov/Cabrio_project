@@ -20,6 +20,8 @@
  *   $type = EventType::findById(1);
  *   $type = EventType::findByCode('meetup');
  */
+require_once __DIR__ . '/../utils/Database.php';
+
 class EventType {
     public $id;
     public $code;
@@ -53,5 +55,11 @@ class EventType {
         $stmt->execute([$code]);
         $data = $stmt->fetch();
         return $data ? new self($data) : null;
+    }
+
+    public static function getAll() {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query('SELECT id, code, name FROM ref_event_types ORDER BY id');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 } 
