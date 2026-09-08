@@ -9,8 +9,14 @@ class Logger {
      * Включать ли информационное логирование (управляется DEBUG=true в .env)
      */
     private static function isLoggingEnabled() {
-        // Пишем info/warning только при DEBUG=true, ошибки — всегда
-        return getenv('DEBUG') === 'true';
+        // На боевом сервере подробные логи выключены, даже если в .env забыли DEBUG=true
+        $env = strtolower((string)(getenv('APP_ENV') ?: ''));
+        if ($env === 'production') {
+            return false;
+        }
+        // Локально: пишем info/warning только при DEBUG=true или APP_DEBUG=true
+        $debug = strtolower((string)(getenv('DEBUG') ?: getenv('APP_DEBUG') ?: ''));
+        return $debug === 'true' || $debug === '1';
     }
 
     public static function info($message, $context = []) {

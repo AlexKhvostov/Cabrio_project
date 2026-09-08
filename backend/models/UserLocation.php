@@ -52,6 +52,17 @@ class UserLocation
         ]);
     }
 
+    /**
+     * Убрать точку пользователя с карты (выключил «показывать меня»).
+     */
+    public static function deleteByUserId($userId)
+    {
+        $db = Database::getInstance();
+        $sql = "DELETE FROM user_locations WHERE user_id = :user_id";
+        $stmt = $db->prepare($sql);
+        return $stmt->execute([':user_id' => $userId]);
+    }
+
     public static function getActiveLocations($cutoffTime)
     {
         $db = Database::getInstance();

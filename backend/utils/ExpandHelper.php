@@ -15,6 +15,7 @@ require_once __DIR__ . '/../models/Car.php';
 
 class ExpandHelper
 {
+    private static $carBrandCache = [];
     // ========================================
     // РАЗВЕРТЫВАНИЕ ДАННЫХ АВТОМОБИЛЯ
     // ========================================
@@ -27,97 +28,50 @@ class ExpandHelper
      */
     public static function expandCarData($carData)
     {
-        Logger::info('ExpandHelper: Starting expandCarData', [
-            'input_data' => $carData,
-            'input_type' => gettype($carData),
-            'has_status_id' => isset($carData['status_id']),
-            'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set',
-            'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set'
-        ]);
-        
         if (!$carData) {
-            Logger::warning('ExpandHelper: carData is null or empty');
             return null;
         }
-        
+
         $expanded = $carData;
-        
-        // Развертываем статус
-        Logger::info('ExpandHelper: Processing status_id', [
-            'status_id_exists' => isset($carData['status_id']),
-            'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set',
-            'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set',
-            'is_numeric' => isset($carData['status_id']) ? is_numeric($carData['status_id']) : false
-        ]);
-        
+
         if (isset($carData['status_id']) && is_numeric($carData['status_id'])) {
-            $statusId = (int)$carData['status_id'];
-            Logger::info('ExpandHelper: Getting status details', [
-                'status_id' => $statusId,
-                'status_id_type' => gettype($statusId)
-            ]);
-            
-            $statusDetails = ReferenceData::getCarStatusDetails($statusId);
-            Logger::info('ExpandHelper: Status details received', [
-                'status_details' => $statusDetails,
-                'status_details_type' => gettype($statusDetails)
-            ]);
-            
-            $expanded['status'] = $statusDetails;
-            // Убираем дублирование согласно CONVENTIONS.md
+            $expanded['status'] = ReferenceData::getCarStatusDetails((int)$carData['status_id']);
             unset($expanded['status_id']);
-            
-            Logger::info('ExpandHelper: Status expanded successfully', [
-                'final_status' => $expanded['status']
-            ]);
-        } else {
-            Logger::warning('ExpandHelper: status_id not found or not numeric', [
-                'status_id_exists' => isset($carData['status_id']),
-                'status_id_value' => isset($carData['status_id']) ? $carData['status_id'] : 'not_set',
-                'status_id_type' => isset($carData['status_id']) ? gettype($carData['status_id']) : 'not_set'
-            ]);
         }
-        
-        // Развертываем владельца (если есть)
-        if (isset($carData['owner_user_id']) && is_numeric($carData['owner_user_id']) && $carData['owner_user_id']) {
-            $owner = User::findByIdWithDetails((int)$carData['owner_user_id']);
+
+        if (!empty($carData['owner_user_id']) && is_numeric($carData['owner_user_id'])) {
+            $owner = User::findEmbedCard((int)$carData['owner_user_id']);
             if ($owner) {
                 $expanded['owner'] = $owner;
-                // Убираем дублирование
                 unset($expanded['owner_user_id']);
             }
         }
-        
-        // Развертываем создателя (если есть)
-        if (isset($carData['create_user_id']) && is_numeric($carData['create_user_id']) && $carData['create_user_id']) {
-            $creator = User::findByIdWithDetails((int)$carData['create_user_id']);
+
+        if (!empty($carData['create_user_id']) && is_numeric($carData['create_user_id'])) {
+            $creator = User::findEmbedCard((int)$carData['create_user_id']);
             if ($creator) {
                 $expanded['creator'] = $creator;
-                // Убираем дублирование
                 unset($expanded['create_user_id']);
             }
         }
-        
-        // Развертываем марку (если есть)
-        if (isset($carData['car_brand_id']) && is_numeric($carData['car_brand_id']) && $carData['car_brand_id']) {
+
+        if (!empty($carData['car_brand_id']) && is_numeric($carData['car_brand_id'])) {
             $brand = self::getCarBrandDetails((int)$carData['car_brand_id']);
             if ($brand) {
                 $expanded['brand'] = $brand;
-                // Убираем дублирование
                 unset($expanded['car_brand_id']);
             }
         }
-        
-        // Развертываем фото (если есть)
-        if (isset($carData['photo_id']) && is_numeric($carData['photo_id']) && $carData['photo_id']) {
-            $photo = self::getPhotoDetails((int)$carData['photo_id']);
+
+        $carId = (int)($carData['id'] ?? 0);
+        if ($carId) {
+            require_once __DIR__ . '/../models/Photo.php';
+            $photo = Photo::latestFor('car', $carId, null);
             if ($photo) {
                 $expanded['photo'] = $photo;
-                // Убираем дублирование
-                unset($expanded['photo_id'], $expanded['photo_url'], $expanded['photo_description']);
             }
         }
-        
+
         return $expanded;
     }
     
@@ -275,20 +229,29 @@ class ExpandHelper
     // ========================================
     
     /**
-     * Получить детали марки автомобиля
-     * 
-     * @param int $brandId ID марки
-     * @return array|null Детали марки или null
+     * Название марки из справочника ref_car_brands (не заглушка «Марка 4»)
      */
     private static function getCarBrandDetails($brandId)
     {
-        // TODO: Реализовать получение данных марки из БД
-        // Пока возвращаем базовую структуру
-        return [
-            'id' => $brandId,
-            'name' => 'Марка ' . $brandId,
-            'code' => 'brand_' . $brandId
+        $brandId = (int)$brandId;
+        if ($brandId <= 0) {
+            return null;
+        }
+        if (array_key_exists($brandId, self::$carBrandCache)) {
+            return self::$carBrandCache[$brandId];
+        }
+        require_once __DIR__ . '/../models/CarBrand.php';
+        $row = CarBrand::findById($brandId);
+        if (!$row) {
+            self::$carBrandCache[$brandId] = null;
+            return null;
+        }
+        $details = [
+            'id' => (int)$row->id,
+            'name' => (string)$row->brand,
         ];
+        self::$carBrandCache[$brandId] = $details;
+        return $details;
     }
     
     /**

@@ -275,8 +275,9 @@ docs/
 ├── TECHNICAL_SPECIFICATION.md # Техническое задание
 ├── PROJECT_STRUCTURE.md      # Структура проекта (этот файл)
 ├── DEVELOPMENT.md            # Процесс разработки
+├── ENVIRONMENTS.md           # Локально / тест / бой
 ├── DEPLOYMENT.md             # Развёртывание
-├── ENVIRONMENT.md            # Переменные окружения
+├── ENVIRONMENT.md            # Переменные окружения (локальный XAMPP)
 ├── NAMING_CONVENTIONS.md     # Правила именования
 ├── DATABASE_SCHEMA.md        # Схема базы данных
 ├── DATABASE_RELATIONS.md     # Связи базы данных

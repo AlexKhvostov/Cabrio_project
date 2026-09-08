@@ -11,28 +11,44 @@ function formatFull(dateStr){
   return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' })
 }
 
+function field(label, value, full = false){
+  const text = value === null || value === undefined ? '' : String(value).trim()
+  return `<div class=\"sheet-field${full ? ' full' : ''}\">
+    <span class=\"sheet-label\">${escapeHtml(label)}</span>
+    ${text ? `<span class=\"sheet-value\">${escapeHtml(text)}</span>` : `<span class=\"sheet-empty\">не указано</span>`}
+  </div>`
+}
+
 export function openEventModal(event){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
   const title = event.title || 'Событие'
   const photoUrl = (event.photo && event.photo.url) ? event.photo.url : ''
-  const status = event.status || ''
-  const type = event.type || ''
+  const status = event.status?.name || event.status?.code || event.status || ''
+  const type = event.type?.name || event.type?.code || event.type || ''
   overlay.innerHTML = `
-    <div class=\"modal-content\">
+    <div class=\"modal-content modal-compact sheet-card\">
       <div class=\"modal-header\">
-        <div class=\"modal-title\">${escapeHtml(title)}</div>
+        <div class=\"modal-title\">Событие</div>
         <button class=\"modal-close\" aria-label=\"close\">×</button>
       </div>
       <div class=\"modal-body\">
-        ${photoUrl?`<div class=\"main-photo-compact\"><img src=\"${escapeHtml(photoUrl)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\"/></div>`:''}
-        <div class=\"detail-grid-compact\">
-          <div class=\"detail-item-compact\"><span class=\"detail-label\">Дата</span><span class=\"detail-value\">${escapeHtml(formatFull(event.event_date||event.date||''))} ${event.event_time?(' в '+escapeHtml(event.event_time)) : ''}</span></div>
-          <div class=\"detail-item-compact\"><span class=\"detail-label\">Место</span><span class=\"detail-value\">${escapeHtml(event.city||'')}</span></div>
-          ${type?`<div class=\"detail-item-compact\"><span class=\"detail-label\">Тип</span><span class=\"detail-value\">${escapeHtml(type)}</span></div>`:''}
-          ${status?`<div class=\"detail-item-compact\"><span class=\"detail-label\">Статус</span><span class=\"detail-value\">${escapeHtml(status)}</span></div>`:''}
+        ${photoUrl?`<div class=\"main-photo-compact\">
+          <img src=\"${escapeHtml(photoUrl)}\" class=\"main-image\" alt=\"${escapeHtml(title)}\"/>
+          <div class=\"sheet-photo-caption\"><div class=\"sheet-photo-title\">${escapeHtml(title)}</div><div class=\"sheet-photo-meta\">${escapeHtml(event.city||'')}</div></div>
+        </div>`:`<div class=\"sheet-hero-name\">${escapeHtml(title)}</div>`}
+        <div class=\"sheet-section-title\">Когда и где</div>
+        <div class=\"sheet-grid\">
+          ${field('Дата', formatFull(event.event_date||event.date||''))}
+          ${field('Время', event.event_time || '')}
+          ${field('Город', event.city || '')}
         </div>
-        ${event.description?`<div class=\"detail-section-compact\"><h4>Описание</h4><div>${escapeHtml(event.description)}</div></div>`:''}
+        <div class=\"sheet-section-title\">О событии</div>
+        <div class=\"sheet-grid\">
+          ${field('Тип', type)}
+          ${field('Статус', status)}
+          ${field('Описание', event.description || '', true)}
+        </div>
       </div>
     </div>`
   function close(){ overlay.remove() }

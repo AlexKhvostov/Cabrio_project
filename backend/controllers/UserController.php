@@ -69,6 +69,70 @@ class UserController extends BaseController
     }
 
     /**
+     * Полная карточка участника по id (с его авто).
+     * GET /api/users/{id}
+     */
+    public function getById($id)
+    {
+        try {
+            if (!$this->requireAccess('api.users.getById')) {
+                return;
+            }
+
+            $currentUserId = (int)$this->getCurrentUserId();
+            $targetId = (int)$id;
+            $isSelf = ($currentUserId === $targetId);
+            $isStaff = $this->isModerator() || $this->isAdmin();
+            $user = User::findByIdWithDetails($targetId, !($isSelf || $isStaff));
+
+            if (!$user) {
+                $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NOT_FOUND',
+                        'message' => 'Пользователь не найден'
+                    ]
+                ], 404);
+                return;
+            }
+
+            $canEdit = $isSelf || $isStaff;
+
+            if (!$canEdit) {
+                unset($user['email'], $user['phone'], $user['notes']);
+            }
+
+            if (!empty($user['cars']) && is_array($user['cars'])) {
+                foreach ($user['cars'] as &$car) {
+                    $car['permissions'] = ['canEdit' => $isSelf || $isStaff];
+                }
+                unset($car);
+            }
+
+            $user['permissions'] = [ 'canEdit' => $canEdit ];
+
+            $this->json([
+                'success' => true,
+                'data' => $user,
+                'meta' => $this->getRequestInfo()
+            ]);
+        } catch (Throwable $e) {
+            Logger::error('UserController: getById error', [
+                'error' => $e->getMessage(),
+                'user_id' => $this->getCurrentUserId(),
+                'target_id' => $id
+            ]);
+            $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INTERNAL_ERROR',
+                    'message' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
      * Сменить роль пользователя (только для moderator+)
      * POST /api/users/{id}/role
      * Body: { "role": "member" } ИЛИ { "role_id": 4 }
@@ -210,7 +274,7 @@ class UserController extends BaseController
             $user = $this->requireUser();
             
             // Получаем развернутые данные пользователя
-            $userWithDetails = User::findByIdWithDetails($user['id']);
+            $userWithDetails = User::findByIdWithDetails($user['id'], false);
             
             if (!$userWithDetails) {
                 $this->json([
@@ -226,6 +290,14 @@ class UserController extends BaseController
             // Логируем действие
             $this->logUserAction('get_profile');
             
+            $userWithDetails['permissions'] = [ 'canEdit' => true ];
+            if (!empty($userWithDetails['cars']) && is_array($userWithDetails['cars'])) {
+                foreach ($userWithDetails['cars'] as &$car) {
+                    $car['permissions'] = [ 'canEdit' => true ];
+                }
+                unset($car);
+            }
+
             $this->json([
                 'success' => true,
                 'data' => $userWithDetails, // Развернутые данные пользователя
@@ -273,9 +345,16 @@ class UserController extends BaseController
             // Текущий пользователь (ID берём только из контекста)
             $currentUser = $this->requireUser();
             $currentUserId = (int)$currentUser['id'];
-
-            // Данные из тела запроса
             $input = json_decode(file_get_contents('php://input'), true) ?: [];
+
+            $targetId = $currentUserId;
+            $requestedId = (int)($input['id'] ?? $input['user_id'] ?? 0);
+            if ($requestedId && $requestedId !== $currentUserId) {
+                if (!$this->requireAccess('api.users.updateOther')) {
+                    return;
+                }
+                $targetId = $requestedId;
+            }
 
             // Разрешённые к редактированию поля
             // Заметки (notes) исключены из self-редактирования — доступны только админам в админке
@@ -289,7 +368,7 @@ class UserController extends BaseController
                 'about'
             ];
 
-            $updateData = ['id' => $currentUserId];
+            $updateData = ['id' => $targetId];
             foreach ($allowedFields as $field) {
                 if (array_key_exists($field, $input)) {
                     $updateData[$field] = $input[$field];
@@ -309,7 +388,7 @@ class UserController extends BaseController
             }
 
             // Обновляем и возвращаем развернутые данные
-            $updatedUser = User::updateWithDetails($currentUserId, $updateData);
+            $updatedUser = User::updateWithDetails($targetId, $updateData);
 
             if (!$updatedUser) {
                 $this->json([
@@ -322,7 +401,7 @@ class UserController extends BaseController
                 return;
             }
 
-            $this->logUserAction('update_profile_self', ['fields' => array_keys($updateData)]);
+            $this->logUserAction('update_profile_self', ['fields' => array_keys($updateData), 'target_id' => $targetId]);
 
             $this->json([
                 'success' => true,

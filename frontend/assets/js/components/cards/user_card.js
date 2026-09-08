@@ -1,54 +1,130 @@
-// user_card.js — компактная карточка пользователя
+// Карточка участника: слева человек, справа стопка его машин (до 3, с нахлёстом)
+
+
+
+import { phUser, phCar } from '../media.js?v=cabrio14'
+
+
 
 function escapeHtml(str){
+
   return String(str||'').replace(/[&<>"']/g, s=>({
+
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+
   }[s]))
+
 }
 
+
+
+/** 1–2 авто показываем отдельно; нахлёст нужен только для 3+, когда места уже мало. */
+
+export function renderMemberCarStack(cars){
+
+  if (!cars.length) return ''
+
+
+
+  const visible = cars.slice(0, 3)
+
+  const extra = cars.length - visible.length
+
+  const count = visible.length
+
+
+
+  const items = visible.map((car, i) => {
+
+    const brand = car.brand?.name_ru || car.brand?.name || car.brand_name || ''
+
+    const isFront = i === 0
+
+    const title = brand || 'Открыть авто'
+
+    return `<span class="member-car-stack-item" style="--stack-i:${i}" data-car-id="${escapeHtml(car.id)}" role="button" title="${escapeHtml(title)}">
+
+      ${phCar(car, 'medium')}
+
+      ${brand ? `<span class="member-car-stack-cap">${escapeHtml(brand)}</span>` : ''}
+
+      ${isFront && extra > 0 ? `<span class="member-car-stack-more">+${extra}</span>` : ''}
+
+    </span>`
+
+  }).join('')
+
+
+
+  return `<div class="member-cars"><div class="member-car-stack" data-count="${count}">${items}</div></div>`
+
+}
+
+
+
 export function renderUserCard(member, options = {}){
+
   const showCars = options.showCars !== false
+
   const firstName = member.first_name_app || member.first_name || member.first_name_tg || ''
+
   const lastName = member.last_name_app || member.last_name || member.last_name_tg || ''
-  const initials = (firstName?.[0]||'').toUpperCase() + (lastName?.[0]||'').toUpperCase()
+
+  const initials = (firstName?.[0]||'') + (lastName?.[0]||'')
+
   const cars = Array.isArray(member.cars) ? member.cars : []
-  const carsCount = cars.length
-  const photoUrl = member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
-  const fullName = (`${firstName} ${lastName}`).trim() || 'не задано'
+
+  const fullName = (`${firstName} ${lastName}`).trim() || 'Без имени'
+
   const roleLabel = (member.role && (member.role.name || member.role.code)) ? (member.role.name || member.role.code) : ''
 
-  const carsListHtml = carsCount ? `
-    <div class="cars-mini-list">
-      ${cars.slice(0,3).map(c=>{
-        const carPhoto = c.photo?.urls?.mini || c.photo?.url || ''
-        const brandName = c.brand?.name_ru || c.brand?.name || c.brand_name || 'марка'
-        return `
-          <div class="cars-mini-item">
-            <div class="car-photo-mini">${carPhoto ? `<img src="${escapeHtml(carPhoto)}" class="car-mini-image" alt="car"/>` : ''}</div>
-            <span class="car-info">${escapeHtml(brandName)}</span>
-          </div>`
-      }).join('')}
-      ${carsCount>3 ? `<span class="cars-count">+${carsCount-3}</span>`: ''}
-    </div>
-  ` : `<div class="member-car no-car"><div class="car-photo-mini no-car-icon"></div><span class="car-info">Нет автомобиля</span></div>`
+  const city = (member.city && String(member.city).trim()) ? String(member.city).trim() : ''
+
+
+
+  const carsHtml = (showCars && cars.length) ? renderMemberCarStack(cars) : ''
+  const visibleBrands = cars.slice(0, 3)
+    .map(car => car.brand?.name_ru || car.brand?.name || car.brand_name || '')
+    .filter(Boolean)
+  const carsSummary = (showCars && cars.length >= 3 && visibleBrands.length)
+    ? `${visibleBrands.join(' · ')}${cars.length > 3 ? ` · +${cars.length - 3}` : ''}`
+    : ''
+
+
+
+  const metaBits = []
+
+  if (member.username) metaBits.push('@' + member.username)
+
+  if (city) metaBits.push(city)
+
+
 
   return `
+
   <div class="member-card" data-id="${member.id}">
-    <div class="member-avatar">
-      ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" class="avatar-image" alt="${escapeHtml(firstName||'')}"/>` : `<span class=\"avatar-initials\">${escapeHtml(initials)}</span>`}
-    </div>
+
+    ${phUser(member, initials, 'medium')}
+
     <div class="member-info">
+
       <div class="member-main">
+
         <h3 class="member-name">${escapeHtml(fullName)}</h3>
-        ${member.username ? `<span class="member-nickname">@${escapeHtml(member.username)}</span>` : ''}
+
         ${roleLabel ? `<span class="role-badge">${escapeHtml(roleLabel)}</span>` : ''}
+
       </div>
-      <div class="member-details">
-        ${showCars ? carsListHtml : ''}
-      </div>
+
+      ${metaBits.length ? `<div class="member-meta">${escapeHtml(metaBits.join(' · '))}</div>` : ''}
+      ${carsSummary ? `<div class="member-car-brands">${escapeHtml(carsSummary)}</div>` : ''}
+
     </div>
-    <div class="member-actions">›</div>
+
+    ${carsHtml}
+
   </div>`
+
 }
 
 

@@ -256,7 +256,7 @@ class FileHelper {
     }
 
     /**
-     * 🖼️ Генерация миниатюр medium (500x500) и mini (50x50) из оригинала
+     * 🖼️ Генерация миниатюр medium (длинная сторона 500) и mini (200 — хватает на аватар без мыла)
      * @param string $origFullPath Абсолютный путь к оригиналу (uploads/orig/{entity}/{name})
      * @param string $entityType   Тип сущности (user|car|...)
      * @param string $fileName     Имя файла (например, car_1_2.jpg)
@@ -310,12 +310,12 @@ class FileHelper {
         $mediumPath = $dirMedium . '/' . $fileName;
         $miniPath   = $dirMini   . '/' . $fileName;
 
-        // Генерация и сохранение JPG (пропорционально, длинная сторона = 500 / 50)
+        // Генерация и сохранение JPG (пропорционально, длинная сторона = 500 / 200)
         $thumbM = $makeResized(500);
         @imagejpeg($thumbM, $mediumPath, 85);
         imagedestroy($thumbM);
 
-        $thumbS = $makeResized(50);
+        $thumbS = $makeResized(200);
         @imagejpeg($thumbS, $miniPath, 80);
         imagedestroy($thumbS);
 

@@ -1,66 +1,89 @@
-// user_modal.js — модальное окно профиля пользователя
+// Большая карточка участника. Пустые поля на месте. Авто — ссылки на полную карточку, не плитки списка.
 
-function escapeHtml(str){
-  return String(str||'').replace(/[&<>"']/g, s=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[s]))
+import { phUser } from '../components/media.js?v=cabrio15'
+import {
+  escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, bindRelLinks, headerActions, openPhotoViewer,
+  tgUsername, isSameTelegramUser, openTelegramDialog
+} from '../components/sheet.js?v=write1'
+
+function readTelegramUser(){
+  try{
+    const tg = window.Telegram?.WebApp
+    const u = tg?.initDataUnsafe?.user || {}
+    return {
+      telegram_id: u?.id ? String(u.id) : undefined,
+      first_name: u?.first_name ? String(u.first_name) : undefined,
+      last_name: u?.last_name ? String(u.last_name) : undefined,
+      username: u?.username ? String(u.username) : undefined,
+    }
+  }catch{ return {} }
 }
 
 export async function openUserModal(member){
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
-  const photoUrl = member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
   const cars = Array.isArray(member.cars) ? member.cars : []
-  const firstName = member.first_name_app || member.first_name || member.first_name_tg || ''
-  const lastName = member.last_name_app || member.last_name || member.last_name_tg || ''
-  const initials = (firstName?.[0]||'').toUpperCase() + (lastName?.[0]||'').toUpperCase()
+  const fullName = personName(member) || 'Без имени'
+  const roleLabel = member.role?.name || member.role?.code || ''
+  const meta = [member.username ? '@'+member.username : '', member.city || ''].filter(Boolean).join(' · ')
+  const photoUrl = member.photo?.urls?.orig || member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
+  let isEditing = false
+  const canEdit = !!(member.permissions?.canEdit)
+  const showPrivate = canEdit || member.email != null || member.phone != null
+  let meId = null
+
+  const canWrite = () => {
+    if (isEditing) return false
+    if (!tgUsername(member)) return false
+    if (isSameTelegramUser(member)) return false
+    if (meId && Number(meId) === Number(member.id)) return false
+    return true
+  }
+
+  const paintWrite = () => {
+    const slot = overlay.querySelector('#userWriteSlot')
+    if (!slot) return
+    if (!canWrite()) { slot.innerHTML = ''; return }
+    slot.innerHTML = `<button type="button" class="btn-ghost btn-write" data-sheet-write>Написать</button>`
+    slot.querySelector('[data-sheet-write]')?.addEventListener('click', () => { openTelegramDialog(member) })
+  }
+
+  const paintHeader = () => {
+    const actions = overlay.querySelector('#userHeaderActions')
+    if (!actions) return
+    actions.innerHTML = headerActions({ canEdit, editing: isEditing, withClose: true })
+    actions.querySelector('.modal-close')?.addEventListener('click', close)
+    actions.querySelector('[data-sheet-edit]')?.addEventListener('click', () => { isEditing = true; paintHeader(); renderFields(); ensureUpload(); window.CabrioUI?.kickModalLayout?.(overlay) })
+    actions.querySelector('[data-sheet-cancel]')?.addEventListener('click', () => { isEditing = false; overlay.querySelector('#userUploadFab')?.remove(); paintHeader(); renderFields() })
+    actions.querySelector('[data-sheet-save]')?.addEventListener('click', saveEdit)
+    paintWrite()
+  }
+
   overlay.innerHTML = `
-    <div class="modal-content modal-compact">
+    <div class="modal-content modal-compact sheet-card">
       <div class="modal-header">
-        <div class="modal-title">Профиль</div>
-        <button class="modal-close" aria-label="close">×</button>
+        <div class="modal-title">Участник</div>
+        <div id="userHeaderActions" class="sheet-actions"></div>
       </div>
       <div class="modal-body">
-        <div class="member-profile" style="display:flex;align-items:center;gap:12px;">
-          <div class="profile-avatar-compact">
-            ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" class="avatar-image" alt="${escapeHtml(firstName)}"/>` : `<span class=\"avatar-initials\">${escapeHtml(initials)}</span>`}
-          </div>
-          <div class="profile-info-compact" style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;">
-            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-              <h3 class="profile-name-compact" style="margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(`${firstName} ${lastName}`.trim())}</h3>
-              <span class="role-badge" id="userRoleBadge">${escapeHtml(member.role?.name||member.role?.code||'')}</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              ${member.username ? `<p class="profile-nickname-compact" style="margin:0;">@${escapeHtml(member.username)}</p>` : ''}
+        <div class="sheet-hero-wrap">
+          <div class="sheet-hero">
+            <div class="sheet-hero-photo">${phUser(member, personIni(member), 'orig', true)}</div>
+            <div class="sheet-hero-text">
+              <div class="sheet-hero-name-row">
+                <div class="sheet-hero-name">${escapeHtml(fullName)}</div>
+                <span id="userWriteSlot" class="sheet-hero-write"></span>
+              </div>
+              ${meta ? `<div class="sheet-hero-meta">${escapeHtml(meta)}</div>` : `<div class="sheet-hero-meta sheet-empty">город не указан</div>`}
+              ${roleLabel ? `<span class="role-badge" id="userRoleBadge">${escapeHtml(roleLabel)}</span>` : `<span id="userRoleBadge" class="role-badge" hidden></span>`}
             </div>
           </div>
         </div>
-
-        <div class="detail-grid-compact" style="margin-top:8px;">
-          ${(() => {
-            const rows = []
-            const val = (v) => (v===null || v===undefined || String(v).trim()==='') ? 'не указано' : String(v)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Имя (приложение):</span><span class=\"detail-value\">${escapeHtml(val(member.first_name_app))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Фамилия (приложение):</span><span class=\"detail-value\">${escapeHtml(val(member.last_name_app))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Email:</span><span class=\"detail-value\">${escapeHtml(val(member.email))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Телефон:</span><span class=\"detail-value\">${escapeHtml(val(member.phone))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Город:</span><span class=\"detail-value\">${escapeHtml(val(member.city))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Страна:</span><span class=\"detail-value\">${escapeHtml(val(member.country))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">О себе:</span><span class=\"detail-value\">${escapeHtml(val(member.about))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Telegram ID:</span><span class=\"detail-value\">${escapeHtml(val(member.telegram_id))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Username (TG):</span><span class=\"detail-value\">${escapeHtml(val(member.username))}</span></div>`)
-            const fnTg = member.first_name_tg || member.first_name || ''
-            const lnTg = member.last_name_tg || member.last_name || ''
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Имя (TG):</span><span class=\"detail-value\">${escapeHtml(val(fnTg))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Фамилия (TG):</span><span class=\"detail-value\">${escapeHtml(val(lnTg))}</span></div>`)
-            rows.push(`<div class=\"detail-item-compact\"><span class=\"detail-label\">Автомобили:</span><span class=\"detail-value\">${escapeHtml(String((member.cars||[]).length))}</span></div>`)
-            return rows.join('')
-          })()}
-        </div>
-
-        <div id="roleEditor" style="display:none; margin-top:8px;">
-          <label style="display:flex;align-items:center;gap:8px;">
-            <span class="detail-label">Изменить роль:</span>
+        <div class="sheet-section-title">Основная информация</div>
+        <div class="sheet-grid" id="userFields"></div>
+        <div id="roleEditor" class="sheet-field" style="display:none;">
+          <span class="sheet-label">Роль</span>
+          <div class="sheet-role-row">
             <select id="roleSelect" class="filter-select">
               <option value="external">external</option>
               <option value="guest">guest</option>
@@ -69,88 +92,158 @@ export async function openUserModal(member){
               <option value="moderator">moderator</option>
               <option value="admin">admin</option>
             </select>
-            <button id="roleSaveBtn" class="btn-success">Сохранить</button>
-          </label>
-        </div>
-
-        ${cars.length ? `
-        <div class=\"detail-section-compact\">
-          <h4>Автомобили (${cars.length})</h4>
-          <div class=\"cars-grid\">
-            ${cars.map(c => window.CabrioComponents.renderCarCard({ ...c }, { showOwner: false })).join('')}
+            <button id="roleSaveBtn" class="btn-primary" type="button" disabled>Сохранить</button>
           </div>
-        </div>` : ''}
+        </div>
+        <div class="sheet-section-title">Автомобили</div>
+        <div class="sheet-links" id="userCars"></div>
       </div>
     </div>`
+
   function close(){ overlay.remove() }
   overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close() })
-  overlay.querySelector('.modal-close')?.addEventListener('click', close)
   document.body.appendChild(overlay)
+  paintHeader()
+  bindRelLinks(overlay)
 
-  const avatarEl = overlay.querySelector('.profile-avatar-compact img')
-  const openUserPhoto = () => {
-    const url = (member.photo && (member.photo.url || member.photo.urls?.medium)) || photoUrl
-    if (!url) return
-    const ov = document.createElement('div')
-    ov.className = 'photo-viewer-overlay'
-    ov.innerHTML = `
-      <div class="photo-viewer-content">
-        <button class="photo-viewer-close" aria-label="close">×</button>
-        <img class="photo-viewer-img" src="${escapeHtml(url)}" alt="avatar"/>
-      </div>`
-    document.body.appendChild(ov)
-    const close = ()=> ov.remove()
-    ov.addEventListener('click', (e)=>{ if (e.target === ov) close() })
-    ov.querySelector('.photo-viewer-close')?.addEventListener('click', close)
-  }
-  if (avatarEl) {
-    avatarEl.style.cursor = 'zoom-in'
-    avatarEl.addEventListener('click', openUserPhoto)
+  const carsBox = overlay.querySelector('#userCars')
+  if (cars.length) {
+    carsBox.innerHTML = cars.map(c => renderCarLink(c)).join('')
+  } else {
+    carsBox.innerHTML = `<p class="sheet-empty" style="margin:0">Автомобилей пока нет</p>`
   }
 
-  // Делегирование: клик по карточке авто → выделить бордером
-  try{
-    const carsGrid = overlay.querySelector('.cars-grid')
-    if (carsGrid) {
-      carsGrid.addEventListener('click', (e)=>{
-        const card = e.target.closest('.car-card-compact')
-        if (!card) return
-        e.preventDefault(); e.stopPropagation();
-        card.classList.toggle('selected')
-      })
+  overlay.querySelector('.sheet-hero .ph')?.addEventListener('click', () => {
+    const url = (member.photo && (member.photo.url || member.photo.urls?.orig || member.photo.urls?.medium)) || photoUrl
+    if (!url || isEditing) return
+    openPhotoViewer(url)
+  })
+
+  const shown = (...vals) => {
+    for (const v of vals) {
+      if (v !== null && v !== undefined && String(v).trim() !== '') return String(v)
     }
-  }catch{}
+    return ''
+  }
+  const input = (key, val) => `<input data-edit-key="${key}" class="filter-input" value="${escapeHtml(val !== undefined ? val : (member[key]??''))}" />`
 
-  // Разрешаем редактирование роли только модераторам+
-  try {
-    const me = await CabrioAPI.apiGet('/api/users/profile')
-    const myRole = me?.data?.role?.code
-    const allowed = ['moderator','admin']
-    if (allowed.includes(myRole)) {
-      const editor = overlay.querySelector('#roleEditor')
-      const select = overlay.querySelector('#roleSelect')
-      const badge = overlay.querySelector('#userRoleBadge')
-      if (editor && select && badge) {
-        editor.style.display = 'block'
-        select.value = (member.role?.code || member.role?.name || 'guest')
-        overlay.querySelector('#roleSaveBtn')?.addEventListener('click', async ()=>{
-          const role = select.value
-          const res = await CabrioAPI.apiPost(`/api/users/${member.id}/role`, { role })
-          if (!res || res.success === false || res.__httpStatus===401 || res.__httpStatus===403) {
-            alert((res && res.error && res.error.message) || 'Не удалось сохранить роль')
-            return
-          }
-          const updated = res.data
-          badge.textContent = updated?.role?.name || updated?.role?.code || role
-          alert('Роль обновлена')
-        })
+  function renderFields(){
+    const first = shown(member.first_name_app, member.first_name, member.first_name_tg)
+    const last = shown(member.last_name_app, member.last_name, member.last_name_tg)
+    const aboutInner = isEditing
+      ? `<textarea data-edit-key="about" class="filter-input" rows="2">${escapeHtml(member.about||'')}</textarea>`
+      : viewVal(member.about)
+    const rows = [
+      sheetField('Имя', isEditing ? input('first_name_app', first) : viewVal(first)),
+      sheetField('Фамилия', isEditing ? input('last_name_app', last) : viewVal(last)),
+      sheetField('Город', isEditing ? input('city') : viewVal(member.city)),
+      sheetField('Страна', isEditing ? input('country') : viewVal(member.country)),
+    ]
+    if (showPrivate) {
+      rows.push(sheetField('Телефон', isEditing ? input('phone') : viewVal(member.phone)))
+      rows.push(sheetField('Почта', isEditing ? input('email') : viewVal(member.email)))
+    }
+    rows.push(sheetField('О себе', aboutInner, 'full'))
+    overlay.querySelector('#userFields').innerHTML = rows.join('')
+    overlay.querySelector('.sheet-card')?.classList.toggle('editing', isEditing)
+  }
+
+  function ensureUpload(){
+    const wrap = overlay.querySelector('.sheet-hero-photo')
+    if (!wrap || wrap.querySelector('#userUploadFab')) return
+    const inputEl = document.createElement('input')
+    inputEl.type = 'file'
+    inputEl.accept = 'image/*'
+    inputEl.hidden = true
+    wrap.appendChild(inputEl)
+    const fab = document.createElement('button')
+    fab.id = 'userUploadFab'
+    fab.type = 'button'
+    fab.className = 'photo-upload-fab'
+    fab.innerHTML = '<span>📷</span><span>Фото</span>'
+    wrap.appendChild(fab)
+    fab.addEventListener('click', ()=> inputEl.click())
+    inputEl.addEventListener('change', async ()=>{
+      const file = inputEl.files && inputEl.files[0]
+      if (!file) return
+      try {
+        const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+        const fd = new FormData()
+        fd.append('entity_type','user')
+        fd.append('entity_id', String(member.id))
+        fd.append('photo', file)
+        Object.entries(readTelegramUser()).forEach(([k,v])=>{ if (v!==undefined) fd.append(k, v) })
+        const res = await fetch(`${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}`, { method:'POST', body: fd }).then(r=>r.json().catch(()=>null))
+        if (!res || res.success === false) { alert((res && res.error && res.error.message) || 'Не удалось загрузить'); return }
+        member.photo = res.data
+        try { window.CabrioAPI?.invalidateMe?.() } catch {}
+        if (meId && Number(meId) === Number(member.id)) {
+          const navUrl = res.data?.urls?.medium || res.data?.url
+          try { window.CabrioUI?.setNavAvatar?.(navUrl) } catch {}
+        }
+        overlay.remove()
+        openUserModal(member)
+      } catch { alert('Ошибка загрузки') }
+    })
+  }
+
+  async function saveEdit(){
+    const get = (key) => overlay.querySelector(`[data-edit-key="${key}"]`)?.value ?? member[key]
+    const payload = {
+      first_name_app: get('first_name_app'),
+      last_name_app: get('last_name_app'),
+      city: get('city'),
+      country: get('country'),
+      phone: get('phone'),
+      email: get('email'),
+      about: get('about'),
+    }
+    if (!(meId && Number(meId) === Number(member.id))) payload.id = member.id
+    const res = await window.CabrioAPI.apiPost('/api/users/profile', payload)
+    if (!res || res.success === false || res.__httpStatus === 401 || res.__httpStatus === 403) {
+      alert((res && res.error && res.error.message) || 'Не удалось сохранить')
+      return
+    }
+    overlay.remove()
+    if (window.CabrioNav?.openUser) window.CabrioNav.openUser(member.id)
+  }
+
+  renderFields()
+
+  ;(async () => {
+    try {
+      const me = await (window.CabrioAPI?.getMe ? window.CabrioAPI.getMe() : null)
+      meId = me?.data?.id || null
+      paintHeader()
+      const myRole = me?.data?.role?.code || ''
+      const isStaff = ['moderator','admin'].includes(String(myRole).toLowerCase())
+      if (!(isStaff && Number(meId) !== Number(member.id))) return
+    } catch { return }
+    const editor = overlay.querySelector('#roleEditor')
+    const select = overlay.querySelector('#roleSelect')
+    const badge = overlay.querySelector('#userRoleBadge')
+    if (!editor || !select) return
+    editor.style.display = ''
+    if (badge) badge.hidden = false
+    let originalRole = member.role?.code || 'guest'
+    const saveBtn = overlay.querySelector('#roleSaveBtn')
+    select.value = originalRole
+    if (saveBtn) saveBtn.disabled = true
+    select.addEventListener('change', ()=>{ if (saveBtn) saveBtn.disabled = (select.value === originalRole) })
+    saveBtn?.addEventListener('click', async ()=>{
+      const role = select.value
+      if (role === originalRole) return
+      const res = await window.CabrioAPI.apiPost(`/api/users/${member.id}/role`, { role })
+      if (!res || res.success === false) {
+        alert((res && res.error && res.error.message) || 'Не удалось сохранить роль')
+        return
       }
-    }
-  } catch {}
+      originalRole = role
+      saveBtn.disabled = true
+      if (badge) badge.textContent = res.data?.role?.name || res.data?.role?.code || role
+    })
+  })()
 }
 
-// Глобально для удобства
 window.CabrioModals = window.CabrioModals || {}
 window.CabrioModals.openUserModal = openUserModal
-
-

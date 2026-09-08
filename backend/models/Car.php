@@ -25,6 +25,7 @@
 require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../utils/ExpandHelper.php';
 require_once __DIR__ . '/../utils/UrlHelper.php';
+require_once __DIR__ . '/Photo.php';
 
 class Car {
     public $id;
@@ -42,6 +43,27 @@ class Car {
         foreach ($data as $key => $value) {
             $this->$key = $value;
         }
+    }
+
+    /**
+     * Номер виден всем только при явном 1 / "1" / true.
+     * Строка "0" в PHP — правда в if ("0"), в JS тоже правда. Из‑за этого галка «скрыть» иногда сбрасывалась.
+     */
+    public static function isRegNumberPublic($value)
+    {
+        return $value === true || $value === 1 || $value === '1';
+    }
+
+    /**
+     * Привести флаг к 0/1 и спрятать номер, если смотрит не владелец и показ выключен.
+     */
+    public static function applyRegNumberPrivacy(array $car, $isOwner)
+    {
+        $car['show_reg_number'] = self::isRegNumberPublic($car['show_reg_number'] ?? 0) ? 1 : 0;
+        if (!$isOwner && $car['show_reg_number'] !== 1 && !empty($car['reg_number']) && $car['reg_number'] !== 'скрыт') {
+            $car['reg_number'] = 'скрыт';
+        }
+        return $car;
     }
 
     /**
@@ -70,9 +92,31 @@ class Car {
         if (!$data) {
             return null;
         }
-        
-        // Развертываем данные с помощью ExpandHelper
-        return ExpandHelper::expandCarData($data);
+
+        $expanded = ExpandHelper::expandCarData($data);
+        if (!is_array($expanded)) {
+            return $expanded;
+        }
+
+        // Id марки нужен форме редактирования (ExpandHelper убирает car_brand_id, оставляя brand)
+        if (!isset($expanded['car_brand_id']) && !empty($expanded['brand']['id'])) {
+            $expanded['car_brand_id'] = (int)$expanded['brand']['id'];
+        }
+
+        // Обложка живёт в photos, а не в строке cars — поэтому в плитке фото есть, а в большой карточке его не было
+        $ownerId = $expanded['owner']['id'] ?? $data['owner_user_id'] ?? null;
+        $photo = Photo::latestFor('car', (int)$id, $ownerId ? (int)$ownerId : null);
+        // Если фильтр по владельцу ничего не дал — всё равно берём последнее фото этой машины
+        if (!$photo) {
+            $photo = Photo::latestFor('car', (int)$id, null);
+        }
+        if ($photo) {
+            $expanded['photo'] = $photo;
+        } else {
+            unset($expanded['photo']);
+        }
+
+        return $expanded;
     }
 
     /**
@@ -121,7 +165,7 @@ class Car {
         
         $values = [
             $data['reg_number'] ?? null,
-            ($data['show_reg_number'] ?? 0) ? 1 : 0,
+            self::isRegNumberPublic($data['show_reg_number'] ?? 0) ? 1 : 0,
             $data['car_brand_id'] ?? null,
             $data['model'] ?? null,
             $data['color'] ?? null,
@@ -318,6 +362,11 @@ class Car {
                 'photo' => $row['owner_photo_id'] ? [
                     'id' => $row['owner_photo_id'],
                     'url' => UrlHelper::buildUploadsUrl($row['owner_photo_url']),
+                    'urls' => [
+                        'medium' => UrlHelper::buildUploadsUrlSized($row['owner_photo_url'], 'medium'),
+                        'mini' => UrlHelper::buildUploadsUrlSized($row['owner_photo_url'], 'mini'),
+                        'orig' => UrlHelper::buildUploadsUrl($row['owner_photo_url']),
+                    ],
                     'description' => $row['owner_photo_description'],
                 ] : null,
             ] : null;
@@ -441,14 +490,27 @@ class Car {
                 'description' => $row['photo_description'],
             ] : null;
 
-            // Маскируем номер при запрете показа (если требуется маскирование)
-            if ($maskPrivate && !(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
-                $car['reg_number'] = 'скрыт';
-            }
+            $car = self::applyRegNumberPrivacy($car, !$maskPrivate);
 
             $cars[] = $car;
         }
 
         return $cars;
+    }
+
+    /**
+     * Сколько автомобилей со статусом «активен» — как на главной.
+     * Не тянем весь список машин.
+     */
+    public static function countActive()
+    {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query(
+            "SELECT COUNT(*)
+             FROM cars c
+             LEFT JOIN ref_statuses s ON c.status_id = s.id
+             WHERE LOWER(s.code) = 'active' OR LOWER(TRIM(s.name)) = 'активен'"
+        );
+        return (int)$stmt->fetchColumn();
     }
 } 

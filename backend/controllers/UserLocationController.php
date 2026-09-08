@@ -114,9 +114,9 @@ class UserLocationController extends BaseController
             if (method_exists($this, 'requireAccess')) {
                 if (!$this->requireAccess('api.userLocations.index')) { return; }
             }
-            // Получаем время жизни координат из env
-            $liveTimeMinutes = (int)(getenv('map_live_time_min') ?: 40);
-            $cutoffTime = date('Y-m-d H:i:s', strtotime("-{$liveTimeMinutes} minutes"));
+            // Сколько минут точка ещё «живая». Сравниваем в UTC — так же пишем в store().
+            $liveTimeMinutes = (int)(getenv('map_live_time_min') ?: getenv('MAP_LIVE_TIME_MIN') ?: 60);
+            $cutoffTime = gmdate('Y-m-d H:i:s', time() - ($liveTimeMinutes * 60));
             
             // Получаем активные координаты пользователей
             $locations = UserLocation::getActiveLocations($cutoffTime);
@@ -151,6 +151,42 @@ class UserLocationController extends BaseController
                 'trace' => $e->getTraceAsString()
             ]);
             
+            return $this->jsonResponse(['error' => 'Внутренняя ошибка сервера'], 500);
+        }
+    }
+
+    /**
+     * Скрыть себя с карты: удаляем свою точку сразу, не ждём истечения времени жизни.
+     * DELETE /api/user-locations
+     */
+    public function destroy()
+    {
+        try {
+            if (method_exists($this, 'requireAccess')) {
+                if (!$this->requireAccess('api.userLocations.destroy')) { return; }
+            }
+
+            $user = AppContext::getCurrentUser();
+            if (!$user) {
+                return $this->jsonResponse(['error' => 'Пользователь не авторизован'], 401);
+            }
+
+            UserLocation::deleteByUserId($user['id']);
+
+            Logger::info("Пользователь {$user['id']} скрыл себя с карты", [
+                'user_id' => $user['id']
+            ]);
+
+            return $this->jsonResponse([
+                'success' => true,
+                'message' => 'Координаты удалены'
+            ]);
+        } catch (Exception $e) {
+            Logger::error("Ошибка удаления координат: " . $e->getMessage(), [
+                'user_id' => AppContext::getCurrentUser()['id'] ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return $this->jsonResponse(['error' => 'Внутренняя ошибка сервера'], 500);
         }
     }

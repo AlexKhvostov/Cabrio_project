@@ -3,7 +3,7 @@
 <html lang="ru">
   <head>
     <?php render_meta('Автомобили — CabrioRide'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
+    <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
@@ -16,18 +16,20 @@
         ['id' => 'statusFilter', 'placeholder' => 'Все статусы']
       ]
     ]; include __DIR__ . '/../components/filters.php'; ?>
-      <div id="cars" class="cars-grid">Загрузка...</div>
+      <div id="cars" class="cars-grid"><div class="list-busy" style="grid-column:1/-1"><div class="spinner"></div>Загрузка…</div></div>
     </main>
+    <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script type="module">
-      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>'
-      import '/app/frontend/assets/js/components.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components.js'); ?>'
-      import '/app/frontend/assets/js/modals/car_modal.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/modals/car_modal.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/components.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/modals/car_modal.js'); ?>'
       const carsEl = document.getElementById('cars')
       const { renderCarCard } = window.CabrioComponents
       const { openCarModal } = window.CabrioModals
       const searchInput = document.getElementById('filters-search')
       const statusSelect = document.getElementById('statusFilter')
       let list = []
+      // Спиннер уже в сетке (list-busy) — полноэкранный CabrioBusy не включаем, иначе их два
       CabrioAPI.apiGet('/api/cars').then(json=>{
         if(!json || json.__httpStatus===401 || json.__httpStatus===403 || json.success===false){
           carsEl.textContent = 'Недостаточно прав'
@@ -46,11 +48,15 @@
         if(searchInput){ searchInput.addEventListener('input', render) }
         render()
         carsEl.addEventListener('click', (e)=>{
+          const ownerEl = e.target.closest('.car-owner-compact')
+          if (ownerEl && ownerEl.getAttribute('data-owner-id')) {
+            e.preventDefault(); e.stopPropagation()
+            if (window.CabrioNav) window.CabrioNav.openUser(ownerEl.getAttribute('data-owner-id'))
+            return
+          }
           const card = e.target.closest('.car-card-compact')
           if(!card) return
-          const id = Number(card.getAttribute('data-id'))
-          const car = list.find(x=>Number(x.id)===id)
-          if(car) openCarModal(car)
+          if (window.CabrioNav) window.CabrioNav.openCar(card.getAttribute('data-id'))
         })
       }).catch(()=>{ carsEl.textContent='Ошибка загрузки' })
 

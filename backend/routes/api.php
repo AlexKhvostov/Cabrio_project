@@ -54,14 +54,15 @@ try {
         '/api/reviews' => ['GET', 'POST'],
         '/api/health' => ['GET'],
         '/api/status' => ['GET'],
+        '/api/stats' => ['GET'],
         '/api/system/user-sync' => ['POST'],
         '/api/system/user-role' => ['POST'],
         '/api/system/entity-status' => ['POST'],
         '/api/actions/check-car-in-club' => ['POST'],
         '/api/actions/leave-business-card' => ['POST'],
         '/api/actions/add-car-to-garage' => ['POST'],
-        // User locations (map)
-        '/api/user-locations' => ['GET', 'POST']
+        // User locations (map): смотреть / слать / скрыть себя
+        '/api/user-locations' => ['GET', 'POST', 'DELETE']
     ];
     
     // Проверяем точное совпадение
@@ -71,6 +72,9 @@ try {
     
     // Проверяем динамические маршруты (например, /api/cars/{id})
     if (!$routeExists && preg_match('/^\/api\/cars\/\d+$/', $route) && ($method === 'GET' || $method === 'PATCH')) {
+        $routeExists = true;
+    }
+    if (!$routeExists && preg_match('/^\/api\/users\/\d+$/', $route) && $method === 'GET') {
         $routeExists = true;
     }
     // Динамический маршрут для смены роли пользователя: /api/users/{id}/role
@@ -151,6 +155,9 @@ try {
     } elseif ($route === '/api/user-locations' && $method === 'POST') {
         require_once __DIR__ . '/../controllers/UserLocationController.php';
         (new UserLocationController())->store();
+    } elseif ($route === '/api/user-locations' && $method === 'DELETE') {
+        require_once __DIR__ . '/../controllers/UserLocationController.php';
+        (new UserLocationController())->destroy();
     }
     // Маршруты для событий
     elseif ($route === '/api/events' && $method === 'GET') {
@@ -197,14 +204,20 @@ try {
         echo ResponseHelper::success(['status' => 'ok', 'message' => 'API is healthy']);
     } elseif ($route === '/api/status' && $method === 'GET') {
         echo ResponseHelper::success(['status' => 'online', 'version' => '1.0.0']);
+    } elseif ($route === '/api/stats' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/StatsController.php';
+        (new StatsController())->dashboard();
     }
     // Маршрут для профиля пользователя
     elseif ($route === '/api/users/profile' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/UserController.php';
         (new UserController())->getProfile();
-    } elseif ($route === '/api/users/profile' && $method === 'POST') {
+    }     elseif ($route === '/api/users/profile' && $method === 'POST') {
         require_once __DIR__ . '/../controllers/UserController.php';
         (new UserController())->updateProfile();
+    } elseif (preg_match('/^\/api\/users\/(\d+)$/', $route, $matches) && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/UserController.php';
+        (new UserController())->getById((int)$matches[1]);
     }
     // Системные маршруты (требуют SYSTEM_TOKEN)
     elseif ($route === '/api/system/user-sync' && $method === 'POST') {

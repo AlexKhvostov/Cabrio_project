@@ -15,6 +15,7 @@
 - [Связи базы данных](DATABASE_RELATIONS.md)
 - [Правила именования](NAMING_CONVENTIONS.md)
 - [Процесс разработки](DEVELOPMENT.md)
+- [Среды: локально, тест, бой](ENVIRONMENTS.md)
 - [Процесс деплоя](DEPLOYMENT.md)
 - [Конфигурация окружения](ENVIRONMENT.md)
 - [Конспекты сессий](SESSION_NOTES.md)

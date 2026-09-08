@@ -4,6 +4,8 @@
 
 ## Структура каталога
 
+- [Единый UI Kit](./UI_KIT.md) — **канон внешнего вида** (зафиксирован 8 сентября 2026). Живые экраны копируют kit.
+- **Живой каталог с номерами:** [https://dev.cabrioride.by/app/frontend/pages/ui_kit.php](https://dev.cabrioride.by/app/frontend/pages/ui_kit.php)
 - [Философия и миссия дизайна](./PHILOSOPHY.md)
 - [Гайдлайны и принципы](./GUIDELINES.md)
 - [Цветовая палитра](./COLORS.md)

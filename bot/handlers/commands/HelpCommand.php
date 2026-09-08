@@ -50,8 +50,8 @@ class HelpCommand {
                "• <code>++</code> - добавить свой авто\n\n" .
                
                "🔧 <b>Команды:</b>\n" .
-               "/start - приветствие\n" .
-               "/help - эта справка\n\n" .
+               "/start — приветствие\n" .
+               "/info — эта справка\n\n" .
                
                "💡 <b>Как это работает:</b>\n" .
                "1. Сделайте фото автомобиля\n" .
@@ -67,6 +67,6 @@ class HelpCommand {
      */
     private function getWebAppUrl() {
         // Используем функцию getConfig для получения APP_URL из .env
-        return getConfig('APP_URL', 'https://virtually-initially-wool-runtime.trycloudflare.com/app/frontend/dist');
+        return getConfig('APP_URL', 'https://cabrioride.by/app/frontend/');
     }
 } 

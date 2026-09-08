@@ -49,10 +49,7 @@ class CarController extends BaseController
             foreach ($cars as &$c) {
                 $isOwner = isset($c['owner']) && isset($c['owner']['id']) && ((int)$c['owner']['id'] === $currentUserId);
                 $c['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
-                // Маскируем номер только для не владельцев при запрете показа
-                if (!$isOwner && !(($c['show_reg_number'] ?? 0) === 1) && !empty($c['reg_number'])) {
-                    $c['reg_number'] = 'скрыт';
-                }
+                $c = Car::applyRegNumberPrivacy($c, $isOwner);
             }
             unset($c);
             // Приватность: скрываем владельца, если нет прав на просмотр участников
@@ -210,7 +207,7 @@ class CarController extends BaseController
                 }
             }
             if (array_key_exists('show_reg_number', $updateData)) {
-                $updateData['show_reg_number'] = (!empty($updateData['show_reg_number']) && $updateData['show_reg_number'] !== '0') ? 1 : 0;
+                $updateData['show_reg_number'] = Car::isRegNumberPublic($updateData['show_reg_number']) ? 1 : 0;
             }
 
             if (empty($updateData)) {
@@ -281,10 +278,7 @@ class CarController extends BaseController
             $isOwner = isset($car['owner']) && isset($car['owner']['id']) && ((int)$car['owner']['id'] === (int)$this->getCurrentUserId());
             $car['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
 
-            // Приватность регистрационного номера: не владелец и запрет показа → маскируем
-            if (!$isOwner && !(($car['show_reg_number'] ?? 0) === 1) && !empty($car['reg_number'])) {
-                $car['reg_number'] = 'скрыт';
-            }
+            $car = Car::applyRegNumberPrivacy($car, $isOwner);
 
             // Приватность: скрываем владельца, если нет прав на просмотр участников
             if (!$this->checkAccess('api.cars.includeOwner') && isset($car['owner'])) {

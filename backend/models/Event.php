@@ -143,4 +143,13 @@ class Event {
         }
         return $events;
     }
+
+    /**
+     * Сколько событий в базе — для цифры на главной, без полного списка.
+     */
+    public static function countAll()
+    {
+        $pdo = Database::getInstance();
+        return (int)$pdo->query('SELECT COUNT(*) FROM events')->fetchColumn();
+    }
 } 

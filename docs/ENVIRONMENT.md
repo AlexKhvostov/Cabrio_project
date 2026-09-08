@@ -1,5 +1,7 @@
 # Настройка окружения
 
+> **Где локально, где тест, где бой:** [ENVIRONMENTS.md](ENVIRONMENTS.md). Этот файл — про компьютер разработчика (XAMPP) и состав `.env`, не про адреса клуба.
+
 > См. также: [Техническое задание](TECHNICAL_SPECIFICATION.md), [Структура проекта](PROJECT_STRUCTURE.md)
 
 ## 💻 Системные требования
@@ -169,6 +171,7 @@ MODERATOR_IDS=222222222,333333333 # список ID модераторов
 CLUB_CHAT_ID=-1001234567890     # ID основного чата (можно несколько через запятую)
 
 # Настройки приложения
+# APP_URL — адрес WebApp этой среды (см. docs/ENVIRONMENTS.md)
 APP_NAME=CabrioRide
 APP_ENV=local
 APP_DEBUG=true

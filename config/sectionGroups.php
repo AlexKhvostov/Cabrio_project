@@ -126,10 +126,13 @@ class FunctionRoles {
     
     // API endpoints - Users
     const API_USERS_GET_LIST = 'member';
+    const API_USERS_GET_BY_ID = 'member';
     const API_USERS_CREATE = 'admin';
     const API_USERS_GET_PROFILE = 'guest';
     // Обновление собственного профиля
     const API_USERS_UPDATE_SELF = 'guest';
+    // Правка чужой карточки: модератор и админ
+    const API_USERS_UPDATE_OTHER = 'moderator';
     
     // API endpoints - Cars
     const API_CARS_GET_LIST = 'user';
@@ -167,6 +170,8 @@ class FunctionRoles {
     // API endpoints - System
     const API_HEALTH = 'external';
     const API_STATUS = 'external';
+    // Цифры на главной: гости уже в приложении, полные списки им не нужны
+    const API_STATS_DASHBOARD = 'guest';
     
     // API endpoints - L3 Actions (с OCR)
     const API_ACTIONS_CHECK_CAR_IN_CLUB = 'user';        // минимальная роль: user
@@ -176,6 +181,7 @@ class FunctionRoles {
     // API endpoints - User Locations (Map)
     const API_USER_LOCATIONS_INDEX = 'member';
     const API_USER_LOCATIONS_STORE = 'user';
+    const API_USER_LOCATIONS_DESTROY = 'user';
 
     /**
      * Получить массив всех функций с их минимальными ролями
@@ -187,9 +193,11 @@ class FunctionRoles {
             
             // API endpoints - Users
             'api.users.getList' => self::API_USERS_GET_LIST,
+            'api.users.getById' => self::API_USERS_GET_BY_ID,
             'api.users.create' => self::API_USERS_CREATE,
             'api.users.getProfile' => self::API_USERS_GET_PROFILE,
             'api.users.updateSelf' => self::API_USERS_UPDATE_SELF,
+            'api.users.updateOther' => self::API_USERS_UPDATE_OTHER,
             
             // API endpoints - Cars
             'api.cars.getList' => self::API_CARS_GET_LIST,
@@ -225,6 +233,7 @@ class FunctionRoles {
             // API endpoints - System
             'api.health' => self::API_HEALTH,
             'api.status' => self::API_STATUS,
+            'api.stats.dashboard' => self::API_STATS_DASHBOARD,
             
             // API endpoints - L3 Actions (с OCR)
             'api.actions.checkCarInClub' => self::API_ACTIONS_CHECK_CAR_IN_CLUB,
@@ -234,6 +243,7 @@ class FunctionRoles {
             // API endpoints - User Locations (Map)
             'api.userLocations.index' => self::API_USER_LOCATIONS_INDEX,
             'api.userLocations.store' => self::API_USER_LOCATIONS_STORE,
+            'api.userLocations.destroy' => self::API_USER_LOCATIONS_DESTROY,
         ];
     }
 

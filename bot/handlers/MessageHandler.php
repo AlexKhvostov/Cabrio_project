@@ -292,27 +292,31 @@ class MessageHandler {
             'chat_type' => $chat_type
         ]);
         
-        switch ($text) {
+        // Telegram в группе присылает /info@CabrioRideBot — оставляем только саму команду
+        $command = strtolower(trim(explode(' ', (string)$text)[0] ?? ''));
+        $command = explode('@', $command)[0];
+
+        switch ($command) {
             case '/start':
                 $startCommand = new StartCommand($this->botService);
                 $startCommand->execute($message);
                 break;
-                
+
+            // В меню Telegram кнопка называется /info, в коде справка была /help — обе ведут сюда
             case '/help':
+            case '/info':
                 if ($chat_type === 'private') {
-                    // В личном чате - показываем справку
                     $helpCommand = new HelpCommand($this->botService);
                     $helpCommand->execute($message);
                 } else {
-                    // В группе - перенаправляем в личный диалог
                     $this->redirectToPrivateChat($message);
                 }
                 break;
                 
             default:
-                // Неизвестная команда
+                // Неизвестная команда — подсказываем ту, что видна в меню Telegram
                 $this->botService->sendMessage($chat_id, 
-                    "❓ Неизвестная команда. Используйте /help для списка доступных команд."
+                    "❓ Неизвестная команда. Используйте /info для списка доступных команд."
                 );
                 break;
         }
@@ -331,7 +335,7 @@ class MessageHandler {
         $message = "💡 <b>Привет, $username!</b>\n\n";
         $message .= "Для получения справки напишите мне в личку:\n";
         $message .= "👉 @$botUsername\n\n";
-        $message .= "Или используйте команду /help в нашем диалоге";
+        $message .= "Или используйте команду /info в нашем диалоге";
         
         $this->botService->sendMessage($chat_id, $message);
     }

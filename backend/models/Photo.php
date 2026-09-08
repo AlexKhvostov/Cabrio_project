@@ -99,6 +99,49 @@ class Photo {
     }
 
     /**
+     * Последняя обложка сущности (авто, человек и т.д.) — как в плитках списка.
+     * Фото лежат в таблице photos, а не в строке cars/users.
+     *
+     * @param string $entityType  Например car или user
+     * @param int    $entityId
+     * @param int|null $onlyByUserId  Если задан — только фото, загруженные этим человеком
+     * @return array|null  url + urls.medium/mini
+     */
+    public static function latestFor($entityType, $entityId, $onlyByUserId = null)
+    {
+        $pdo = Database::getInstance();
+        // Тот же смысл, что в списке авто: чужие загрузки не показываем как обложку
+        if ($onlyByUserId) {
+            $stmt = $pdo->prepare(
+                'SELECT id, url, description FROM photos
+                 WHERE entity_type = ? AND entity_id = ? AND uploaded_by = ?
+                 ORDER BY id DESC LIMIT 1'
+            );
+            $stmt->execute([$entityType, (int)$entityId, (int)$onlyByUserId]);
+        } else {
+            $stmt = $pdo->prepare(
+                'SELECT id, url, description FROM photos
+                 WHERE entity_type = ? AND entity_id = ?
+                 ORDER BY id DESC LIMIT 1'
+            );
+            $stmt->execute([$entityType, (int)$entityId]);
+        }
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        return [
+            'id' => (int)$row['id'],
+            'url' => UrlHelper::buildUploadsUrl($row['url']),
+            'urls' => [
+                'medium' => UrlHelper::buildUploadsUrlSized($row['url'], 'medium'),
+                'mini' => UrlHelper::buildUploadsUrlSized($row['url'], 'mini'),
+            ],
+            'description' => $row['description'],
+        ];
+    }
+
+    /**
      * Получить следующий ID для фото
      */
     public static function getNextId() {

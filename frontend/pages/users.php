@@ -3,7 +3,7 @@
 <html lang="ru">
   <head>
     <?php render_meta('Участники — CabrioRide'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css" />
+    <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
@@ -16,22 +16,23 @@
         ['id' => 'roleFilter', 'placeholder' => 'Все роли']
       ]
     ]; include __DIR__ . '/../components/filters.php'; ?>
-<div id="usersAccessBanner" class="card" style="margin-bottom:12px">
-  <h3 style="margin:6px 0 8px 0">Доступ к списку участников</h3>
-  <p style="margin:0 0 6px 0; color:#ccc">Список доступен полноправным участникам клуба.</p>
+<div id="usersAccessBanner" class="info-block" style="margin-bottom:12px;display:none">
+  <h3>Доступ к списку участников</h3>
+  <p style="margin:0 0 6px 0">Список доступен полноправным участникам клуба.</p>
   <ul style="margin:0 0 6px 18px; color:#ccc">
     <li>Добавьте свой автомобиль в приложении</li>
     <li>Познакомьтесь лично на встрече</li>
     <li>Получите роль <b>member</b> или выше</li>
   </ul>
 </div>
-<div id="users">Загрузка...</div>
+<div id="users" class="users-list"><div class="list-busy"><div class="spinner"></div>Загрузка…</div></div>
 
     </main>
+    <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script type="module">
-      import '/app/frontend/assets/js/app.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/app.js'); ?>'
-      import '/app/frontend/assets/js/components.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/components.js'); ?>'
-      import '/app/frontend/assets/js/modals/user_modal.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/modals/user_modal.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/components.js'); ?>'
+      import '<?php echo cabrio_asset_href('assets/js/modals/user_modal.js'); ?>'
       const usersEl = document.getElementById('users')
       const usersAccessBanner = document.getElementById('usersAccessBanner')
       const searchInput = document.getElementById('filters-search')
@@ -39,6 +40,7 @@
       const { renderMemberCard } = window.CabrioComponents
       const { openUserModal } = window.CabrioModals
       let list = []
+      // Спиннер уже в списке (list-busy) — полноэкранный CabrioBusy не включаем, иначе их два
       CabrioAPI.apiGet('/api/users').then(json=>{
         if(!json || json.__httpStatus===401 || json.__httpStatus===403 || json.success===false){
           // Недостаточно прав — показываем пояснение и не рендерим список
@@ -71,11 +73,15 @@
         if(searchInput){ searchInput.addEventListener('input', render) }
         render()
         usersEl.addEventListener('click', (e)=>{
+          const chip = e.target.closest('.member-car-stack-item, .member-car-thumb, .member-car-chip')
+          if (chip && chip.getAttribute('data-car-id')) {
+            e.preventDefault(); e.stopPropagation()
+            if (window.CabrioNav) window.CabrioNav.openCar(chip.getAttribute('data-car-id'))
+            return
+          }
           const card = e.target.closest('.member-card')
           if(!card) return
-          const id = Number(card.getAttribute('data-id'))
-          const m = list.find(x=>Number(x.id)===id)
-          if(m) openUserModal(m)
+          if (window.CabrioNav) window.CabrioNav.openUser(card.getAttribute('data-id'))
         })
       }).catch(()=>{ usersEl.textContent='Ошибка загрузки' })
 

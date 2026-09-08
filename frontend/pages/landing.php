@@ -3,7 +3,7 @@
 <html lang="ru">
   <head>
     <?php render_meta('CabrioRide — Для участников клуба'); ?>
-    <link rel="stylesheet" href="/app/frontend/assets/css/styles.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/styles.css'); ?>" />
+    <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
   </head>
   <body>
     <main class="page" style="display:flex;align-items:center;justify-content:center;">
@@ -12,7 +12,15 @@
         <p style="margin:0;color:#bbb">Это приложение для участников клуба кабриолетов.</p>
         <p style="margin:0;color:#bbb">Откройте приложение через Telegram, используя кнопку в закреплённом сообщении чата клуба.</p>
         <div class="divider" style="height:1px;background:var(--border-color);"></div>
-        <a class="btn-primary" href="https://t.me/+" target="_blank" rel="noopener">Перейти в чат Telegram</a>
+        <?php
+          // Ссылка на клубный чат из .env (CHAT_INVITE_LINK), иначе публичный username
+          $invite = getenv('CHAT_INVITE_LINK') ?: 'https://t.me/Cabrio_Ride';
+          $invite = trim($invite);
+          if ($invite !== '' && !preg_match('#^https?://#i', $invite)) {
+              $invite = 'https://' . ltrim($invite, '/');
+          }
+        ?>
+        <a class="btn-primary" href="<?php echo htmlspecialchars($invite, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Перейти в чат Telegram</a>
         <p style="margin:0;font-size:12px;color:#888">Если вы ещё не участник, подайте заявку на вступление в чате.</p>
       </div>
     </main>

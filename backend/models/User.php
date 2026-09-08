@@ -59,11 +59,12 @@ class User {
 
     /**
      * Найти пользователя по id с развернутыми данными
-     * 
+     *
      * @param int $id ID пользователя
-     * @return array|null Развернутые данные пользователя или null
+     * @param bool $maskPrivate прятать гос. номер чужих авто (для своего профиля — false)
+     * @return array|null
      */
-    public static function findByIdWithDetails($id) {
+    public static function findByIdWithDetails($id, $maskPrivate = true) {
         $pdo = Database::getInstance();
         // Подтягиваем роль и последнее фото пользователя (как в getAll)
         $stmt = $pdo->prepare(
@@ -104,21 +105,29 @@ class User {
             'urls' => [
                 'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                 'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                'orig'   => UrlHelper::buildUploadsUrl($row['photo_url']),
             ],
             'description' => $row['photo_description'],
         ] : null;
         unset($user['photo_id'], $user['photo_url'], $user['photo_description']);
+        if (empty($user['photo']) && !empty($row['telegram_photo_url'])) {
+            $tg = $row['telegram_photo_url'];
+            $user['photo'] = [
+                'id' => null,
+                'url' => $tg,
+                'urls' => ['medium' => $tg, 'mini' => $tg],
+                'description' => 'telegram',
+            ];
+        }
 
         // Прикладываем машины пользователя (если есть)
         require_once __DIR__ . '/Car.php';
-        // Для профиля текущего пользователя НЕ маскируем номер (maskPrivate=false)
-        $cars = Car::getByOwnerIds([(int)$row['id']], false);
+        $cars = Car::getByOwnerIds([(int)$row['id']], $maskPrivate);
         $carsForUser = [];
         foreach ($cars as $car) {
             $carForOutput = $car;
             unset($carForOutput['owner_user_id']);
-            // Так как это профиль текущего пользователя, он может редактировать свои авто
-            $carForOutput['permissions'] = [ 'canEdit' => true ];
+            $carForOutput['permissions'] = [ 'canEdit' => !$maskPrivate ];
             $carsForUser[] = $carForOutput;
         }
         $user['cars'] = $carsForUser;
@@ -196,7 +205,79 @@ class User {
         }
         
         // Возвращаем развернутые данные созданного пользователя
-        return self::findByIdWithDetails($userId);
+        return self::findByIdWithDetails($userId, false);
+    }
+
+    /**
+     * Короткий вкладыш в карточку авто: имя и фото, без машин (машины тормозят открытие).
+     */
+    public static function findEmbedCard($id)
+    {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare(
+            'SELECT u.id, u.username, u.city,
+                    u.first_name_app, u.last_name_app, u.first_name_tg, u.last_name_tg,
+                    u.telegram_photo_url,
+                    r.id as role_id, r.code as role_code, r.name as role_name,
+                    p.id as photo_id, p.url as photo_url, p.description as photo_description
+             FROM users u
+             LEFT JOIN ref_roles r ON u.role_id = r.id
+             LEFT JOIN photos p ON p.id = (
+                 SELECT id FROM photos
+                 WHERE entity_type = "user" AND entity_id = u.id
+                 ORDER BY id DESC LIMIT 1
+             )
+             WHERE u.id = ?'
+        );
+        $stmt->execute([(int)$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        $user = [
+            'id' => (int)$row['id'],
+            'username' => $row['username'],
+            'city' => $row['city'],
+            'first_name_app' => $row['first_name_app'],
+            'last_name_app' => $row['last_name_app'],
+            'first_name_tg' => $row['first_name_tg'],
+            'last_name_tg' => $row['last_name_tg'],
+            'role' => [
+                'id' => $row['role_id'],
+                'code' => $row['role_code'],
+                'name' => $row['role_name'],
+            ],
+            'photo' => null,
+        ];
+        if ($row['photo_id']) {
+            $user['photo'] = [
+                'id' => $row['photo_id'],
+                'url' => UrlHelper::buildUploadsUrl($row['photo_url']),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
+                    'mini' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                    'orig' => UrlHelper::buildUploadsUrl($row['photo_url']),
+                ],
+                'description' => $row['photo_description'],
+            ];
+        } elseif (!empty($row['telegram_photo_url'])) {
+            $tg = $row['telegram_photo_url'];
+            $user['photo'] = [
+                'id' => null,
+                'url' => $tg,
+                'urls' => ['medium' => $tg, 'mini' => $tg, 'orig' => $tg],
+                'description' => 'telegram',
+            ];
+        }
+        return $user;
+    }
+
+    /**
+     * Короткая карточка человека для вложения в авто: без машин и без телефона.
+     */
+    public static function findPublicCard($id)
+    {
+        return self::findEmbedCard($id);
     }
 
     /**
@@ -273,7 +354,7 @@ class User {
         }
         
         // Возвращаем развернутые данные обновленного пользователя
-        return self::findByIdWithDetails($id);
+        return self::findByIdWithDetails($id, false);
     }
 
     /**
@@ -375,6 +456,15 @@ class User {
                 'description' => $row['photo_description'],
             ] : null;
             unset($user['photo_id'], $user['photo_url'], $user['photo_description']);
+            if (empty($user['photo']) && !empty($row['telegram_photo_url'])) {
+                $tg = $row['telegram_photo_url'];
+                $user['photo'] = [
+                    'id' => null,
+                    'url' => $tg,
+                    'urls' => ['medium' => $tg, 'mini' => $tg],
+                    'description' => 'telegram',
+                ];
+            }
 
             // Прикладываем машины пользователя (если есть)
             $uid = (int)$row['id'];
@@ -383,5 +473,28 @@ class User {
             $users[] = $user;
         }
         return $users;
+    }
+
+    /**
+     * Сколько пользователей в базе — без загрузки карточек и фото.
+     */
+    public static function countAll()
+    {
+        $pdo = Database::getInstance();
+        return (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    }
+
+    /**
+     * Цифра «участники» на главной: роли user и выше.
+     * Гостей чата и внешних не считаем — иначе в статистике 130+ при ~80 людях клуба.
+     */
+    public static function countRegistered()
+    {
+        $pdo = Database::getInstance();
+        $sql = "SELECT COUNT(*)
+                FROM users u
+                INNER JOIN ref_roles r ON r.id = u.role_id
+                WHERE r.code IN ('user','member','moderator','admin')";
+        return (int)$pdo->query($sql)->fetchColumn();
     }
 } 

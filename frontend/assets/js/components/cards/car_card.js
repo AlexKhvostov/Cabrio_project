@@ -1,4 +1,6 @@
-// car_card.js — компактная карточка автомобиля
+// Карточка авто в сетке: фото или контур кабриолета, название на снимке, владелец снизу
+
+import { phUser, phCar } from '../media.js?v=cabrio14'
 
 function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g, s=>({
@@ -8,44 +10,33 @@ function escapeHtml(str){
 
 export function renderCarCard(car, options = {}){
   const showOwner = (options.showOwner !== false) && !!car.owner
-  const brandName = (car.brand?.name && String(car.brand.name).trim() !== '') ? car.brand.name : 'марка'
-  const modelName = (car.model && String(car.model).trim() !== '') ? car.model : 'модель'
-  const title = `${brandName} ${modelName}`.trim()
-  const photoUrl = car.photo?.urls?.medium || car.photo?.url || ''
-  const ownerAvatar = car.owner?.photo?.urls?.mini || car.owner?.photo?.url || ''
+  const brandName = (car.brand?.name && String(car.brand.name).trim() !== '') ? car.brand.name : ''
+  const modelName = (car.model && String(car.model).trim() !== '') ? car.model : ''
+  const title = `${brandName} ${modelName}`.trim() || 'Автомобиль'
   const ownerFirst = car.owner?.first_name_app || car.owner?.first_name_tg || car.owner?.first_name || ''
   const ownerLast = car.owner?.last_name_app || car.owner?.last_name_tg || car.owner?.last_name || ''
   const ownerName = `${(ownerFirst||'').trim()} ${(ownerLast||'').trim()}`.trim()
-  const ownerUsername = car.owner?.username ? `@${car.owner.username}` : ''
-  const statusText = car.status?.name || car.status?.code || ''
-  const roofTypeName = (code) => {
-    switch ((code || '').toString()) {
-      case 'soft': return 'Мягкая'
-      case 'hard': return 'Жёсткая'
-      case 'targa': return 'Тарга'
-      case 'none': return 'Нет'
-      default: return code || ''
-    }
-  }
-  const yearText = (car.year ? String(car.year) : 'не задано')
-  const roofText = (car.roof_type ? roofTypeName(car.roof_type) : '')
-  const volText = (car.engine_volume ? String(car.engine_volume) : '')
-  const powerText = (car.engine_power ? String(car.engine_power) : '')
-  const specs = [yearText, roofText, volText, powerText].filter(Boolean).map(escapeHtml).join(' • ')
+  const ownerIni = (ownerFirst?.[0]||'') + (ownerLast?.[0]||'')
+  const statusCode = (car.status?.code || '').toString().toLowerCase()
+  const statusName = (car.status?.name || '').toString().toLowerCase().trim()
+  const isActive = statusCode === 'active' || statusName === 'активен'
+  const statusText = (!isActive && (car.status?.name || car.status?.code)) ? (car.status.name || car.status.code) : ''
+  const yearText = car.year ? String(car.year) : ''
+
   return `
   <div class="car-card-compact" data-id="${car.id}">
     <div class="car-image-container">
       ${statusText ? `<div class="car-status-badge">${escapeHtml(statusText)}</div>` : ''}
-      ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" class="car-image" alt="${escapeHtml(title)}"/>` : `<div class="car-placeholder">🚗</div>`}
+      ${phCar(car, 'medium')}
       <div class="car-overlay-info">
         <div class="car-title-overlay">${escapeHtml(title)}</div>
-        <div class="car-specs-overlay">${specs}</div>
+        ${yearText ? `<div class="car-specs-overlay">${escapeHtml(yearText)}</div>` : ''}
       </div>
     </div>
     ${showOwner ? `
-    <div class="car-owner-compact">
-      <div class="owner-avatar-small">${ownerAvatar ? `<img src="${escapeHtml(ownerAvatar)}" class="avatar-image" alt="${escapeHtml(ownerFirst)}"/>` : ''}</div>
-      <span class="owner-name-compact">${escapeHtml(ownerName || '')}${ownerUsername ? ` <span class="username">(${escapeHtml(ownerUsername)})</span>` : (!ownerName ? (ownerUsername || 'не задано') : '')}</span>
+    <div class="car-owner-compact" data-owner-id="${escapeHtml(car.owner.id)}" role="button" title="Открыть владельца">
+      ${phUser(car.owner, ownerIni, 'medium')}
+      <span class="owner-name-compact">${escapeHtml(ownerName || 'Владелец не указан')}</span>
     </div>` : ''}
   </div>`
 }

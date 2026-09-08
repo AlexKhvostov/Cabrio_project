@@ -19,53 +19,42 @@ CabrioRide — это не просто IT-платформа, а живое с�
 
 ## 🛠 Технологический стек
 
-### Backend
-- **PHP 8.1** (PSR-12) — основной серверный язык
+### Backend и бот
+- **PHP 8.1** (PSR-12) — API и Telegram-бот (webhook)
 - **MySQL 8.0** — база данных
-- **Apache 2.4** — веб-сервер
-- **Telegram Bot API** — интеграция с Telegram
+- **Apache 2.4** — веб-сервер (XAMPP локально, cloudvps.by в бою)
 
 ### Frontend
-- **Vue.js 3** — прогрессивный JavaScript фреймворк
-- **TypeScript** — строгая типизация
-- **Pinia** — управление состоянием
-- **Vue Router** — маршрутизация
-- **Telegram WebApp SDK** — интеграция с Telegram
+- **PHP + HTML + CSS + обычный JavaScript** — Telegram WebApp
+- **Telegram WebApp SDK** — авторизация и оболочка в Telegram
+- Vue.js / TypeScript в этом репозитории **не используются** (это был ранний план)
 
 ### Инфраструктура
-- **XAMPP** — локальная среда разработки
-- **Node.js 18+** — сборка фронтенда
+- **XAMPP** — локальная среда на компьютере
 - **PowerShell** — командная строка Windows
+- **Тест:** `https://dev.cabrioride.by/app/` (черновик на том же хостинге)
+- **Бой:** `https://cabrioride.by/app/` (живой клуб)
+- Подробно про среды: [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
 
 ## 📁 Структура проекта
 
 ```
-C:\xampp\htdocs\app\
-├── backend/                 # PHP API (REST + RPC)
-│   ├── controllers/         # Обработчики HTTP-запросов
-│   ├── actions/            # Сложные действия (бизнес-логика)
-│   ├── models/             # Модели данных
-│   ├── routes/             # Маршрутизация API
-│   ├── utils/              # Вспомогательные классы
-│   ├── docs/               # Документация backend
-│   └── _tests/             # Интеграционные тесты
-├── frontend/               # Vue.js WebApp
-│   ├── src/
-│   │   ├── components/     # Vue компоненты
-│   │   ├── views/          # Страницы приложения
-│   │   ├── stores/         # Pinia хранилища
-│   │   ├── router/         # Vue Router
-│   │   └── types/          # TypeScript типы
-│   └── docs/               # Документация frontend
-├── bot/                    # Telegram Bot
-│   ├── commands/           # Команды бота
-│   ├── handlers/           # Обработчики событий
-│   └── services/           # Сервисы бота
-├── database/               # База данных
-│   └── scripts/            # SQL-скрипты и миграции
-├── docs/                   # Документация проекта
-├── uploads/                # Загруженные файлы
-└── config/                 # Конфигурация приложения
+C:\xampp\htdocs\Cabrio_app\
+├── backend/                 # PHP API
+│   ├── controllers/
+│   ├── actions/
+│   ├── models/
+│   ├── routes/
+│   └── utils/
+├── frontend/                # страницы клуба (PHP + JS)
+│   ├── pages/
+│   ├── components/
+│   └── assets/
+├── bot/                     # Telegram-бот (webhook)
+├── database/                # схема и скрипты
+├── docs/                    # документация
+├── config/                  # роли и доступ
+└── .env                     # секреты (не в git)
 ```
 
 ## 🚀 Быстрый старт
@@ -73,45 +62,28 @@ C:\xampp\htdocs\app\
 ### Предварительные требования
 - Windows 10/11
 - XAMPP с PHP 8.1
-- Node.js 18+
 - MySQL 8.0
 - PowerShell
 
 ### 1. Клонирование проекта
 ```powershell
 Set-Location -Path C:\xampp\htdocs
-git clone <repository-url> app
-Set-Location -Path app
+git clone https://github.com/AlexKhvostov/Cabrio_project.git Cabrio_app
+Set-Location -Path Cabrio_app
 ```
 
 ### 2. Настройка окружения
 ```powershell
-# Создание .env файла
 Copy-Item .env_example .env
-# Настройка переменных окружения в .env
+# Заполните .env: база, BOT_TOKEN, CHAT_INVITE_LINK, APP_URL
 ```
 
-### 3. Установка зависимостей Frontend
-```powershell
-Set-Location -Path frontend
-npm install
-```
+### 3. База данных
+Скрипты лежат в `database/`. На бою база уже есть на сервере cloudvps.by.
 
-### 4. Настройка базы данных
-```powershell
-Set-Location -Path database/scripts
-# Запуск SQL-скриптов для создания таблиц и тестовых данных
-```
-
-### 5. Запуск разработки
-```powershell
-# Frontend (в отдельном терминале)
-Set-Location -Path frontend
-npm run dev
-
-# Backend (через XAMPP)
-# Запустить Apache и MySQL в XAMPP Control Panel
-```
+### 4. Запуск локально
+В XAMPP включите Apache (и MySQL, если база локальная).
+Открытие: `http://localhost/Cabrio_app/frontend/` (пути в коде пока рассчитаны на `/app/` на домене cabrioride.by).
 
 ## 📚 Документация
 
@@ -120,6 +92,7 @@ npm run dev
 - [Техническое задание](docs/TECHNICAL_SPECIFICATION.md)
 - [Структура проекта](docs/PROJECT_STRUCTURE.md)
 - [Процесс разработки](docs/DEVELOPMENT.md)
+- [Среды: локально, тест, бой](docs/ENVIRONMENTS.md)
 - [Процесс деплоя](docs/DEPLOYMENT.md)
 - [Настройка окружения](docs/ENVIRONMENT.md)
 
@@ -139,35 +112,12 @@ npm run dev
 
 ## 🔧 Команды разработки
 
-### Frontend
-```powershell
-# Установка зависимостей
-npm install
-
-# Запуск сервера разработки
-npm run dev
-
-# Сборка для продакшена
-npm run build
-
-# Проверка типов
-npm run type-check
-
-# Линтинг
-npm run lint
-
-# Форматирование кода
-npm run format
-```
-
-### Backend
 ```powershell
 # Проверка PHP синтаксиса
 php -l backend/controllers/*.php
-
-# Запуск тестов
-php backend/_tests/index.php
 ```
+
+Vue / npm для фронтенда не нужны.
 
 ## 🏗 Архитектура
 
@@ -178,12 +128,10 @@ php backend/_tests/index.php
 - **Middleware** — проверка авторизации и валидация
 - **Singleton Database** — единое подключение к БД
 
-### Frontend (Vue.js)
-- **Composition API** — современный подход к компонентам
-- **Pinia Store** — централизованное управление состоянием
-- **Vue Router** — клиентская маршрутизация
-- **TypeScript** — строгая типизация
-- **Telegram WebApp SDK** — интеграция с Telegram
+### Frontend
+- Страницы PHP, стили CSS, скрипты JS без сборки
+- Telegram WebApp SDK — оболочка в Telegram
+- Авторизация через данные Telegram
 
 ### База данных (MySQL)
 - **Нормализованная структура** — минимизация дублирования
@@ -210,8 +158,8 @@ php backend/_tests/index.php
 
 ### Правила
 - Следовать [правилам разработки](.cursorrules)
-- Использовать TypeScript для фронтенда
 - Следовать PSR-12 для PHP
+- Не использовать Vue/TypeScript для фронта — его в проекте нет
 - Писать тесты для нового функционала
 - Обновлять документацию
 
