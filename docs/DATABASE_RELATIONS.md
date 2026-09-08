@@ -14,6 +14,8 @@ flowchart TD
     ref_statuses[ref_statuses]
     ref_event_types[ref_event_types]
     ref_guide_object_types[ref_guide_object_types]
+    ref_guide_object_kinds[ref_guide_object_kinds]
+    labels[labels]
     ref_car_models[ref_car_models]
   end
 
@@ -37,6 +39,7 @@ flowchart TD
   subgraph "Связи"
     link_user_cars[link_user_cars]
     link_event_participants[link_event_participants]
+    link_guide_object_labels[link_guide_object_labels]
   end
 
   %% --- Системные журналы ---
@@ -55,6 +58,9 @@ flowchart TD
   ref_statuses --> reviews
   ref_event_types --> events
   ref_guide_object_types --> guide_objects
+  ref_guide_object_kinds --> guide_objects
+  labels --> link_guide_object_labels
+  guide_objects --> link_guide_object_labels
   ref_car_models --> cars
 
   users -->|FK| cars
@@ -94,10 +100,10 @@ flowchart TD
   classDef link fill:#333,color:#fff,stroke:#222,stroke-width:2px;
   classDef photo fill:#FF8C00,color:#fff,stroke:#222,stroke-width:3px;
 
-  class ref_roles,ref_statuses,ref_event_types,ref_guide_object_types,ref_car_models ref;
+  class ref_roles,ref_statuses,ref_event_types,ref_guide_object_types,ref_guide_object_kinds,labels,ref_car_models ref;
   class users main;
   class cars,events,guide_objects,reviews,business_cards main;
-  class link_user_cars,link_event_participants link;
+  class link_user_cars,link_event_participants,link_guide_object_labels link;
   class photos photo;
 ```
 
@@ -117,11 +123,15 @@ flowchart TD
 
 ## Связи с каталогами (catalogs)
 
-- **cars.brand_id** → **car_brands.id**
-- **events.type_id** → **event_types.id**
-- **guide_objects.kind_id** → **guide_object_kinds.id**
-- **guide_objects.type_id** → **guide_object_types.id**
-- **users.role_id** → **roles.id**
-- **cars.status_id**, **events.status_id**, **guide_objects.status_id** → **statuses.id**
+- **cars.brand_id** → **ref_car_brands.id** (в коде часто `brand_id`)
+- **events.event_type_id** → **ref_event_types.id**
+- **guide_objects.guide_object_type_id** → **ref_guide_object_types.id** (может быть NULL)
+- **guide_objects.guide_object_kind_id** → **ref_guide_object_kinds.id** (может быть NULL)
+- **link_guide_object_labels.guide_object_id** → **guide_objects.id**
+- **link_guide_object_labels.label_id** → **labels.id**
+- **users.role_id** → **ref_roles.id**
+- **cars.status_id**, **events.status_id**, **guide_objects.status_id**, **reviews.status_id** → **ref_statuses.id**
+
+В интерфейсе раздел карточек `guide_objects` называется **«Отзывы»**. Тип/вид в форме не показываем.
 
 > Все основные сущности ссылаются на соответствующие каталоги для обеспечения целостности и стандартизации данных. 

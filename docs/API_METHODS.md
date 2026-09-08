@@ -298,13 +298,13 @@ Authorization: Bearer <jwt_token>
 
 ## Каталоги (catalogs) — справочные методы API
 
-Для получения списков справочников используются отдельные эндпоинты:
+Рабочие пути Mini App (через `backend/routes/api.php?route=...`):
 
-- `GET /api/catalogs/car_brands` — список марок автомобилей
-- `GET /api/catalogs/event_types` — список типов мероприятий
-- `GET /api/catalogs/guide_object_kinds` — виды гид-объектов
-- `GET /api/catalogs/guide_object_types` — типы гид-объектов
-- `GET /api/catalogs/roles` — роли пользователей
-- `GET /api/catalogs/statuses` — статусы сущностей
+- `GET /api/ref/car-brands` — марки авто
+- `GET /api/ref/event-types` — типы событий
+- `GET /api/ref/labels` — ярлыки карточек раздела «Отзывы»
+- `GET /api/ref/guide-object-types` и `GET /api/ref/guide-object-kinds` — старые справочники; форма ими не пользуется
+- `GET/POST /api/guide-objects` — карточки отзывов
+- `GET/POST /api/reviews` — тексты и оценки
 
-> Эти методы используются для заполнения выпадающих списков, фильтрации и валидации данных на фронтенде и в боте.
+> Старые URL вида `/api/catalogs/...` в этом файле — наследие. Новый код их не вызывает.

@@ -276,6 +276,7 @@ docs/
 ├── PROJECT_STRUCTURE.md      # Структура проекта (этот файл)
 ├── DEVELOPMENT.md            # Процесс разработки
 ├── ENVIRONMENTS.md           # Локально / тест / бой
+├── CURRENT_STATUS.md         # Что готово и план дальше
 ├── DEPLOYMENT.md             # Развёртывание
 ├── ENVIRONMENT.md            # Переменные окружения (локальный XAMPP)
 ├── NAMING_CONVENTIONS.md     # Правила именования
