@@ -181,6 +181,9 @@ APP_URL=http://localhost
 TELEGRAM_WEBHOOK_URL=https://your-domain.com/api/webhook
 TELEGRAM_API_URL=https://api.telegram.org
 TELEGRAM_APP_URL=https://t.me/your_bot
+
+# Яндекс.Метрика Mini App: 112389999. Лендинг клуба — другой счётчик (102530559), не смешивать.
+YANDEX_METRIKA_ID=112389999
 ```
 
 > Все реальные значения должны храниться только локально и не попадать в репозиторий. Пример структуры приведён для ориентира. 

@@ -18,23 +18,28 @@ require __DIR__ . '/partials/meta.php';
         <header class="home-hero">
           <p class="home-kicker" id="statsTitle">CabrioRide</p>
           <h1 class="home-hello" id="welcome">Привет</h1>
-          <p class="home-lead">Клуб владельцев кабриолетов</p>
+          <p class="home-lead">Крыша открыта — можно заходить</p>
         </header>
 
         <div class="home-stats" id="stats">
           <div class="home-stat">
             <div class="stat-value" id="stat-members">—</div>
-            <div class="stat-label">участники</div>
+            <div class="stat-label">в клубе</div>
           </div>
           <div class="home-stat">
             <div class="stat-value" id="stat-cars">—</div>
-            <div class="stat-label">авто</div>
+            <div class="stat-label">кабриолетов</div>
           </div>
           <div class="home-stat">
             <div class="stat-value" id="stat-events">—</div>
-            <div class="stat-label">встречи</div>
+            <div class="stat-label">встреч</div>
+          </div>
+          <div class="home-stat">
+            <div class="stat-value" id="stat-cities">—</div>
+            <div class="stat-label">городов</div>
           </div>
         </div>
+        <p class="home-onmap" id="stat-onmap" hidden></p>
 
         <!-- Скрытая панель отладки. Админ: тап по слову CabrioRide -->
         <div id="debugPanel" class="card" style="display:none; margin-top:12px; padding:0;">
@@ -49,34 +54,55 @@ require __DIR__ . '/partials/meta.php';
           <pre id="debugLog" style="margin:0; padding:10px 12px; max-height:240px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:12px; line-height:1.4; white-space:pre-wrap; word-break:break-word; background:rgba(0,0,0,0.35);"></pre>
         </div>
 
-        <article class="card home-club">
-          <h2>Кто мы</h2>
-          <p>CabrioRide — группа единомышленников с «поехавшей крышей»: любим открытый верх, ветер и свои маршруты.</p>
-          <p>Здесь не лента для всех, а клуб: видно, кто на чём ездит, где свои и когда встреча.</p>
+        <article class="card home-club home-club--story">
+          <p class="home-club-kicker">про нас</p>
+          <h2>Люди с поехавшей крышей</h2>
+          <p class="home-club-lead">CabrioRide — клуб владельцев кабриолетов. Не лента для всех, а свои: кто на чём ездит, где сейчас катаются и когда следующая встреча.</p>
+          <p>Минск и вся Беларусь. Ветер, маршруты, проверенные мойки и люди, которым можно махнуть фарами на трассе.</p>
+          <div class="home-outs">
+            <a class="home-out" href="https://cabrioride.by" target="_blank" rel="noopener">
+              Сайт клуба
+              <small>cabrioride.by</small>
+            </a>
+            <?php
+              $invite = trim((string)(getenv('CHAT_INVITE_LINK') ?: 'https://t.me/Cabrio_Ride'));
+              if ($invite !== '' && !preg_match('#^https?://#i', $invite)) {
+                  $invite = 'https://' . ltrim($invite, '/');
+              }
+            ?>
+            <a class="home-out" href="<?php echo htmlspecialchars($invite, ENT_QUOTES); ?>" target="_blank" rel="noopener">
+              Чат в Telegram
+              <small>живой разговор</small>
+            </a>
+          </div>
         </article>
 
-        <div class="home-links">
-          <a class="home-link" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/users.php'), ENT_QUOTES); ?>">Участники <span>кто в клубе</span></a>
-          <a class="home-link" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/cars.php'), ENT_QUOTES); ?>">Авто <span>кабриолеты</span></a>
-          <a class="home-link" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/map.php'), ENT_QUOTES); ?>">Карта <span>видеть своих</span></a>
-          <a class="home-link" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/me.php'), ENT_QUOTES); ?>">Профиль <span>твои данные и фото</span></a>
-        </div>
-
-        <p class="home-hint">Внизу — разделы клуба. Заполни профиль и фото, чтобы тебя узнали.</p>
+        <p class="home-hint">В профиле добавь фото — в списке своих тебя сразу узнают.</p>
       </section>
     </main>
     <?php include __DIR__ . '/components/footer.php'; ?>
     <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script type="module">
       import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
-      CabrioBusy.show()
       CabrioAPI.apiGet('/api/stats').then((s)=>{
         if (!s || s.success === false) return
         const d = s.data || {}
-        document.getElementById('stat-members').textContent = (d.users ?? '—')
-        document.getElementById('stat-cars').textContent = (d.cars_active ?? '—')
-        document.getElementById('stat-events').textContent = (d.events ?? '—')
-      }).catch(()=>{}).finally(()=>{ CabrioBusy.hide() })
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v ?? '—') }
+        set('stat-members', d.users)
+        set('stat-cars', d.cars_active)
+        set('stat-events', d.events)
+        set('stat-cities', d.cities)
+        const onMap = Number(d.on_map || 0)
+        const onEl = document.getElementById('stat-onmap')
+        if (onEl) {
+          if (onMap > 0) {
+            onEl.hidden = false
+            onEl.textContent = onMap === 1 ? 'Сейчас на карте один свой' : `Сейчас на карте ${onMap} своих`
+          } else {
+            onEl.hidden = true
+          }
+        }
+      }).catch(()=>{})
 
       // Приветствие по имени из Telegram (если доступно)
       try {
@@ -86,6 +112,18 @@ require __DIR__ . '/partials/meta.php';
           if (el) el.textContent = `Привет, ${u.first_name}`
         }
       } catch {}
+
+      document.querySelectorAll('.home-out').forEach((a)=>{
+        a.addEventListener('click', (e)=>{
+          const href = a.getAttribute('href')
+          if (!href) return
+          const tg = window.Telegram?.WebApp
+          try {
+            if (/t\.me\//i.test(href) && tg?.openTelegramLink) { e.preventDefault(); tg.openTelegramLink(href); return }
+            if (tg?.openLink) { e.preventDefault(); tg.openLink(href) }
+          } catch {}
+        })
+      })
 
       // Панель отладки только для администратора (роль admin)
       (function(){

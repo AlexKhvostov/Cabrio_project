@@ -1,6 +1,6 @@
 // Большая карточка автомобиля. Пустые поля на месте. Хозяин — ссылка на его карточку.
 
-import { phCar, photoUrl } from '../components/media.js?v=cabrio15'
+import { phCar, photoUrl } from '../components/media.js?v=cabrio18'
 import {
   escapeHtml, viewVal, sheetField, carTitle, renderPersonLink, bindRelLinks, headerActions, filled, openPhotoViewer
 } from '../components/sheet.js?v=write1'

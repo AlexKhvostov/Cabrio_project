@@ -786,25 +786,27 @@ html{color-scheme: dark}
 .home-hello{margin:0;font-size:var(--fs-hello);line-height:1.2;font-weight:650;letter-spacing:-.01em}
 .home-lead{margin:0;font-size:var(--fs-meta);color:var(--muted)}
 .home-stats{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:10px 6px;border-radius:14px;
-  background:var(--gradient-card);border:1px solid var(--line);
-  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
-  box-shadow:var(--card-glow), var(--card-highlight);
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;
+  background:transparent;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none
 }
 .home-stat{
-  display:flex;flex-direction:column;align-items:center;gap:1px;
-  position:relative;padding:2px 4px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  position:relative;padding:12px 12px 10px;
+  border-radius:14px;background:var(--gradient-card);border:1px solid var(--line);
+  box-shadow:var(--card-highlight)
 }
-.home-stat:not(:last-child)::after{
-  content:'';position:absolute;right:0;top:18%;height:64%;
-  width:1px;background:linear-gradient(180deg, transparent, rgba(130,210,220,.22), transparent);
-}
+.home-stat:not(:last-child)::after{display:none}
 .home-stat .stat-value{
-  font-size:var(--fs-name);font-weight:750;letter-spacing:-.02em;
-  background:linear-gradient(180deg, #fff 0%, #b8ece8 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
+  font-size:20px;font-weight:750;letter-spacing:-.03em;line-height:1.1;
+  color:#eaf6f4;
 }
 .home-stat .stat-label{font-size:var(--fs-label);color:var(--muted);text-transform:lowercase}
+.home-onmap{
+  margin:0;text-align:center;font-size:var(--fs-meta);color:var(--accent);
+  padding:8px 10px;border-radius:12px;border:1px dashed rgba(70,224,214,.35);
+  background:rgba(70,224,214,.06)
+}
+.home-onmap[hidden]{display:none!important}
 .home-hint{margin:0;text-align:center;font-size:var(--fs-meta);color:var(--empty)}
 
 /* Карточка человека — компактная строка */
@@ -841,7 +843,10 @@ html{color-scheme: dark}
   position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;
   object-fit:cover;object-position:center;display:block;z-index:2
 }
+.ph-img{z-index:4}
 .ph-fallback{display:block;width:100%;height:100%;position:absolute;inset:0;z-index:0}
+/* Прячем силуэт только когда фото реально открылось. Иначе в списке :has(img) прятал заглушку, а lazy-картинка так и не грузилась. */
+.ph:has(> .ph-img.ph-ok) > .ph-fallback{opacity:0;visibility:hidden;pointer-events:none}
 .ph-svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54%;height:54%;display:block}
 .ph-ini{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-weight:750;letter-spacing:.04em;color:rgba(255,255,255,.94);line-height:1;z-index:3}
 .ph:has(> .ph-img) .ph-ini{display:none}
@@ -1050,18 +1055,24 @@ input,textarea,select{caret-color:var(--accent)}
 .list-busy{display:flex;align-items:center;justify-content:center;gap:10px;padding:28px 12px;color:var(--muted)}
 
 .home-club{
-  margin-top:12px;padding:12px
+  margin-top:0;padding:16px 14px 14px
 }
-.home-club h2{margin:0 0 6px;font-size:var(--fs-name)}
-.home-club p{margin:0 0 8px;color:var(--muted);font-size:var(--fs-body);line-height:1.45}
-.home-club p:last-child{margin:0}
-.home-links{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.home-link{
+.home-club-kicker{
+  margin:0 0 6px;font-size:var(--fs-label);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)
+}
+.home-club h2{margin:0 0 8px;font-size:18px;font-weight:750;letter-spacing:-.02em;line-height:1.2}
+.home-club p{margin:0 0 8px;color:var(--muted);font-size:var(--fs-body);line-height:1.5}
+.home-club .home-club-lead{color:var(--text);font-size:13px}
+.home-club p:last-of-type{margin-bottom:0}
+.home-outs{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.home-out{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:10px 12px;border-radius:12px;border:1px solid var(--line);
-  background:rgba(255,255,255,.03);color:var(--text);text-decoration:none;font-size:var(--fs-body)
+  padding:11px 12px;border-radius:12px;border:1px solid rgba(70,224,214,.32);
+  background:rgba(70,224,214,.07);color:var(--accent);text-decoration:none;
+  font-size:var(--fs-body);font-weight:650
 }
-.home-link span{color:var(--muted);font-size:var(--fs-meta)}
+.home-out small{color:var(--muted);font-weight:550;font-size:var(--fs-meta)}
+.home-links{display:none}
 
 
 

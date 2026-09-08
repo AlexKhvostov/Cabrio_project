@@ -1,6 +1,6 @@
 // Общие куски больших карточек: поля, пустые значения, ссылка на связанный объект
 
-import { phCar, phUser } from './media.js?v=cabrio15'
+import { phCar, phUser } from './media.js?v=cabrio18'
 
 export function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g, s=>({

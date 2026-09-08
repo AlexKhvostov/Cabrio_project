@@ -5,13 +5,14 @@
  * Зачем отдельный метод: раньше главная скачивала все списки пользователей,
  * машин и событий только чтобы показать три числа. Так нельзя при росте клуба.
  *
-     * Ответ: { success, data: { users, cars_active, events } }
+     * Ответ: { success, data: { users, cars_active, events, cities, on_map } }
      * users — роли user и выше, без гостей чата и внешних.
  */
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Car.php';
 require_once __DIR__ . '/../models/Event.php';
+require_once __DIR__ . '/../models/UserLocation.php';
 
 class StatsController extends BaseController
 {
@@ -26,12 +27,19 @@ class StatsController extends BaseController
                 return;
             }
 
+            $liveMin = (int)(getenv('MAP_LIVE_TIME_MIN') ?: getenv('map_live_time_min') ?: 60);
+            $cities = 0;
+            $onMap = 0;
+            try { $cities = User::countCities(); } catch (Throwable $e) {}
+            try { $onMap = UserLocation::countLive($liveMin ?: 60); } catch (Throwable $e) {}
             $this->json([
                 'success' => true,
                 'data' => [
                     'users' => User::countRegistered(),
                     'cars_active' => Car::countActive(),
                     'events' => Event::countAll(),
+                    'cities' => $cities,
+                    'on_map' => $onMap,
                 ],
                 'meta' => $this->getRequestInfo()
             ]);

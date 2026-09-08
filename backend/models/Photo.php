@@ -136,6 +136,7 @@ class Photo {
             'urls' => [
                 'medium' => UrlHelper::buildUploadsUrlSized($row['url'], 'medium'),
                 'mini' => UrlHelper::buildUploadsUrlSized($row['url'], 'mini'),
+                'orig' => UrlHelper::buildUploadsUrl($row['url']),
             ],
             'description' => $row['description'],
         ];

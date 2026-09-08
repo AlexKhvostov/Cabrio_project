@@ -1,6 +1,6 @@
 // Страница «Профиль» — та же карточка человека, те же кнопки Изменить / Отмена / Сохранить
 
-import { phUser } from './media.js?v=cabrio15'
+import { phUser, liveTelegramPhotoUrl, selfAvatarFallbacks } from './media.js?v=cabrio18'
 import {
   escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, bindRelLinks, headerActions, openPhotoViewer
 } from './sheet.js?v=write1'
@@ -86,7 +86,13 @@ export async function initProfilePage() {
     const avatarEl = document.getElementById('profileAvatar')
     let isEditing = false
     if (avatarEl) {
-      avatarEl.innerHTML = phUser(d, personIni(d), 'orig', true)
+      const live = liveTelegramPhotoUrl()
+      const withTg = {
+        ...d,
+        telegram_photo_url: live || d.telegram_photo_url,
+        _fallbacks: selfAvatarFallbacks()
+      }
+      avatarEl.innerHTML = phUser(withTg, personIni(d), 'medium', true)
       avatarEl.addEventListener('click', () => {
         if (isEditing) return
         const url = d.photo?.urls?.medium || d.photo?.url || ''
@@ -165,7 +171,11 @@ export async function initProfilePage() {
           Object.entries(readTelegramUser()).forEach(([k,v])=>{ if(v!==undefined) fd.append(k, v) })
           const res = await fetch(`${getApiRoot()}/routes/api.php?route=${encodeURIComponent('/api/photos')}`, { method:'POST', body: fd }).then(r=>r.json().catch(()=>null))
           if (!res || res.success === false) { alert((res && res.error && res.error.message) || 'Не удалось загрузить'); return }
-          if (avatarEl) avatarEl.innerHTML = phUser({ photo: res.data }, personIni(d), 'medium', true)
+          if (avatarEl) avatarEl.innerHTML = phUser({
+            photo: res.data,
+            telegram_photo_url: liveTelegramPhotoUrl() || d.telegram_photo_url,
+            _fallbacks: selfAvatarFallbacks()
+          }, personIni(d), 'medium', true)
           d.photo = res.data
           try { window.CabrioAPI?.invalidateMe?.() } catch {}
           try { window.CabrioUI?.setNavAvatar?.(res.data?.urls?.medium || res.data?.url) } catch {}

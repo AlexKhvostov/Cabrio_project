@@ -71,8 +71,13 @@ class UrlHelper {
         $path = self::normalizeDbPath($trimmed) ?? '';
         $size = in_array($size, ['orig','medium','mini'], true) ? $size : 'orig';
 
-        // Всегда возвращаем URL на запрошенный размер (orig|medium|mini)
-        // Если файл отсутствует — клиент получит 404, что корректно и заметно при отладке
+        // Нет превью (часто HEIC/ошибка GD) — отдаём оригинал, иначе в приложении пустая рамка
+        if ($size !== 'orig') {
+            $onDisk = self::toAbsoluteUploadsPath($path, $size);
+            if (!is_file($onDisk)) {
+                $size = 'orig';
+            }
+        }
         return self::getUploadsBaseUrlWithSize($size) . '/' . $path;
     }
 

@@ -452,6 +452,7 @@ class User {
                 'urls' => [
                     'medium' => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'medium'),
                     'mini'   => UrlHelper::buildUploadsUrlSized($row['photo_url'], 'mini'),
+                    'orig'   => UrlHelper::buildUploadsUrl($row['photo_url']),
                 ],
                 'description' => $row['photo_description'],
             ] : null;
@@ -485,8 +486,20 @@ class User {
     }
 
     /**
+     * Сколько разных городов указано у людей клуба (роли user и выше).
+     */
+    public static function countCities()
+    {
+        $pdo = Database::getInstance();
+        $sql = "SELECT COUNT(DISTINCT TRIM(u.city))
+                FROM users u
+                INNER JOIN ref_roles r ON r.id = u.role_id
+                WHERE r.code IN ('user','member','moderator','admin')
+                  AND u.city IS NOT NULL AND TRIM(u.city) <> ''";
+        return (int)$pdo->query($sql)->fetchColumn();
+    }
+    /**
      * Цифра «участники» на главной: роли user и выше.
-     * Гостей чата и внешних не считаем — иначе в статистике 130+ при ~80 людях клуба.
      */
     public static function countRegistered()
     {

@@ -327,7 +327,7 @@ function setActiveNav(){
 }
 setActiveNav()
 
-// Аккуратная подстановка круглого аватара в навбаре с локальным кэшем (TTL)
+// Аватар в меню: сначала фото клуба, если не открылось — фото из Telegram
 ;(function(){
   try {
     const wrapEl = document.querySelector('.nav-icon .nav-avatar-wrap')
@@ -341,39 +341,75 @@ setActiveNav()
       try { const raw = localStorage.getItem(KEY); if(!raw) return null; const o = JSON.parse(raw); if (o && o.exp && now()>o.exp) { localStorage.removeItem(KEY); return null } return o?.url || null } catch { return null }
     }
     const writeCache = (url, ttlMs) => { try { localStorage.setItem(KEY, JSON.stringify({ url, exp: ttlMs ? now()+ttlMs : null })) } catch {} }
-    const show = (url) => {
-      if (!url) {
-        try { if (emojiEl) { emojiEl.style.display = ''; } if (wrapEl) { wrapEl.style.display = 'none'; } } catch {}
-        return
-      }
-      if (imgEl.src === url) return
-      imgEl.onload = () => { try { wrapEl.style.display = ''; if (emojiEl) emojiEl.style.display = 'none' } catch {} }
-      imgEl.onerror = () => { try { if (emojiEl) { emojiEl.style.display = ''; } if (wrapEl) { wrapEl.style.display = 'none'; } } catch {} }
-      imgEl.src = url
+    const clearCache = () => { try { localStorage.removeItem(KEY) } catch {} }
+    const liveTgPhoto = () => {
+      try { return String(window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || '') } catch { return '' }
     }
-
-    window.CabrioUI = window.CabrioUI || {}
-    window.CabrioUI.setNavAvatar = (url) => { show(url); writeCache(url, 6*60*60*1000) }
-
-    // 0) Мгновенно из локального кэша (если есть)
-    const cached = readCache()
-    if (cached) {
-      try { wrapEl.style.display = ''; if (emojiEl) emojiEl.style.display = 'none' } catch {}
-      imgEl.src = cached
-    } else {
-      // Нет кэша — сразу показываем силуэт
+    const uniqUrls = (list) => {
+      const out = []
+      const seen = {}
+      list.forEach((u) => {
+        const s = String(u || '').trim()
+        if (!s || seen[s]) return
+        seen[s] = true
+        out.push(s)
+      })
+      return out
+    }
+    const showPlaceholder = () => {
       try { if (emojiEl) emojiEl.style.display = ''; if (wrapEl) wrapEl.style.display = 'none' } catch {}
     }
 
-    // 1) Обновляем из backend профиля (и обновляем кэш)
+    let queue = []
+    let qIndex = 0
+    let gen = 0
+
+    const tryNext = (myGen) => {
+      if (myGen !== gen) return
+      if (qIndex >= queue.length) { showPlaceholder(); return }
+      const url = queue[qIndex++]
+      imgEl.onload = () => {
+        if (myGen !== gen) return
+        try { wrapEl.style.display = ''; if (emojiEl) emojiEl.style.display = 'none' } catch {}
+        writeCache(url, 6*60*60*1000)
+      }
+      imgEl.onerror = () => {
+        if (myGen !== gen) return
+        if (readCache() === url) clearCache()
+        tryNext(myGen)
+      }
+      imgEl.src = url
+    }
+
+    const loadQueue = (urls) => {
+      const myGen = ++gen
+      queue = uniqUrls(urls)
+      qIndex = 0
+      if (!queue.length) { showPlaceholder(); return }
+      tryNext(myGen)
+    }
+
+    const urlsFromMe = (me) => {
+      const d = me?.data || me || {}
+      const p = d.photo || {}
+      const u = p.urls || {}
+      return [u.medium, u.orig, p.url, u.mini, d.telegram_photo_url, liveTgPhoto()]
+    }
+
+    window.CabrioUI = window.CabrioUI || {}
+    window.CabrioUI.setNavAvatar = (url) => { loadQueue([url, liveTgPhoto()]) }
+
+    const cached = readCache()
+    if (cached) loadQueue([cached, liveTgPhoto()])
+    else showPlaceholder()
+
     ;(async () => {
       try {
         const me = await (window.CabrioAPI?.getMe ? window.CabrioAPI.getMe() : Promise.reject())
-        const url = me?.data?.photo?.urls?.medium || me?.data?.photo?.urls?.mini || me?.data?.photo?.url || me?.data?.telegram_photo_url || null
-        if (url) { show(url); writeCache(url, 6*60*60*1000) }
+        loadQueue(urlsFromMe(me))
       } catch {
-        // 2) Фолбэк: Telegram avatar (часовой TTL)
-        try { const tg = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url; if (tg && !cached) { const u = String(tg); show(u); writeCache(u, 60*60*1000) } } catch {}
+        const tg = liveTgPhoto()
+        if (tg) loadQueue([tg])
       }
     })()
   } catch {}

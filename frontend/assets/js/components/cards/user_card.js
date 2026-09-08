@@ -2,7 +2,7 @@
 
 
 
-import { phUser, phCar } from '../media.js?v=cabrio14'
+import { phUser, phCar, liveTelegramPhotoUrl, selfAvatarFallbacks } from '../media.js?v=cabrio18'
 
 
 
@@ -100,11 +100,23 @@ export function renderUserCard(member, options = {}){
 
 
 
+  let avatarSrc = member
+  try {
+    const myTg = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
+    if (myTg && member.telegram_id && String(member.telegram_id) === String(myTg)) {
+      avatarSrc = {
+        ...member,
+        telegram_photo_url: liveTelegramPhotoUrl() || member.telegram_photo_url,
+        _fallbacks: selfAvatarFallbacks()
+      }
+    }
+  } catch {}
+
   return `
 
   <div class="member-card" data-id="${member.id}">
 
-    ${phUser(member, initials, 'medium')}
+    ${phUser(avatarSrc, initials, 'medium', true)}
 
     <div class="member-info">
 

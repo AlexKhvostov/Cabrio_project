@@ -1,6 +1,6 @@
 // Большая карточка участника. Пустые поля на месте. Авто — ссылки на полную карточку, не плитки списка.
 
-import { phUser } from '../components/media.js?v=cabrio15'
+import { phUser } from '../components/media.js?v=cabrio18'
 import {
   escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, bindRelLinks, headerActions, openPhotoViewer,
   tgUsername, isSameTelegramUser, openTelegramDialog

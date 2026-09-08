@@ -80,6 +80,16 @@ class UserLocation
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
+    /** Сколько точек «живые» на карте — для цифры на главной. */
+    public static function countLive($minutes = 60)
+    {
+        $minutes = max(1, (int)$minutes);
+        $db = Database::getInstance();
+        $sql = "SELECT COUNT(*) FROM user_locations
+                WHERE updated_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL {$minutes} MINUTE)";
+        return (int)$db->query($sql)->fetchColumn();
+    }
+
     private $field;
     private $operator;
     private $value;

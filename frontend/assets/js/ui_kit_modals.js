@@ -1,7 +1,7 @@
 // Макеты модалок для UI Kit — эталон до внедрения в разделы приложения.
 // Используем те же классы и функции sheet.js, что и в боевых модалках.
 
-import { phUser, phCar } from './components/media.js?v=cabrio14'
+import { phUser, phCar } from './components/media.js?v=cabrio18'
 import {
   escapeHtml, viewVal, sheetField, renderPersonLink, renderCarLink, headerActions
 } from './components/sheet.js?v=write1'
