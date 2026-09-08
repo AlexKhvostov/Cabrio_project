@@ -7,6 +7,7 @@ require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../utils/UrlHelper.php';
 require_once __DIR__ . '/Status.php';
 require_once __DIR__ . '/LinkEventParticipant.php';
+require_once __DIR__ . '/User.php';
 
 class Event {
     public $id;
@@ -118,6 +119,8 @@ class Event {
         $sql = 'SELECT e.*,
                     et.code AS _et_code, et.name AS _et_name,
                     u.first_name_app AS _org_first, u.last_name_app AS _org_last, u.username AS _org_username,
+                    u.telegram_photo_url AS _org_tg,
+                    up.id AS _org_photo_id, up.url AS _org_photo_url,
                     s.code AS _st_code, s.name AS _st_name,
                     p.id AS photo_id, p.url AS photo_url, p.description AS photo_description
              FROM events e
@@ -127,6 +130,11 @@ class Event {
              LEFT JOIN photos p ON p.id = (
                  SELECT id FROM photos
                  WHERE entity_type = "event" AND entity_id = e.id
+                 ORDER BY id DESC LIMIT 1
+             )
+             LEFT JOIN photos up ON up.id = (
+                 SELECT id FROM photos
+                 WHERE entity_type = "user" AND entity_id = u.id
                  ORDER BY id DESC LIMIT 1
              )';
         $params = [];
@@ -194,6 +202,7 @@ class Event {
             'first_name' => $row['_org_first'],
             'last_name' => $row['_org_last'],
             'username' => $row['_org_username'],
+            'photo' => User::photoFromJoin($row['_org_photo_id'] ?? null, $row['_org_photo_url'] ?? null, $row['_org_tg'] ?? null),
         ] : null;
         $event['status'] = [
             'id' => $row['status_id'],
@@ -212,6 +221,7 @@ class Event {
         unset(
             $event['_et_code'], $event['_et_name'],
             $event['_org_first'], $event['_org_last'], $event['_org_username'],
+            $event['_org_tg'], $event['_org_photo_id'], $event['_org_photo_url'],
             $event['_st_code'], $event['_st_name'],
             $event['photo_id'], $event['photo_url'], $event['photo_description']
         );

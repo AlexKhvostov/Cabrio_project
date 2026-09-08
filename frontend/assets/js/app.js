@@ -24,14 +24,14 @@ function lockPageScroll() {
 
 function setAppHeight() {
   const tg = window.Telegram && window.Telegram.WebApp
-  const rawH = (tg && (Number(tg.viewportStableHeight) || Number(tg.viewportHeight)))
-    || window.innerHeight
-    || document.documentElement.clientHeight
-    || 700
-  let height = Math.max(240, Math.round(rawH))
+  const stable = Number(tg?.viewportStableHeight) || 0
+  const vis = Number(tg?.viewportHeight) || 0
+  const win = window.innerHeight || document.documentElement.clientHeight || 700
+  // Берём устойчивую высоту Mini App, не ту что Telegram даёт при открытой клавиатуре
+  let height = Math.round(stable > 240 ? stable : Math.max(vis, win, 240))
   const typing = isTypingField()
-  // Клавиатура сжимает viewport — из-за этого экран чернел. Высоту приложения не трогаем.
   if (typing && lastFullHeight >= 240) height = lastFullHeight
+  else if (lastFullHeight >= 240 && height < lastFullHeight - 80 && typing) height = lastFullHeight
   else lastFullHeight = height
   document.documentElement.style.setProperty('--app-height', height + 'px')
 
@@ -66,36 +66,47 @@ setAppHeight()
 window.CabrioUI = window.CabrioUI || {}
 window.CabrioUI.updateAppHeight = setAppHeight
 
-// Клавиатура: двигаем только когда поле в фокусе. Иначе Telegram WebView даёт ложный «зазор» и карточка схлопывается.
+// Клавиатура: приложение не сжимаем. Поле прокручиваем в верхнюю часть видимого окна.
+function scrollFieldUp(el){
+  if (!el || typeof el.getBoundingClientRect !== 'function') return
+  try {
+    const vv = window.visualViewport
+    const visTop = vv ? vv.offsetTop : 0
+    const visH = vv ? vv.height : window.innerHeight
+    const want = visTop + Math.round(Math.max(48, visH * 0.16))
+    const top = el.getBoundingClientRect().top
+    const delta = top - want
+    const box = el.closest('.modal-body') || el.closest('.page')
+    if (box && Math.abs(delta) > 6) box.scrollTop += delta
+  } catch {}
+}
+
 function applyKeyboardInset(){
-  const el = document.activeElement
-  const focused = !!(el && el.matches?.('input,textarea,select'))
-  let kb = 0
-  if (focused) {
-    try {
-      const vv = window.visualViewport
-      if (vv) kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
-    } catch {}
-    if (kb < 80) kb = 0
-    lockPageScroll()
-    const box = el.closest?.('.modal-body')
-    if (box) {
-      try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }) } catch {}
+  const focused = isTypingField()
+  let pad = 0
+  try {
+    const vv = window.visualViewport
+    if (focused && vv && lastFullHeight >= 240) {
+      pad = Math.max(0, Math.round(lastFullHeight - vv.height - (vv.offsetTop || 0)))
     }
-  }
-  document.documentElement.style.setProperty('--kb', kb + 'px')
+  } catch {}
+  document.documentElement.style.setProperty('--kb', '0px')
+  document.documentElement.style.setProperty('--kb-scroll-pad', pad + 'px')
   document.documentElement.classList.toggle('kb-open', focused)
+  if (focused) lockPageScroll()
 }
 try {
-  window.visualViewport?.addEventListener('resize', applyKeyboardInset)
-  window.visualViewport?.addEventListener('scroll', applyKeyboardInset)
+  window.visualViewport?.addEventListener('resize', () => {
+    applyKeyboardInset()
+    if (isTypingField()) scrollFieldUp(document.activeElement)
+  })
 } catch {}
 document.addEventListener('focusin', (e)=>{
   const t = e.target
   if (!t || !t.matches?.('input,textarea,select')) return
   t.classList.add('field-focus')
-  setTimeout(applyKeyboardInset, 50)
-  setTimeout(applyKeyboardInset, 320)
+  setTimeout(() => { applyKeyboardInset(); scrollFieldUp(t) }, 50)
+  setTimeout(() => { applyKeyboardInset(); scrollFieldUp(t) }, 320)
 })
 document.addEventListener('focusout', (e)=>{
   e.target?.classList?.remove('field-focus')
@@ -167,7 +178,15 @@ try {
     } catch {}
   }
   askFullscreen()
-  tg?.onEvent?.('viewportChanged', () => { applyKeyboardInset(); setAppHeight() })
+  tg?.onEvent?.('viewportChanged', () => {
+    if (isTypingField()) {
+      applyKeyboardInset()
+      scrollFieldUp(document.activeElement)
+      return
+    }
+    applyKeyboardInset()
+    setAppHeight()
+  })
   tg?.onEvent?.('fullscreenChanged', setAppHeight)
   tg?.onEvent?.('safeAreaChanged', setAppHeight)
   tg?.onEvent?.('contentSafeAreaChanged', setAppHeight)
@@ -290,7 +309,7 @@ async function ensureModalScript(kind){
   const file = ({ car:'car_modal.js', user:'user_modal.js', event:'event_modal.js', guide:'guide_modal.js' })[kind]
   const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
   try {
-    await import(`${front}/assets/js/modals/${file}?v=edit-same1`)
+    await import(`${front}/assets/js/modals/${file}?v=kb-nav1`)
   } catch (err) {
     console.error('modal import', kind, err)
   }

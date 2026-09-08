@@ -4,7 +4,7 @@ import { phEvent, photoUrl } from '../components/media.js?v=cabrio21'
 import { hintBubble } from '../components/hints.js?v=tip2'
 import {
   escapeHtml, viewVal, sheetField, renderPersonLink, bindRelLinks, headerActions, openPhotoViewer
-} from '../components/sheet.js?v=write1'
+} from '../components/sheet.js?v=tags2'
 
 const INVITE_HINT = 'Галка снята — открытая встреча: любой участник клуба видит её в списке и может ответить «еду».\n\nГалка стоит — встреча по приглашению: так помечаем закрытый формат. Список приглашённых подключим следующим шагом, отметка уже сохраняется в карточке.'
 
@@ -102,6 +102,7 @@ export function openEventModal(event, options = {}){
           </div>
           <div class="photo-upload-overlay" id="eventUploadOverlay" style="display:none"><div class="spinner"></div><span>Загрузка…</span></div>
         </div>
+        <div id="eventNameRow"></div>
         <div id="eventOrg"></div>
         <div class="sheet-section-title">Когда и где</div>
         <div class="sheet-grid" id="eventWhen"></div>
@@ -130,10 +131,15 @@ export function openEventModal(event, options = {}){
     } else {
       inner.innerHTML = phEvent(data, 'medium', true)
     }
-    overlay.querySelector('#eventCoverTitle').innerHTML = (isEditing && !isNew)
-      ? `<input data-edit-key="title" class="sheet-photo-title-input" value="${escapeHtml(data.title||'')}">`
-      : escapeHtml(data.title || 'Новое событие')
-    overlay.querySelector('#eventCoverMeta').textContent = data.city || data.location || ''
+    overlay.querySelector('#eventCoverTitle').textContent = (isEditing && !isNew) ? '' : (data.title || 'Новое событие')
+    overlay.querySelector('#eventCoverMeta').textContent = (isEditing && !isNew) ? '' : (data.city || data.location || '')
+    overlay.querySelector('.sheet-photo-caption')?.classList.toggle('is-off', !!(isEditing && !isNew))
+    const nameRow = overlay.querySelector('#eventNameRow')
+    if (nameRow) {
+      nameRow.innerHTML = (isEditing && !isNew)
+        ? sheetField('Название', `<input data-edit-key="title" class="filter-input" value="${escapeHtml(data.title||'')}">`, 'full')
+        : ''
+    }
   }
 
   function renderAll(){

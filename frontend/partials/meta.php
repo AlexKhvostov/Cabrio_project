@@ -4,7 +4,7 @@ require_once __DIR__ . '/urls.php';
 
 function render_meta(string $title = 'CabrioRide') {
   echo '<meta charset="UTF-8">';
-  echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">';
+  echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">';
   echo '<meta name="format-detection" content="telephone=no">';
   echo '<meta name="theme-color" content="#070b12">';
   echo '<title>' . htmlspecialchars($title) . '</title>';
@@ -67,7 +67,30 @@ function cabrio_render_metrika(): void {
     for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
     k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
 })(window, document,\'script\',\'https://mc.yandex.ru/metrika/tag.js?id=' . $safe . '\', \'ym\');
-ym(' . $id . ', \'init\', {ssr:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+/* Не шлём location.href: в Mini App там длинный хвост Telegram (hash/query). */
+ym(' . $id . ', \'init\', {ssr:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true, defer:true});
+(function(){
+  var counterId = ' . $id . ';
+  function shortPageUrl(){
+    /* Адрес раздела без ? и # — короткая страница, без tgWebAppData */
+    var page = location.origin + location.pathname;
+    var login = "";
+    try {
+      var u = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
+      if (u && u.username) login = String(u.username).replace(/^@+/, "").trim();
+    } catch (e) {}
+    if (!login) return page;
+    return page + "?utm_source=telegram&utm_medium=miniapp&utm_campaign=cabrioapp&utm_content=" + encodeURIComponent(login);
+  }
+  function sendHit(){
+    if (sendHit.done) return;
+    sendHit.done = true;
+    ym(counterId, "hit", shortPageUrl());
+  }
+  /* Скрипт Telegram в head ниже: к DOMContentLoaded username уже известен (или его нет). */
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sendHit);
+  else sendHit();
+})();
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/' . $safe . '" style="position:absolute;left:-9999px" alt=""></div></noscript>
 <!-- /Yandex.Metrika counter -->';

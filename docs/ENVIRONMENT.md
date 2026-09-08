@@ -183,6 +183,7 @@ TELEGRAM_API_URL=https://api.telegram.org
 TELEGRAM_APP_URL=https://t.me/your_bot
 
 # Яндекс.Метрика Mini App: 112389999. Лендинг клуба — другой счётчик (102530559), не смешивать.
+# В хит уходит короткий URL страницы (без хвоста Telegram). Если есть @username — метки utm_source=telegram, utm_medium=miniapp, utm_campaign=cabrioapp, utm_content=логин без собаки.
 YANDEX_METRIKA_ID=112389999
 ```
 

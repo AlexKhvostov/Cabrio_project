@@ -2,8 +2,9 @@
 
 import { phPlace, photoUrl } from '../components/media.js?v=cabrio21'
 import {
-  escapeHtml, viewVal, sheetField, headerActions, openPhotoViewer, renderLabelChips, labelCode
-} from '../components/sheet.js?v=tags1'
+  escapeHtml, viewVal, sheetField, headerActions, openPhotoViewer, renderLabelChips, labelCode,
+  renderPersonLink, bindRelLinks
+} from '../components/sheet.js?v=tags2'
 
 function readTelegramUser(){
   try{
@@ -96,6 +97,7 @@ export function openGuideModal(place, options = {}){
           </div>
           <div class="photo-upload-overlay" id="guideUploadOverlay" style="display:none"><div class="spinner"></div><span>Загрузка…</span></div>
         </div>
+        <div id="guideAuthor"></div>
         <div class="sheet-grid" id="guideMain"></div>
         <div id="guideReviews"></div>
       </div>
@@ -110,6 +112,7 @@ export function openGuideModal(place, options = {}){
   overlay.querySelector('[data-create-cancel]')?.addEventListener('click', close)
   overlay.querySelector('[data-create-save]')?.addEventListener('click', () => savePlace())
   document.body.appendChild(overlay)
+  bindRelLinks(overlay)
   paintHeader()
   renderAll()
 
@@ -120,11 +123,10 @@ export function openGuideModal(place, options = {}){
     } else {
       inner.innerHTML = phPlace(data, 'medium', true)
     }
-    overlay.querySelector('#guideCoverTitle').innerHTML = (isEditing && !isNew)
-      ? `<input data-edit-key="name" class="sheet-photo-title-input" value="${escapeHtml(data.name||'')}">`
-      : escapeHtml(data.name || (isNew ? 'Новая карточка' : 'Карточка'))
+    overlay.querySelector('#guideCoverTitle').textContent = (isEditing && !isNew) ? '' : (data.name || (isNew ? 'Новая карточка' : 'Карточка'))
     const shown = (isEditing ? draftLabels : (data.labels || []).map(labelCode)).filter(Boolean)
-    overlay.querySelector('#guideCoverMeta').textContent = shown.slice(0, 4).map(n => '#' + n).join(' ')
+    overlay.querySelector('#guideCoverMeta').textContent = (isEditing && !isNew) ? '' : shown.slice(0, 4).map(n => '#' + n).join(' ')
+    overlay.querySelector('.sheet-photo-caption')?.classList.toggle('is-off', !!(isEditing && !isNew))
     const badge = overlay.querySelector('#guideRateBadge')
     const avg = data.rating || {}
     if (badge) {
@@ -203,6 +205,10 @@ export function openGuideModal(place, options = {}){
 
   function renderAll(){
     cover()
+    const authorBox = overlay.querySelector('#guideAuthor')
+    if (authorBox) {
+      authorBox.innerHTML = (!isNew && data.author) ? renderPersonLink(data.author) : ''
+    }
     const inp = (key, extra='') => `<input data-edit-key="${key}" class="filter-input" value="${escapeHtml(data[key]||'')}" ${extra}>`
     const main = overlay.querySelector('#guideMain')
     if (isNew) {
@@ -214,6 +220,7 @@ export function openGuideModal(place, options = {}){
       bindLabels()
     } else {
       main.innerHTML = [
+        ...(isEditing ? [sheetField('Название', inp('name'), 'full')] : []),
         sheetField('Ярлыки', labelsInner()),
         sheetField('Описание', isEditing
           ? `<textarea data-edit-key="description" class="filter-input" rows="1">${escapeHtml(data.description||'')}</textarea>`

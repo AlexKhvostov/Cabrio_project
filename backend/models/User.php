@@ -510,4 +510,32 @@ class User {
                 WHERE r.code IN ('user','member','moderator','admin')";
         return (int)$pdo->query($sql)->fetchColumn();
     }
+
+    /**
+     * Фото человека из JOIN (фото клуба или картинка Telegram), как в списке участников.
+     */
+    public static function photoFromJoin($photoId, $photoUrl, $telegramUrl)
+    {
+        if (!empty($photoId) && !empty($photoUrl)) {
+            return [
+                'id' => (int)$photoId,
+                'url' => UrlHelper::buildUploadsUrl($photoUrl),
+                'urls' => [
+                    'medium' => UrlHelper::buildUploadsUrlSized($photoUrl, 'medium'),
+                    'mini' => UrlHelper::buildUploadsUrlSized($photoUrl, 'mini'),
+                    'orig' => UrlHelper::buildUploadsUrl($photoUrl),
+                ],
+            ];
+        }
+        $tg = trim((string)$telegramUrl);
+        if ($tg !== '') {
+            return [
+                'id' => null,
+                'url' => $tg,
+                'urls' => ['medium' => $tg, 'mini' => $tg],
+                'description' => 'telegram',
+            ];
+        }
+        return null;
+    }
 } 

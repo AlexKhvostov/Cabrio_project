@@ -21,7 +21,7 @@ function readTelegramUser(){
 
 export async function openUserModal(member){
   const overlay = document.createElement('div')
-  overlay.className = 'modal-overlay'
+  overlay.className = 'modal-overlay modal-above-nav'
   const cars = Array.isArray(member.cars) ? member.cars : []
   const fullName = personName(member) || 'Без имени'
   const roleLabel = member.role?.name || member.role?.code || ''

@@ -26,6 +26,7 @@
  */
 require_once __DIR__ . '/../utils/Database.php';
 require_once __DIR__ . '/../utils/UrlHelper.php';
+require_once __DIR__ . '/User.php';
 class GuideObject {
     public $id;
     public $guide_object_type_id;
@@ -143,6 +144,8 @@ class GuideObject {
                     got.code as _type_code, got.name as _type_name,
                     gok.code as _kind_code, gok.name as _kind_name,
                     u.first_name_app as author_first_name, u.last_name_app as author_last_name,
+                    u.username as author_username, u.telegram_photo_url as author_tg,
+                    up.id as author_photo_id, up.url as author_photo_url,
                     s.code as _st_code, s.name as _st_name,
                     p.id as photo_id, p.url as photo_url, p.description as photo_description
              FROM guide_objects go
@@ -153,6 +156,11 @@ class GuideObject {
              LEFT JOIN photos p ON p.id = (
                  SELECT id FROM photos
                  WHERE entity_type = "guide_object" AND entity_id = go.id
+                 ORDER BY id DESC LIMIT 1
+             )
+             LEFT JOIN photos up ON up.id = (
+                 SELECT id FROM photos
+                 WHERE entity_type = "user" AND entity_id = u.id
                  ORDER BY id DESC LIMIT 1
              )';
         $params = [];
@@ -198,6 +206,8 @@ class GuideObject {
             'id' => (int)$row['add_user_id'],
             'first_name' => $row['author_first_name'],
             'last_name' => $row['author_last_name'],
+            'username' => $row['author_username'] ?? null,
+            'photo' => User::photoFromJoin($row['author_photo_id'] ?? null, $row['author_photo_url'] ?? null, $row['author_tg'] ?? null),
         ] : null;
         $guideObject['status'] = [
             'id' => $row['status_id'],
@@ -217,6 +227,8 @@ class GuideObject {
             $guideObject['_type_code'], $guideObject['_type_name'],
             $guideObject['_kind_code'], $guideObject['_kind_name'],
             $guideObject['author_first_name'], $guideObject['author_last_name'],
+            $guideObject['author_username'], $guideObject['author_tg'],
+            $guideObject['author_photo_id'], $guideObject['author_photo_url'],
             $guideObject['_st_code'], $guideObject['_st_name'],
             $guideObject['photo_id'], $guideObject['photo_url'], $guideObject['photo_description']
         );

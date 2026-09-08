@@ -51,7 +51,9 @@
 html,body{
   margin:0;padding:0;color:var(--text);font-family:var(--font);
   font-size:var(--fs-body);line-height:1.4;
-  overflow-x:hidden;width:100%;max-width:100%;height:100%;overflow:hidden;
+  overflow-x:hidden;width:100%;max-width:100%;
+  height:var(--app-height, 100%);
+  overflow:hidden;
   background:
     radial-gradient(760px 480px at 5% -10%, rgba(70,224,214,.15), transparent 52%),
     radial-gradient(660px 420px at 100% -6%, rgba(126,143,255,.12), transparent 48%),
@@ -112,7 +114,10 @@ html.tg-fs .home-kicker,
 html:not(.tg-webapp) .home-kicker{display:none}
 
 .bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;
+  position:fixed;left:0;right:0;
+  /* Не bottom:0 — иначе Telegram поднимает меню вместе с клавиатурой */
+  top:calc(var(--app-height, 100dvh) - var(--nav-safe));
+  bottom:auto;
   height:var(--nav-safe);
   background:linear-gradient(180deg, rgba(11,16,24,.72) 0%, rgba(11,16,24,.94) 100%);
   border-top:1px solid var(--line);
@@ -425,43 +430,28 @@ html{color-scheme: dark}
 .cars-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 @media (max-width:480px){.cars-grid{gap:6px}}
 
-/* Modal (универсальный) — карточка сразу под шапкой Telegram, не снизу экрана */
+/* Модалка всегда до нижнего меню, меню не перекрываем. Высота от --app-height, не от сжатого viewport клавиатуры. */
 .modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.8);
-  display:flex;align-items:flex-start;justify-content:center;z-index:1000;
-  padding:calc(10px + var(--safe-top)) 10px 12px;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-}
-/* События и гид: модалка до нижнего меню, меню всегда выше (z-index 100) */
-.modal-overlay.modal-above-nav,
-.modal-overlay.modal-create{
-  bottom:var(--nav-safe);
-  z-index:90;
-  padding-bottom:10px;
+  position:fixed;left:0;right:0;top:0;bottom:auto;
+  height:calc(var(--app-height, 100dvh) - var(--nav-safe));
+  background:rgba(0,0,0,.8);
+  display:flex;align-items:stretch;justify-content:center;z-index:90;
+  padding:calc(10px + var(--safe-top)) 10px 10px;
   overflow:hidden;
-  align-items:stretch;
 }
-.modal-overlay.modal-above-nav .modal-content,
-.modal-content.create-sheet{
+.modal-overlay .modal-content{
   max-height:100%;
   height:100%;
   max-width:520px;
   overflow:hidden;
 }
-.modal-overlay.modal-above-nav .modal-body{
-  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch
+.modal-overlay .modal-body{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:calc(12px + var(--kb-scroll-pad, 0px));
 }
 .modal-overlay.modal-stack{
-  z-index:96;
+  z-index:92;
   background:rgba(0,0,0,.55);
-  align-items:flex-start;
-  padding-bottom:calc(10px + var(--kb, 0px));
-  overflow-y:auto;-webkit-overflow-scrolling:touch
-}
-.modal-overlay.modal-stack .modal-content{
-  max-height:calc(100% - 8px);
-  height:auto;
-  margin-top:8px;
 }
 .modal-content.create-sheet .modal-header.create-head{
   background:rgba(12,18,28,.92);
@@ -1073,7 +1063,7 @@ html{color-scheme: dark}
 }
 .main-photo-compact:has(.photo-upload-fab) .sheet-photo-caption{padding-right:96px}
 .sheet-check{display:flex;align-items:center;gap:6px;margin:0;font-size:var(--fs-meta);color:var(--muted)}
-.sheet-photo-caption{position:absolute;left:0;right:0;bottom:0;z-index:2;pointer-events:none;padding:28px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.sheet-photo-caption.is-off{display:none}
 .sheet-photo-title{font-size:var(--fs-name);font-weight:750;letter-spacing:-.02em}
 .sheet-photo-title-input{
   pointer-events:auto;display:block;width:100%;max-width:100%;
@@ -1166,9 +1156,10 @@ html{color-scheme: dark}
   backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)
 }
 .sheet-card.modal-content{
-  max-width:420px;
-  max-height:calc(var(--app-height, 100dvh) - var(--safe-top) - 16px);
-  flex:0 1 auto;
+  max-width:520px;
+  max-height:100%;
+  height:100%;
+  flex:1 1 auto;
 }
 .modal-content.create-sheet.sheet-card{
   max-width:520px;

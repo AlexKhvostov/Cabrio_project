@@ -1,6 +1,6 @@
 // Общие куски больших карточек: поля, пустые значения, ссылка на связанный объект
 
-import { phCar, phUser } from './media.js?v=cabrio20'
+import { phCar, phUser, selfAvatarFallbacks } from './media.js?v=cabrio20'
 
 export function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g, s=>({
@@ -74,8 +74,15 @@ export function renderPersonLink(user){
   if (!user || !user.id) return ''
   const name = personName(user) || 'Участник'
   const meta = [user.username ? '@'+user.username : '', user.city || ''].filter(Boolean).join(' · ') || 'открыть карточку'
+  let src = user
+  try {
+    const me = Number(window.__ME_ID || 0)
+    if (me && Number(user.id) === me) {
+      src = Object.assign({}, user, { _fallbacks: selfAvatarFallbacks() })
+    }
+  } catch {}
   return `<button type="button" class="rel-link" data-user-id="${escapeHtml(user.id)}">
-    ${phUser(user, personIni(user), 'orig', true)}
+    ${phUser(src, personIni(user), 'orig', true)}
     <span class="rel-link-text">
       <span class="rel-link-title">${escapeHtml(name)}</span>
       <span class="rel-link-meta">${escapeHtml(meta)}</span>

@@ -119,22 +119,32 @@ function showFollowBtn(visible) {
 }
 
 function focusPerson(lat, lon, userId) {
+	const id = Number(userId);
+	if (!id) return;
+	if (focusPerson._lock && Date.now() - focusPerson._lock.at < 450 && focusPerson._lock.id === id) return;
+	focusPerson._lock = { at: Date.now(), id: id };
 	followMe = false;
 	const followBtn = document.getElementById('followMeBtn');
 	if (followBtn && !followBtn.hidden) followBtn.setAttribute('aria-pressed', 'false');
 	if (map && isFinite(lat) && isFinite(lon)) {
 		try { map.setCenter([lat, lon], Math.max(map.getZoom(), 14), { duration: 300, checkZoomRange: true }); } catch {}
 	}
-	if (userId && window.CabrioNav?.openUser) window.CabrioNav.openUser(userId);
+	if (window.CabrioNav && typeof window.CabrioNav.openUser === 'function') {
+		window.CabrioNav.openUser(id);
+		return;
+	}
+	showToast('Карточка сейчас не открылась, попробуйте ещё раз', 1800);
 }
 
 function markerOpts(contentLayout, zIndex) {
+	// Зона нажатия = видимая метка 36×48. Раньше было 1×1 — тап по фото не попадал в метку.
 	return {
 		iconLayout: 'default#imageWithContent',
 		iconImageHref: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-		iconImageSize: [1, 1],
+		iconImageSize: [36, 48],
+		iconImageOffset: [-18, -48],
 		iconContentLayout: contentLayout,
-		iconContentOffset: [0, 4],
+		iconContentOffset: [0, 0],
 		zIndex: zIndex || 5000,
 		hasBalloon: false,
 		openBalloonOnClick: false,
@@ -178,8 +188,13 @@ function ensureSelfPinPlacemark() {
 	if (!map || !window.ymaps) return;
 	if (selfPinPlacemark) return;
 	const contentLayout = createAvatarLayout((window.getSelfAvatarUrl ? window.getSelfAvatarUrl() : ''), 1, true, false, '#3b82f6');
-	selfPinPlacemark = new ymaps.Placemark([0, 0], {}, markerOpts(contentLayout, 10000));
-	selfPinPlacemark.events.add('click', () => showToast('Это вы', 1600));
+	selfPinPlacemark = new ymaps.Placemark([0, 0], { userId: currentUserId || 0, self: true }, markerOpts(contentLayout, 10000));
+	selfPinPlacemark.events.add('click', () => {
+		const coords = selfPinPlacemark.geometry.getCoordinates() || [];
+		const id = currentUserId || selfPinPlacemark.properties.get('userId');
+		if (id) focusPerson(coords[0], coords[1], id);
+		else showToast('Это вы', 1600);
+	});
 	map.geoObjects.add(selfPinPlacemark);
 }
 
@@ -194,6 +209,7 @@ function updateSelfMarker(lat, lon) {
 	ensureSelfPinPlacemark();
 	try {
 		selfPinPlacemark.geometry.setCoordinates([lat, lon]);
+		try { if (currentUserId) selfPinPlacemark.properties.set('userId', currentUserId); } catch {}
 		const url = (window.getSelfAvatarUrl ? window.getSelfAvatarUrl() : '') || '';
 		selfPinPlacemark.options.set('iconContentLayout', createAvatarLayout(url, 1, true, false, '#3b82f6'));
 		try { selfPinPlacemark.options.set('avatarUrl', url); } catch {}
@@ -428,8 +444,7 @@ function renderPeopleList(container) {
 // Метка Яндекса с HTML внутри: прозрачная картинка 1×1 — штатный способ API, не «своя карта»
 function createAvatarLayout(_urlIgnored, opacity, isFresh, isPulse, strokeColor) {
 	const cls = 'avatar-marker' + (isFresh ? ' fresh' : '') + (isPulse ? ' pulse' : '');
-	const style = 'opacity:' + String(Math.max(0, Math.min(1, opacity))).substring(0, 5) + ';'
-		+ 'transform: translate(-50%, -100%); position: relative;';
+	const style = 'opacity:' + String(Math.max(0, Math.min(1, opacity))).substring(0, 5) + ';position:relative;cursor:pointer;';
 	const svg = "<svg width=\"36\" height=\"48\" viewBox=\"0 0 498.923 498.923\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">" +
 		"<defs>" +
 		"<linearGradient id=\"g1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">" +
@@ -443,7 +458,27 @@ function createAvatarLayout(_urlIgnored, opacity, isFresh, isPulse, strokeColor)
 	const avatarSrc = _urlIgnored || phUserUrl()
 	const avatar = '<span class="marker-avatar"><img src="' + String(avatarSrc).replace(/"/g, '&quot;') + '" alt="" onerror="this.onerror=null;this.src=\'' + phUserUrl().replace(/'/g, '') + '\'"/></span>'
 	const html = '<div class="' + cls + '" style="' + style + '">' + avatar + svg + '</div>';
-	try { return ymaps.templateLayoutFactory.createClass(html); } catch { return null; }
+	try {
+		return ymaps.templateLayoutFactory.createClass(html, {
+			build: function () {
+				this.constructor.superclass.build.call(this);
+				this._root = this.getParentElement();
+				this._onDomClick = function (ev) {
+					try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+					const go = this.getData().geoObject;
+					if (!go) return;
+					const coords = go.geometry.getCoordinates() || [];
+					const uid = go.properties.get('userId') || currentUserId;
+					if (uid) focusPerson(coords[0], coords[1], uid);
+				}.bind(this);
+				if (this._root) this._root.addEventListener('click', this._onDomClick);
+			},
+			clear: function () {
+				if (this._root && this._onDomClick) this._root.removeEventListener('click', this._onDomClick);
+				this.constructor.superclass.clear.call(this);
+			}
+		});
+	} catch (e) { return null; }
 }
 
 function renderUsersOnMap(list, liveTimeMin) {

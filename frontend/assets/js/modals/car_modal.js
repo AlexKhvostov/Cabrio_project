@@ -14,48 +14,48 @@ function roofLabel(code){
   return ({ soft:'Мягкая', hard:'Жёсткая', targa:'Тарга', none:'Нет' }[code]) || code || ''
 }
 
-function readTelegramUser(){
-  try{
-    const tg = window.Telegram?.WebApp
-    const u = tg?.initDataUnsafe?.user || {}
-    return {
-      telegram_id: u?.id ? String(u.id) : undefined,
-      first_name: u?.first_name ? String(u.first_name) : undefined,
-      last_name: u?.last_name ? String(u.last_name) : undefined,
-      username: u?.username ? String(u.username) : undefined,
-    }
-  }catch{ return {} }
-}
+  function readTelegramUser(){
+    try{
+      const tg = window.Telegram?.WebApp
+      const u = tg?.initDataUnsafe?.user || {}
+      return {
+        telegram_id: u?.id ? String(u.id) : undefined,
+        first_name: u?.first_name ? String(u.first_name) : undefined,
+        last_name: u?.last_name ? String(u.last_name) : undefined,
+        username: u?.username ? String(u.username) : undefined,
+      }
+    }catch{ return {} }
+  }
 
 const FIELD_LABELS = {
-  brand: 'Марка',
-  model: 'Модель',
-  color: 'Цвет',
+    brand: 'Марка',
+    model: 'Модель',
+    color: 'Цвет',
   year: 'Год',
   roof_type: 'Крыша',
-  engine_power: 'Мощность',
+    engine_power: 'Мощность',
   engine_volume: 'Объём',
-  vin: 'VIN',
-  reg_number: 'Гос. номер',
-  description: 'Описание',
+    vin: 'VIN',
+    reg_number: 'Гос. номер',
+    description: 'Описание',
   status: 'Статус'
-}
+  }
 
 const CAR_STATUSES = [
-  { id: 1, code: 'noticed', name: 'Замечен' },
-  { id: 2, code: 'business_card', name: 'Визитка' },
-  { id: 3, code: 'deleted', name: 'Удалён' },
-  { id: 4, code: 'archived', name: 'В архиве' },
-  { id: 5, code: 'blocked', name: 'Заблокирован' },
-  { id: 6, code: 'pending', name: 'На модерации' },
-  { id: 7, code: 'active', name: 'Активен' }
-]
+    { id: 1, code: 'noticed', name: 'Замечен' },
+    { id: 2, code: 'business_card', name: 'Визитка' },
+    { id: 3, code: 'deleted', name: 'Удалён' },
+    { id: 4, code: 'archived', name: 'В архиве' },
+    { id: 5, code: 'blocked', name: 'Заблокирован' },
+    { id: 6, code: 'pending', name: 'На модерации' },
+    { id: 7, code: 'active', name: 'Активен' }
+  ]
 
 export function openCarModal(car, options = {}){
   const overlay = document.createElement('div')
   car = Object.assign({}, car || {})
   let isNew = !car.id
-  overlay.className = 'modal-overlay' + (isNew ? ' modal-above-nav modal-create' : '')
+  overlay.className = 'modal-overlay modal-above-nav' + (isNew ? ' modal-create' : '')
   let isEditing = isNew || !!options.startEdit
   const canEdit = isNew || !!(car.permissions && car.permissions.canEdit)
   let pendingFile = null
@@ -75,7 +75,7 @@ export function openCarModal(car, options = {}){
     const head = overlay.querySelector('.modal-header')
     if (titleEl) titleEl.textContent = modalTitle()
     if (foot) foot.hidden = !isNew
-    overlay.classList.toggle('modal-above-nav', isNew)
+    overlay.classList.add('modal-above-nav')
     overlay.classList.toggle('modal-create', isNew)
     card?.classList.toggle('create-sheet', isNew)
     card?.classList.toggle('editing', isEditing)
@@ -153,7 +153,7 @@ export function openCarModal(car, options = {}){
     if (!fullList) {
       try {
         const res = await window.CabrioAPI?.apiGet(`/api/photos?entity_type=car&entity_id=${encodeURIComponent(String(car.id))}`)
-        if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
+          if (res && res.success !== false && Array.isArray(res.data)) fullList = res.data
       } catch {}
       if (!fullList || !fullList.length) fullList = rawPhotos
       car._allPhotos = fullList
@@ -223,42 +223,42 @@ export function openCarModal(car, options = {}){
     else removeUploadControls()
   }
 
-  const attachBrandCombo = () => {
-    const brands = (window.CabrioData?.carBrands || [])
+      const attachBrandCombo = () => {
+        const brands = (window.CabrioData?.carBrands || [])
     const brandInput = overlay.querySelector('#brandSearchInput')
-    const hidden = overlay.querySelector('[data-edit-key="car_brand_id"]')
-    const list = overlay.querySelector('#brandSuggestList')
+        const hidden = overlay.querySelector('[data-edit-key="car_brand_id"]')
+        const list = overlay.querySelector('#brandSuggestList')
     if (!brandInput || !hidden || !list) return
-    const renderList = () => {
+        const renderList = () => {
       const q = (brandInput.value||'').toLowerCase().trim()
-      const items = brands.filter(b => !q || String(b.name||'').toLowerCase().includes(q)).slice(0, 50)
-      if (!items.length) { list.innerHTML = ''; list.style.display = 'none'; return }
+          const items = brands.filter(b => !q || String(b.name||'').toLowerCase().includes(q)).slice(0, 50)
+          if (!items.length) { list.innerHTML = ''; list.style.display = 'none'; return }
       list.innerHTML = items.map(b=>`<div class="combo-item" data-id="${Number(b.id)}">${escapeHtml(b.name||'')}</div>`).join('')
-      list.style.display = 'block'
-    }
+          list.style.display = 'block'
+        }
     brandInput.addEventListener('focus', renderList)
     brandInput.addEventListener('input', () => { hidden.value=''; renderList() })
-    list.addEventListener('click', (e)=>{
-      const item = e.target.closest('.combo-item')
-      if (!item) return
+        list.addEventListener('click', (e)=>{
+          const item = e.target.closest('.combo-item')
+          if (!item) return
       hidden.value = item.getAttribute('data-id')
       brandInput.value = item.textContent || ''
-      list.style.display = 'none'
-    })
+          list.style.display = 'none'
+        })
   }
 
-  const ensureUploadControls = () => {
-    const photoContainer = overlay.querySelector('.main-photo-compact')
+    const ensureUploadControls = () => {
+      const photoContainer = overlay.querySelector('.main-photo-compact')
     if (!photoContainer || photoContainer.querySelector('#carUploadFab')) return
     const localInput = document.createElement('input')
-    localInput.type = 'file'
-    localInput.id = 'carPhotoInputLocal'
-    localInput.accept = 'image/*'
-    localInput.style.display = 'none'
-    photoContainer.appendChild(localInput)
-    localInput.addEventListener('change', async ()=>{
-      const file = localInput.files && localInput.files[0]
-      if (!file) return
+        localInput.type = 'file'
+        localInput.id = 'carPhotoInputLocal'
+        localInput.accept = 'image/*'
+        localInput.style.display = 'none'
+        photoContainer.appendChild(localInput)
+        localInput.addEventListener('change', async ()=>{
+          const file = localInput.files && localInput.files[0]
+          if (!file) return
       if (!car.id) {
         pendingFile = file
         car._preview = URL.createObjectURL(file)
@@ -317,17 +317,17 @@ export function openCarModal(car, options = {}){
   }
 
   async function sendCarPhoto(file){
-    const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
-    const fd = new FormData()
-    fd.append('entity_type','car')
-    fd.append('entity_id', String(car.id))
-    fd.append('photo', file)
+            const base = (window.__API_URL || (window.location.origin + '/app/backend')).replace(/\/$/, '')
+            const fd = new FormData()
+            fd.append('entity_type','car')
+            fd.append('entity_id', String(car.id))
+            fd.append('photo', file)
     Object.entries(readTelegramUser()).forEach(([k,v])=>{ if (v!==undefined) fd.append(k, v) })
     const resp = await fetch(`${base}/routes/api.php?route=${encodeURIComponent('/api/photos')}`, { method:'POST', body: fd }).then(r=>r.json().catch(()=>null))
-    if (!resp || resp.success === false) {
-      alert((resp && resp.error && resp.error.message) || 'Не удалось загрузить фото')
-      return
-    }
+            if (!resp || resp.success === false) {
+              alert((resp && resp.error && resp.error.message) || 'Не удалось загрузить фото')
+              return
+            }
     car.photo = resp.data
     rawPhotos = [resp.data]
     try {
@@ -358,14 +358,14 @@ export function openCarModal(car, options = {}){
       } else {
         res = await window.CabrioAPI.apiPatch(`/api/cars/${car.id}`, payload)
       }
-      if (!res || res.success === false || res.__httpStatus === 403) {
-        alert((res && res.error && res.error.message) || 'Не удалось сохранить')
-        return
-      }
-      Object.assign(car, res.data || {})
+          if (!res || res.success === false || res.__httpStatus === 403) {
+            alert((res && res.error && res.error.message) || 'Не удалось сохранить')
+            return
+          }
+          Object.assign(car, res.data || {})
       const wasNew = isNew
       isNew = false
-      isEditing = false
+          isEditing = false
       if (pendingFile) {
         await sendCarPhoto(pendingFile)
         pendingFile = null
