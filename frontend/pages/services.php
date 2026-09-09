@@ -34,7 +34,8 @@
           bannerId: 'guideAccessBanner',
           fabId: 'addGuideFab',
           kind: 'guide',
-          modalUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/modals/guide_modal.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>
+          modalUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/modals/guide_modal.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>,
+          cardUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/components/cards/guide_card.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>
         })
       }
     </script>

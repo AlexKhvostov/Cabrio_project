@@ -132,14 +132,15 @@ class Review {
 
     /**
      * Один отзыв на объект от одного человека: если уже есть — обновляем.
+     * Оценки качества / скорости / цены — целые от 1 до 5.
      */
     public static function create($data) {
         $pdo = Database::getInstance();
         require_once __DIR__ . '/Status.php';
         $existing = self::findByAuthor($data['guide_object_id'], $data['author_user_id']);
-        $q = max(1, min(10, (int)$data['quality_rating']));
-        $s = max(1, min(10, (int)$data['speed_rating']));
-        $p = max(1, min(10, (int)$data['price_rating']));
+        $q = max(1, min(5, (int)$data['quality_rating']));
+        $s = max(1, min(5, (int)$data['speed_rating']));
+        $p = max(1, min(5, (int)$data['price_rating']));
         $feedback = trim((string)($data['feedback'] ?? ''));
         if ($existing) {
             $stmt = $pdo->prepare(

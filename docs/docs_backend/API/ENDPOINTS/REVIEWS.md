@@ -274,7 +274,7 @@ Authorization: Bearer {token}
   "message": "Ошибка валидации данных",
   "details": {
     "guide_object_id": "ID объекта обязателен",
-    "quality_rating": "Оценка качества должна быть от 1 до 10",
+    "quality_rating": "Оценка качества должна быть от 1 до 5",
     "feedback": "Текст отзыва обязателен"
   }
 }
@@ -350,9 +350,9 @@ Authorization: Bearer {token}
 interface Review {
   id: number;
   guide_object_id: number;
-  quality_rating: number;    // 1-10
-  speed_rating: number;      // 1-10
-  price_rating: number;      // 1-10
+  quality_rating: number;    // 1-5
+  speed_rating: number;      // 1-5
+  price_rating: number;      // 1-5
   feedback: string;
   status: Status;
   author: User;
@@ -366,9 +366,9 @@ interface Review {
 ### **Rating (Рейтинг):**
 ```typescript
 interface Rating {
-  quality_rating: number;    // Оценка качества (1-10)
-  speed_rating: number;      // Оценка скорости (1-10)
-  price_rating: number;      // Оценка цены (1-10)
+  quality_rating: number;    // Оценка качества (1-5)
+  speed_rating: number;      // Оценка скорости (1-5)
+  price_rating: number;      // Оценка цены (1-5)
   average_rating: number;    // Средняя оценка
 }
 ```
@@ -485,7 +485,7 @@ Logger::info('Review created', [
 ## 🔧 Конфигурация
 
 ### **Рейтинги:**
-- **Диапазон:** 1-10 баллов
+- **Диапазон:** 1-5 баллов
 - **Обязательные поля:** quality_rating, speed_rating, price_rating
 - **Средний рейтинг:** (quality + speed + price) / 3
 
@@ -506,4 +506,4 @@ Logger::info('Review created', [
 
 ---
 
-> **Примечание:** Все рейтинги передаются в диапазоне 1-10. Средний рейтинг вычисляется автоматически. Один пользователь может оставить только один отзыв на один объект. 
+> **Примечание:** Все рейтинги передаются в диапазоне 1-5. Средний рейтинг вычисляется автоматически. Один пользователь может оставить только один отзыв на один объект. 

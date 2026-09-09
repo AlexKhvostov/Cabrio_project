@@ -474,9 +474,9 @@ interface GuideObjectKind {
 interface Review {
   id: number;
   guide_object_id: number;
-  quality_rating: number;    // 1-10
-  speed_rating: number;      // 1-10
-  price_rating: number;      // 1-10
+  quality_rating: number;    // 1-5
+  speed_rating: number;      // 1-5
+  price_rating: number;      // 1-5
   feedback: string;
   author: User;
   status: Status;
@@ -590,4 +590,4 @@ Logger::info('Guide object created', [
 
 ---
 
-> **Примечание:** Все рейтинги передаются в диапазоне 1-10. Средний рейтинг вычисляется как среднее арифметическое всех трёх оценок (качество, скорость, цена). 
+> **Примечание:** Все рейтинги передаются в диапазоне 1-5. Средний рейтинг вычисляется как среднее арифметическое всех трёх оценок (качество, скорость, цена). 

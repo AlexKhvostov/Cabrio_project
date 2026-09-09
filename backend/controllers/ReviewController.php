@@ -71,9 +71,9 @@ class ReviewController extends BaseController
             }
             $id = Review::create([
                 'guide_object_id' => $guideId,
-                'quality_rating' => $input['quality_rating'] ?? 5,
-                'speed_rating' => $input['speed_rating'] ?? 5,
-                'price_rating' => $input['price_rating'] ?? 5,
+                'quality_rating' => $input['quality_rating'] ?? 3,
+                'speed_rating' => $input['speed_rating'] ?? 3,
+                'price_rating' => $input['price_rating'] ?? 3,
                 'feedback' => $feedback,
                 'author_user_id' => (int)$this->getCurrentUserId(),
             ]);

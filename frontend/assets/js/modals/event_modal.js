@@ -1,6 +1,7 @@
 // Большая карточка события (kit п. 58): когда и где, описание, еду / нет / возможно
 
 import { phEvent, photoUrl } from '../components/media.js?v=cabrio21'
+import { renderEventOccupancy } from '../components/cards/event_card.js?v=list3'
 import { hintBubble } from '../components/hints.js?v=tip2'
 import {
   escapeHtml, viewVal, sheetField, renderPersonLink, bindRelLinks, headerActions, openPhotoViewer
@@ -131,14 +132,18 @@ export function openEventModal(event, options = {}){
     } else {
       inner.innerHTML = phEvent(data, 'medium', true)
     }
-    overlay.querySelector('#eventCoverTitle').textContent = (isEditing && !isNew) ? '' : (data.title || 'Новое событие')
-    overlay.querySelector('#eventCoverMeta').textContent = (isEditing && !isNew) ? '' : (data.city || data.location || '')
-    overlay.querySelector('.sheet-photo-caption')?.classList.toggle('is-off', !!(isEditing && !isNew))
+    overlay.querySelector('#eventCoverTitle').textContent = ''
+    overlay.querySelector('#eventCoverMeta').textContent = ''
+    overlay.querySelector('.sheet-photo-caption')?.classList.add('is-off')
     const nameRow = overlay.querySelector('#eventNameRow')
     if (nameRow) {
-      nameRow.innerHTML = (isEditing && !isNew)
-        ? sheetField('Название', `<input data-edit-key="title" class="filter-input" value="${escapeHtml(data.title||'')}">`, 'full')
-        : ''
+      nameRow.innerHTML = isNew ? '' : sheetField(
+        'Название',
+        isEditing
+          ? `<input data-edit-key="title" class="filter-input" value="${escapeHtml(data.title||'')}">`
+          : viewVal(data.title),
+        'full'
+      )
     }
   }
 
@@ -186,13 +191,6 @@ export function openEventModal(event, options = {}){
     else overlay.querySelector('#eventUploadFab')?.remove()
   }
 
-  function occupancyCompact(going, spots, maybe){
-    const mid = spots == null ? '∞' : String(spots)
-    return `<span class="event-fill">
-      <span class="event-fill-nums"><b>${going}</b><i>·</i><b>${escapeHtml(mid)}</b><i>·</i><b>${maybe}</b></span>
-    </span>`
-  }
-
   function rsvpPersonLine(p){
     const name = [p.first_name_app, p.last_name_app].filter(Boolean).join(' ').trim()
       || (p.username ? '@' + p.username : 'Участник')
@@ -206,14 +204,12 @@ export function openEventModal(event, options = {}){
     const mine = data.my_rsvp?.confidence || ''
     const plus = !!data.my_rsvp?.plus_one
     const locked = eventStarted(data)
-    const going = Number(data.going_count || data.participants_count || 0)
-    const maybe = Number(data.maybe_count || 0)
-    const spots = data.spots_left
     const goingList = Array.isArray(data.rsvp_going) ? data.rsvp_going : []
     const maybeList = Array.isArray(data.rsvp_maybe) ? data.rsvp_maybe : []
     const rsvpOff = locked || isEditing
     wrap.innerHTML = `
-      <div class="sheet-section-title">Участие ${occupancyCompact(going, spots, maybe)}</div>
+      <div class="sheet-section-title">Участие</div>
+      ${renderEventOccupancy(data)}
       ${goingList.length ? `<div class="sheet-label">Кто едет</div><div class="rsvp-people">${goingList.map(rsvpPersonLine).join('')}</div>` : ''}
       ${maybeList.length ? `<div class="sheet-label">Думают</div><div class="rsvp-people">${maybeList.map(rsvpPersonLine).join('')}</div>` : ''}
       <div class="sheet-section-title">Будете участвовать?</div>

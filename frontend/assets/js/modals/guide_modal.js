@@ -19,10 +19,21 @@ function readTelegramUser(){
   }catch{ return {} }
 }
 
-function slider(key, label, value){
-  const v = value != null ? Number(value) : 5
+function clampStars(value){
+  const n = Number(value)
+  if (!isFinite(n)) return 3
+  return Math.max(1, Math.min(5, Math.round(n)))
+}
+
+// Три оценки 1–5 звёздами, как на плитке списка
+function starPicker(key, label, value){
+  const v = clampStars(value)
+  const stars = [1, 2, 3, 4, 5].map(i =>
+    `<button type="button" class="review-star-pick${i <= v ? ' is-on' : ''}" data-star-key="${key}" data-star="${i}" aria-label="${i} из 5">★</button>`
+  ).join('')
   return `<label class="review-slider"><span>${escapeHtml(label)} <b data-sl-out="${key}">${v}</b></span>
-    <input type="range" min="1" max="10" step="1" data-edit-key="${key}" value="${v}">
+    <input type="hidden" data-edit-key="${key}" value="${v}">
+    <div class="review-star-row">${stars}</div>
   </label>`
 }
 
@@ -97,6 +108,7 @@ export function openGuideModal(place, options = {}){
           </div>
           <div class="photo-upload-overlay" id="guideUploadOverlay" style="display:none"><div class="spinner"></div><span>Загрузка…</span></div>
         </div>
+        <div id="guideNameRow"></div>
         <div id="guideAuthor"></div>
         <div class="sheet-grid" id="guideMain"></div>
         <div id="guideReviews"></div>
@@ -123,15 +135,14 @@ export function openGuideModal(place, options = {}){
     } else {
       inner.innerHTML = phPlace(data, 'medium', true)
     }
-    overlay.querySelector('#guideCoverTitle').textContent = (isEditing && !isNew) ? '' : (data.name || (isNew ? 'Новая карточка' : 'Карточка'))
-    const shown = (isEditing ? draftLabels : (data.labels || []).map(labelCode)).filter(Boolean)
-    overlay.querySelector('#guideCoverMeta').textContent = (isEditing && !isNew) ? '' : shown.slice(0, 4).map(n => '#' + n).join(' ')
-    overlay.querySelector('.sheet-photo-caption')?.classList.toggle('is-off', !!(isEditing && !isNew))
+    overlay.querySelector('#guideCoverTitle').textContent = ''
+    overlay.querySelector('#guideCoverMeta').textContent = ''
+    overlay.querySelector('.sheet-photo-caption')?.classList.add('is-off')
     const badge = overlay.querySelector('#guideRateBadge')
     const avg = data.rating || {}
     if (badge) {
       badge.innerHTML = (!isNew && avg.overall != null)
-        ? `<span class="sheet-photo-badge">${escapeHtml(String(avg.overall))} / 10 · ${Number(avg.count || 0)} отз.</span>`
+        ? `<span class="sheet-photo-badge">${escapeHtml(String(avg.overall))} / 5 · ${Number(avg.count || 0)} отз.</span>`
         : ''
     }
   }
@@ -205,11 +216,19 @@ export function openGuideModal(place, options = {}){
 
   function renderAll(){
     cover()
+    const inp = (key, extra='') => `<input data-edit-key="${key}" class="filter-input" value="${escapeHtml(data[key]||'')}" ${extra}>`
+    const nameRow = overlay.querySelector('#guideNameRow')
+    if (nameRow) {
+      nameRow.innerHTML = isNew ? '' : sheetField(
+        'Название',
+        isEditing ? inp('name') : viewVal(data.name),
+        'full'
+      )
+    }
     const authorBox = overlay.querySelector('#guideAuthor')
     if (authorBox) {
       authorBox.innerHTML = (!isNew && data.author) ? renderPersonLink(data.author) : ''
     }
-    const inp = (key, extra='') => `<input data-edit-key="${key}" class="filter-input" value="${escapeHtml(data[key]||'')}" ${extra}>`
     const main = overlay.querySelector('#guideMain')
     if (isNew) {
       main.innerHTML = [
@@ -220,7 +239,6 @@ export function openGuideModal(place, options = {}){
       bindLabels()
     } else {
       main.innerHTML = [
-        ...(isEditing ? [sheetField('Название', inp('name'), 'full')] : []),
         sheetField('Ярлыки', labelsInner()),
         sheetField('Описание', isEditing
           ? `<textarea data-edit-key="description" class="filter-input" rows="1">${escapeHtml(data.description||'')}</textarea>`
@@ -253,7 +271,7 @@ export function openGuideModal(place, options = {}){
     const n = Number(avg.count || 0)
     const word = (n % 10 === 1 && n % 100 !== 11) ? 'отзыв' : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'отзыва' : 'отзывов')
     const avgLine = avg.overall != null
-      ? `Средняя ${avg.overall} из 10 · ${n} ${word}`
+      ? `Средняя ${avg.overall} из 5 · ${n} ${word}`
       : 'Пока нет оценок'
     const avgParts = avg.overall != null
       ? `<div class="review-avg-parts">качество ${avg.quality} · скорость ${avg.speed} · цена ${avg.price}</div>`
@@ -305,10 +323,17 @@ export function openGuideModal(place, options = {}){
     stack.querySelector('[data-create-cancel]')?.addEventListener('click', closeStack)
     stack.querySelector('[data-create-save]')?.addEventListener('click', () => onSave(stack, closeStack))
     document.body.appendChild(stack)
-    stack.querySelectorAll('input[type=range]').forEach(inp => {
-      inp.addEventListener('input', () => {
-        const out = stack.querySelector(`[data-sl-out="${inp.getAttribute('data-edit-key')}"]`)
-        if (out) out.textContent = inp.value
+    stack.querySelectorAll('[data-star]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-star-key')
+        const n = btn.getAttribute('data-star')
+        const hidden = stack.querySelector(`[data-edit-key="${key}"]`)
+        if (hidden) hidden.value = n
+        const out = stack.querySelector(`[data-sl-out="${key}"]`)
+        if (out) out.textContent = n
+        stack.querySelectorAll(`[data-star-key="${key}"]`).forEach(b => {
+          b.classList.toggle('is-on', Number(b.getAttribute('data-star')) <= Number(n))
+        })
       })
     })
     return stack
@@ -318,10 +343,10 @@ export function openGuideModal(place, options = {}){
     openStack({
       title: mine.id ? 'Изменить отзыв' : 'Ваш отзыв',
       body: `
-        <p class="review-form-lead">Оцените по трём шкалам от 1 до 10 и коротко напишите, что важно другим.</p>
-        ${slider('quality_rating', 'Качество', mine.quality_rating)}
-        ${slider('speed_rating', 'Скорость', mine.speed_rating)}
-        ${slider('price_rating', 'Цена', mine.price_rating)}
+        <p class="review-form-lead">Оцените по трём шкалам от 1 до 5 и коротко напишите, что важно другим.</p>
+        ${starPicker('quality_rating', 'Качество', mine.quality_rating)}
+        ${starPicker('speed_rating', 'Скорость', mine.speed_rating)}
+        ${starPicker('price_rating', 'Цена', mine.price_rating)}
         ${sheetField('Текст', `<textarea data-edit-key="feedback" class="filter-input" rows="3" placeholder="Что понравилось или нет">${escapeHtml(mine.feedback || '')}</textarea>`, 'full')}`,
       foot: `<button type="button" class="btn-ghost" data-create-cancel>Отмена</button>
         <button type="button" class="btn-primary" data-create-save>Сохранить</button>`,
@@ -365,7 +390,7 @@ export function openGuideModal(place, options = {}){
     openStack({
       title: 'Отзыв',
       body: `<div class="sheet-grid">${rows}</div>
-        <div class="review-avg">Среднее по этому отзыву: ${escapeHtml(String(reviewScore(r)))} из 10</div>`,
+        <div class="review-avg">Среднее по этому отзыву: ${escapeHtml(String(reviewScore(r)))} из 5</div>`,
       foot: `<button type="button" class="btn-ghost" data-create-cancel>Закрыть</button>`,
       onSave: (_s, closeStack) => closeStack()
     })

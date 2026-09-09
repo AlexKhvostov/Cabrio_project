@@ -10,6 +10,10 @@ import { renderUserCard, renderMemberCarStack } from './components/cards/user_ca
 
 import { renderCarCard } from './components/cards/car_card.js?v=cabrio14'
 
+import { renderEventCard } from './components/cards/event_card.js?v=list2'
+
+import { renderGuideCard } from './components/cards/guide_card.js?v=list2'
+
 import {
 
   renderPersonLink, renderCarLink, sheetField, viewVal, headerActions, emptyMark
@@ -212,6 +216,60 @@ put('d-member-card-empty', renderUserCard(demoUserEmpty))
 put('d-car-stack', renderMemberCarStack(demoUser3.cars))
 
 put('d-car-grid', `<div class="cars-grid">${renderCarCard(demoCar)}${renderCarCard(demoCarEmpty)}</div>`)
+
+function kitIsoDays(n){
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+const demoEventSoon = {
+  id: 101,
+  title: 'Вечерний заезд',
+  city: 'Минск',
+  event_date: kitIsoDays(0),
+  event_time: '19:00',
+  event_type: { name: 'Поездка' },
+  going_count: 8,
+  maybe_count: 3,
+  spots_left: 4,
+  my_rsvp: { confidence: 'yes', plus_one: true },
+}
+const demoEventLater = {
+  id: 102,
+  title: 'Завтрак у озера',
+  city: 'Заславль',
+  event_date: kitIsoDays(5),
+  event_time: '10:00',
+  event_type: { name: 'Встреча' },
+  going_count: 2,
+  maybe_count: 6,
+  spots_left: null,
+  my_rsvp: { confidence: 'maybe' },
+}
+put('d-event-grid', `<div class="cars-grid">${renderEventCard(demoEventSoon)}${renderEventCard(demoEventLater)}</div>`)
+
+const demoGuideBad = {
+  id: 201,
+  name: 'Мойка у кольца',
+  labels: [{ name: 'мойка' }],
+  rating: { overall: 1.2, count: 3 },
+}
+const demoGuideOk = {
+  id: 202,
+  name: 'Кафе OpenTop',
+  labels: [{ name: 'кафе' }, { name: 'минск' }],
+  rating: { overall: 3.5, count: 8 },
+}
+const demoGuideGood = {
+  id: 203,
+  name: 'Детейлинг Cabrio',
+  labels: [{ name: 'детейлинг' }],
+  rating: { overall: 4.7, count: 12 },
+}
+put('d-guide-grid', `<div class="cars-grid">${renderGuideCard(demoGuideBad)}${renderGuideCard(demoGuideOk)}${renderGuideCard(demoGuideGood)}</div>`)
 
 put('d-rel-person', renderPersonLink(demoUserBase))
 

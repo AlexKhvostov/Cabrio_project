@@ -242,12 +242,12 @@ export function renderKitGuideModal(place){
 
   const actions = `<button type="button" class="btn-ghost">Изменить</button><button type="button" class="modal-close">×</button>`
   const reviews = `<div class="sheet-section-title">Оценки</div>
-    <div class="review-avg">Средняя 8.2 из 10 · 4 отзыва</div>
-    <div class="review-avg-parts">качество 8.5 · скорость 8.0 · цена 8.0</div>
+    <div class="review-avg">Средняя 4.1 из 5 · 4 отзыва</div>
+    <div class="review-avg-parts">качество 4.5 · скорость 4.0 · цена 4.0</div>
     <button type="button" class="btn-ghost" style="width:100%">Написать отзыв</button>
     <div class="sheet-section-title">Отзывы</div>
     <div class="review-list">
-      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Иван Петров</span><span class="review-row-text">Удобный заезд, быстро сушат верх.</span></span><span class="review-row-score">8.3</span><span class="review-row-go">›</span></button>
+      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Иван Петров</span><span class="review-row-text">Удобный заезд, быстро сушат верх.</span></span><span class="review-row-score">4.3</span><span class="review-row-go">›</span></button>
     </div>`
 
   return kitModalShell(sheetCard('Карточка', actions, cover + `<div class="sheet-grid">${body}</div>` + reviews))

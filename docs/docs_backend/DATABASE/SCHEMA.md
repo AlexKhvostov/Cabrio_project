@@ -232,9 +232,9 @@
 | updated_at     | TIMESTAMP          | Дата и время обновления записи  |
 | guide_object_id| BIGINT UNSIGNED    | Внешний ключ на guide_objects.id|
 | rating         | INTEGER            | Оценка (1-5, устаревшее поле, для обратной совместимости) |
-| quality_rating | TINYINT            | Оценка качества (1–10)          |
-| speed_rating   | TINYINT            | Оценка скорости (1–10)          |
-| price_rating   | TINYINT            | Оценка цены (1–10)              |
+| quality_rating | TINYINT            | Оценка качества (1–5)           |
+| speed_rating   | TINYINT            | Оценка скорости (1–5)           |
+| price_rating   | TINYINT            | Оценка цены (1–5)               |
 | feedback       | TEXT               | Текст отзыва                    |
 | author_user_id | BIGINT UNSIGNED    | Автор отзыва                    |
 | status_id      | BIGINT UNSIGNED    | FK на ref_statuses.id           |

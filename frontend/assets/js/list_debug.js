@@ -55,52 +55,18 @@
       return code === 'member' || code === 'moderator' || code === 'admin' || code === 'root'
     }
 
-    function photoBlock(item) {
-      var url = ''
-      try {
-        var p = item && item.photo
-        url = (p && p.urls && (p.urls.medium || p.urls.mini)) || (p && p.url) || ''
-      } catch (e) {}
-      var front = String(w.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
-      var stub = kind === 'guide' ? 'ph-place.png' : 'ph-event.png'
-      var phClass = kind === 'guide' ? 'ph-place' : 'ph-event'
-      if (url) {
-        return '<div class="ph ' + phClass + '"><img class="ph-img ph-ok" src="' + esc(url) + '" alt="" decoding="async"><span class="ph-fallback"><img class="ph-draw" src="' + front + '/assets/img/' + stub + '?v=1" alt=""></span></div>'
-      }
-      return '<div class="ph ' + phClass + '"><span class="ph-fallback"><img class="ph-draw" src="' + front + '/assets/img/' + stub + '?v=1" alt="" decoding="async"></span></div>'
-    }
+    var renderCard = null
 
-    function cardEvent(event) {
-      var title = esc(event.title || 'Событие')
-      var city = esc(event.city || event.location || '')
-      var typeName = esc((event.event_type && event.event_type.name) || '')
-      var date = esc(event.event_date || '')
-      var going = Number(event.going_count || event.participants_count || 0)
-      var maybe = Number(event.maybe_count || 0)
-      var spots = event.spots_left
-      var mid = (spots === null || spots === undefined) ? '∞' : String(spots)
-      return '<div class="car-card-compact event-card-compact" data-id="' + esc(event.id) + '">' +
-        '<div class="car-image-container">' +
-        (typeName ? '<div class="car-status-badge">' + typeName + '</div>' : '') +
-        photoBlock(event) +
-        '<div class="car-overlay-info"><div class="car-title-overlay">' + title + '</div>' +
-        '<div class="car-specs-overlay">' + [date, city].filter(Boolean).join(' · ') + '</div></div></div>' +
-        '<div class="event-card-foot"><div class="event-fill">' +
-        '<span class="event-fill-nums"><b>' + going + '</b><i>·</i><b>' + esc(mid) + '</b><i>·</i><b>' + maybe + '</b></span></div></div></div>'
-    }
-
-    function cardGuide(place) {
-      var title = esc(place.name || 'Место')
-      var labels = (place.labels || []).slice(0, 3).map(function (l) {
-        return '#' + (l.name || l.code || '')
-      }).filter(function (t) { return t.length > 1 }).join(' ')
-      var rate = (place.rating && place.rating.overall != null) ? (place.rating.overall + ' / 10') : ''
-      var meta = [labels, rate].filter(Boolean).join(' · ')
-      return '<div class="car-card-compact event-card-compact" data-id="' + esc(place.id) + '">' +
-        '<div class="car-image-container">' +
-        photoBlock(place) +
-        '<div class="car-overlay-info"><div class="car-title-overlay">' + title + '</div>' +
-        '<div class="car-specs-overlay">' + esc(meta) + '</div></div></div></div>'
+    function loadCards() {
+      if (!opts.cardUrl) return Promise.resolve(false)
+      var load = Function('u', 'return import(u)')
+      return load(opts.cardUrl).then(function (m) {
+        renderCard = kind === 'guide' ? m.renderGuideCard : m.renderEventCard
+        return typeof renderCard === 'function'
+      }).catch(function (err) {
+        log('плитка не загрузилась: ' + (err && err.message ? err.message : String(err)))
+        return false
+      })
     }
 
     function fillLabelFilter() {
@@ -138,9 +104,9 @@
     }
 
     function paint() {
-      if (!listEl) return
+      if (!listEl || typeof renderCard !== 'function') return
       var shown = visibleList()
-      var html = shown.map(kind === 'guide' ? cardGuide : cardEvent).join('')
+      var html = shown.map(renderCard).join('')
       listEl.innerHTML = html || '<div class="empty-section" style="grid-column:1/-1">Пока пусто</div>'
     }
 
@@ -286,7 +252,9 @@
       }
     })
 
-    loadList()
+    loadCards().then(function () {
+      loadList()
+    })
     loadMe()
     loadModal()
   }

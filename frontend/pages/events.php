@@ -34,7 +34,8 @@
           bannerId: 'eventsAccessBanner',
           fabId: 'addEventFab',
           kind: 'event',
-          modalUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/modals/event_modal.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>
+          modalUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/modals/event_modal.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>,
+          cardUrl: <?php echo json_encode(html_entity_decode(cabrio_asset_href('assets/js/components/cards/event_card.js'), ENT_QUOTES, 'UTF-8'), JSON_UNESCAPED_SLASHES); ?>
         })
       }
     </script>

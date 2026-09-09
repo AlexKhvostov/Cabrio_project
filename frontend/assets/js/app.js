@@ -309,7 +309,7 @@ async function ensureModalScript(kind){
   const file = ({ car:'car_modal.js', user:'user_modal.js', event:'event_modal.js', guide:'guide_modal.js' })[kind]
   const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
   try {
-    await import(`${front}/assets/js/modals/${file}?v=kb-nav1`)
+    await import(`${front}/assets/js/modals/${file}?v=name-view1`)
   } catch (err) {
     console.error('modal import', kind, err)
   }
