@@ -54,6 +54,16 @@ class TelegramAvatarHelper {
      */
     public static function getUserAvatar($telegramId, $userId) {
         try {
+            // Не спрашиваем Telegram на каждый API-запрос: иначе списки и разделы «висят» секундами.
+            $existing = self::getExistingAvatar($userId);
+            if ($existing) {
+                return $existing;
+            }
+            if (self::checkedRecently($userId)) {
+                return null;
+            }
+            self::markChecked($userId);
+
             // Защита от параллельных скачиваний одного и того же аватара
             $lock = self::acquireLock($userId);
             if ($lock === null) {
@@ -133,12 +143,51 @@ class TelegramAvatarHelper {
         }
     }
     
+    /** Не чаще раза в сутки, если аватара ещё нет */
+    private static function checkedPath($userId): string
+    {
+        return rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'cabrio_avatar_chk_' . (int)$userId;
+    }
+
+    private static function checkedRecently($userId): bool
+    {
+        $path = self::checkedPath($userId);
+        if (!is_file($path)) {
+            return false;
+        }
+        return (time() - (int)@filemtime($path)) < 86400;
+    }
+
+    private static function markChecked($userId): void
+    {
+        @file_put_contents(self::checkedPath($userId), (string)time());
+    }
+
+    /** Короткий запрос к api.telegram.org, без минуты ожидания PHP */
+    private static function telegramGet(string $url): ?string
+    {
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 2,
+                CURLOPT_TIMEOUT => 4,
+            ]);
+            $raw = curl_exec($ch);
+            curl_close($ch);
+            return ($raw !== false && $raw !== '') ? $raw : null;
+        }
+        $ctx = stream_context_create(['http' => ['timeout' => 4, 'ignore_errors' => true]]);
+        $raw = @file_get_contents($url, false, $ctx);
+        return ($raw !== false && $raw !== '') ? $raw : null;
+    }
+
     /**
      * Получить информацию о пользователе
      */
     private static function getUserInfo($botToken, $telegramId) {
         $url = "https://api.telegram.org/bot{$botToken}/getChat?chat_id={$telegramId}";
-        $response = @file_get_contents($url);
+        $response = self::telegramGet($url);
         
         if (!$response) return null;
         
@@ -164,7 +213,7 @@ class TelegramAvatarHelper {
      */
     private static function getFilePath($botToken, $fileId) {
         $url = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$fileId}";
-        $response = @file_get_contents($url);
+        $response = self::telegramGet($url);
         
         if (!$response) return null;
         
@@ -177,7 +226,7 @@ class TelegramAvatarHelper {
      */
     private static function downloadFile($botToken, $filePath) {
         $url = "https://api.telegram.org/file/bot{$botToken}/{$filePath}";
-        return @file_get_contents($url);
+        return self::telegramGet($url);
     }
     
     /**

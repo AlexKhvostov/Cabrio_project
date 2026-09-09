@@ -163,21 +163,19 @@ if (document.readyState === 'loading') {
 
 try {
   const tg = window.Telegram?.WebApp
-  tg?.ready()
-  tg?.expand()
+  try { window.__cabrioTgPaint?.() } catch {}
   tg?.disableVerticalSwipes?.()
-  try { tg?.setHeaderColor?.('#070b12') } catch {}
-  try { tg?.setBackgroundColor?.('#070b12') } catch {}
-  try { tg?.setBottomBarColor?.('#070b12') } catch {}
 
   const askFullscreen = () => {
     try {
-      if (typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) {
-        tg.requestFullscreen()
+      const w = window.Telegram?.WebApp
+      if (typeof w?.requestFullscreen === 'function' && !w.isFullscreen) {
+        w.requestFullscreen()
       }
     } catch {}
   }
-  askFullscreen()
+  // Не в первый кадр: иначе Telegram на секунду гасит экран серым.
+  setTimeout(askFullscreen, 1400)
   tg?.onEvent?.('viewportChanged', () => {
     if (isTypingField()) {
       applyKeyboardInset()
@@ -211,10 +209,19 @@ function readTelegramUser(){
   } catch { return {} }
 }
 
-async function apiGet(route){
+async function membershipAllows(route){
+  if (route === '/api/membership/check' || route === '/api/audit/client') return true
+  return window.CabrioClubBlocked !== true
+}
+
+async function apiGet(route, extra = {}){
+  if (!(await membershipAllows(route))) {
+    return { __httpStatus: 403, success: false, error: { code: 'NOT_CLUB_MEMBER', message: 'Нет доступа к приложению' } }
+  }
   const tgUser = readTelegramUser()
   const qp = new URLSearchParams()
   Object.entries(tgUser).forEach(([k,v])=>{ if (v !== undefined) qp.append(k, v) })
+  Object.entries(extra || {}).forEach(([k,v])=>{ if (v !== undefined && v !== '') qp.append(k, String(v)) })
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}${qp.toString() ? ('&' + qp.toString()) : ''}`
   const res = await fetch(url, { headers: {} })
   const data = await res.json().catch(()=>null)
@@ -254,6 +261,9 @@ function invalidateMe(){
 }
 
 async function apiPost(route, payload){
+  if (!(await membershipAllows(route))) {
+    return { __httpStatus: 403, success: false, error: { code: 'NOT_CLUB_MEMBER', message: 'Нет доступа к приложению' } }
+  }
   const tgUser = readTelegramUser()
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
   const body = Object.assign({}, payload || {}, tgUser)
@@ -268,6 +278,9 @@ async function apiPost(route, payload){
 }
 
 async function apiPatch(route, payload){
+  if (!(await membershipAllows(route))) {
+    return { __httpStatus: 403, success: false, error: { code: 'NOT_CLUB_MEMBER', message: 'Нет доступа к приложению' } }
+  }
   const tgUser = readTelegramUser()
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
   const body = Object.assign({}, payload || {}, tgUser)
@@ -283,6 +296,9 @@ async function apiPatch(route, payload){
 
 // Снять себя с карты: тот же JSON с telegram_id, что и у POST
 async function apiDelete(route, payload){
+  if (!(await membershipAllows(route))) {
+    return { __httpStatus: 403, success: false, error: { code: 'NOT_CLUB_MEMBER', message: 'Нет доступа к приложению' } }
+  }
   const tgUser = readTelegramUser()
   const url = `${API_ROOT}/routes/api.php?route=${encodeURIComponent(route)}`
   const body = Object.assign({}, payload || {}, tgUser)
@@ -300,6 +316,33 @@ async function apiDelete(route, payload){
 window.CabrioData = window.CabrioData || {}
 window.CabrioAPI = { apiGet, apiPost, apiPatch, apiDelete, getMe, invalidateMe }
 
+// Журнал поведения в Mini App: открыл приложение и какой раздел. Каталог UI Kit не пишем.
+function auditClientPage(){
+  try {
+    const path = String(location.pathname || '').replace(/\\/g, '/').toLowerCase()
+    if (path.includes('ui_kit') || path.includes('landing')) return
+    let section = 'home'
+    if (path.includes('/pages/users')) section = 'users'
+    else if (path.includes('/pages/cars')) section = 'cars'
+    else if (path.includes('/pages/map')) section = 'map'
+    else if (path.includes('/pages/events')) section = 'events'
+    else if (path.includes('/pages/services')) section = 'guide'
+    else if (path.includes('/pages/me')) section = 'me'
+    let kind = 'view'
+    try {
+      if (!sessionStorage.getItem('cr:v1:audit_login')) {
+        sessionStorage.setItem('cr:v1:audit_login', '1')
+        kind = 'login'
+      }
+    } catch {}
+    apiPost('/api/audit/client', { kind, section }).catch(() => {})
+    if (kind === 'login') {
+      apiPost('/api/audit/client', { kind: 'view', section }).catch(() => {})
+    }
+  } catch {}
+}
+setTimeout(auditClientPage, 1200)
+
 // Переходы между полноценными карточками: человек ↔ его авто
 async function ensureModalScript(kind){
   if (kind === 'car' && window.CabrioModals && typeof window.CabrioModals.openCarModal === 'function') return
@@ -309,7 +352,7 @@ async function ensureModalScript(kind){
   const file = ({ car:'car_modal.js', user:'user_modal.js', event:'event_modal.js', guide:'guide_modal.js' })[kind]
   const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
   try {
-    await import(`${front}/assets/js/modals/${file}?v=name-view1`)
+    await import(`${front}/assets/js/modals/${file}?v=event72live`)
   } catch (err) {
     console.error('modal import', kind, err)
   }
@@ -393,17 +436,212 @@ window.CabrioNav = {
   }
 }
 
-// Если Telegram WebApp недоступен — перенаправим на заглушку (кроме самой заглушки)
+// Заглушка landing — только если человек реально не в Mini App.
+// Главная часто приходит с tgWebAppData в адресе, пункты меню — уже без него.
+// Раньше async-скрипт Telegram не успевал, и меню ошибочно считалось «браузером».
 ;(function(){
   try{
-    const inTg = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user)
     const isLanding = /\/frontend\/pages\/landing\.php$/.test(window.location.pathname)
-    const isUiKit = /\/frontend\/pages\/ui_kit\.php$/.test(window.location.pathname)
-    if (!inTg && !isLanding && !isUiKit) {
-      const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
-      window.location.replace(front + '/pages/landing.php')
+    const isUiKit = /\/frontend\/pages\/ui_kit2?\.php$/.test(window.location.pathname)
+    if (isLanding || isUiKit) return
+
+    const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
+    const goLanding = () => { window.location.replace(front + '/pages/landing.php') }
+    const hasUser = () => {
+      try {
+        const u = window.Telegram?.WebApp?.initDataUnsafe?.user
+        return !!(u && u.id)
+      } catch { return false }
     }
+    const markInTg = () => { try { sessionStorage.setItem('cr:v1:in_tg', '1') } catch {} }
+    const remembered = () => { try { return sessionStorage.getItem('cr:v1:in_tg') === '1' } catch { return false } }
+    const fromTgUrl = /tgWebApp(Data|Version|Platform)=/.test(String(location.search) + String(location.hash))
+
+    if (hasUser() || fromTgUrl) { markInTg(); return }
+    if (remembered()) return
+
+    let n = 0
+    const tick = () => {
+      if (hasUser() || fromTgUrl) { markInTg(); return }
+      if (remembered()) return
+      n += 1
+      // SDK уже на странице, пользователя нет — открыли в обычном браузере
+      if (window.Telegram?.WebApp && n >= 4 && !fromTgUrl) {
+        goLanding()
+        return
+      }
+      if (n > 40) {
+        goLanding()
+        return
+      }
+      setTimeout(tick, 50)
+    }
+    tick()
   }catch{}
+})()
+
+// Старт: на экране уже тёмный кадр клуба со спиннером (HTML). После проверки — приложение или заглушка.
+;(function(){
+  const path = window.location.pathname || ''
+  if (/landing\.php$/.test(path) || /ui_kit2?\.php$/.test(path)) return
+
+  const CACHE_KEY = 'cr:v5:club_member'
+  const CACHE_MS = 30 * 60 * 1000
+  const tgId = () => {
+    try { return String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || '') } catch { return '' }
+  }
+  const readCache = () => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY) || sessionStorage.getItem(CACHE_KEY)
+      if (!raw) return null
+      const o = JSON.parse(raw)
+      if (!o || String(o.telegramId) !== tgId()) return null
+      if (o.exp && Date.now() > o.exp) return null
+      return o
+    } catch { return null }
+  }
+  const writeCache = (isMember) => {
+    const pack = JSON.stringify({ telegramId: tgId(), isMember: !!isMember, exp: Date.now() + CACHE_MS })
+    try { localStorage.setItem(CACHE_KEY, pack) } catch {}
+    try { sessionStorage.setItem(CACHE_KEY, pack) } catch {}
+  }
+  const clearCache = () => {
+    try { localStorage.removeItem(CACHE_KEY) } catch {}
+    try { sessionStorage.removeItem(CACHE_KEY) } catch {}
+  }
+
+  const invite = String(window.__CHAT_INVITE || 'https://t.me/Cabrio_Ride').replace(/["<>]/g, '')
+  const cover = String(window.__HOME_COVER || '').replace(/["<>]/g, '')
+  let box = document.getElementById('club-gate')
+  if (!box) {
+    box = document.createElement('div')
+    box.id = 'club-gate'
+    box.className = 'club-gate'
+    document.body.appendChild(box)
+  }
+  box.setAttribute('role', 'dialog')
+  box.setAttribute('aria-modal', 'true')
+
+  function ensureBox(){
+    if (!box.parentNode) document.body.appendChild(box)
+  }
+
+  function bindInvite(){
+    const link = box.querySelector('[data-club-invite]')
+    link?.addEventListener('click', (e) => {
+      const href = link.getAttribute('href')
+      if (!href) return
+      try {
+        const tg = window.Telegram?.WebApp
+        if (tg?.openTelegramLink) {
+          e.preventDefault()
+          tg.openTelegramLink(href)
+        }
+      } catch {}
+    })
+  }
+
+  function card(kicker, title, text, actions){
+    ensureBox()
+    box.removeAttribute('aria-busy')
+    box.innerHTML =
+      '<div class="club-gate-card">' +
+        (cover
+          ? '<figure class="home-cover"><img src="' + cover + '" alt="" width="640" height="360"><span class="home-cover-veil" aria-hidden="true"></span></figure>'
+          : '') +
+        '<div class="club-gate-body">' +
+          '<p class="home-club-kicker">' + kicker + '</p>' +
+          '<h2>' + title + '</h2>' +
+          '<p>' + text + '</p>' +
+          actions +
+        '</div>' +
+      '</div>'
+    bindInvite()
+  }
+
+  function showChecking(){
+    card(
+      'CabrioRide',
+      'Открываем клуб',
+      'Проверяем, что вы в клубном чате.',
+      '<div class="club-gate-loader" aria-hidden="true"></div>'
+    )
+    box.setAttribute('aria-busy', 'true')
+    box.setAttribute('role', 'status')
+  }
+
+  function openApp(){
+    window.CabrioClubBlocked = false
+    box.remove()
+  }
+
+  function showNotMember(){
+    window.CabrioClubBlocked = true
+    card(
+      'клуб закрыт',
+      'Для вас доступ закрыт',
+      'Разделы открыты только участникам клубной группы. Вступите в чат и затем нажмите «Проверить снова».',
+      '<div class="club-gate-actions">' +
+        '<a class="btn-primary" data-club-invite href="' + invite + '" rel="noopener">Вступить в чат клуба</a>' +
+        '<button class="btn-ghost" type="button" data-membership-retry>Проверить снова</button>' +
+      '</div>'
+    )
+    box.querySelector('[data-membership-retry]')?.addEventListener('click', () => {
+      clearCache()
+      window.CabrioMembershipReady = checkMembership(true)
+    })
+  }
+
+  function showRetry(){
+    window.CabrioClubBlocked = true
+    card(
+      'проверка недоступна',
+      'Не удалось проверить участие',
+      'Не получили ответ от Telegram. Это не значит, что вас нет в группе — бот мог не достучаться до чата. Нажмите «Проверить снова».',
+      '<button class="btn-primary" type="button" data-membership-retry>Проверить снова</button>'
+    )
+    box.querySelector('[data-membership-retry]')?.addEventListener('click', () => {
+      clearCache()
+      window.CabrioMembershipReady = checkMembership(true)
+    })
+  }
+
+  async function checkMembership(force = false){
+    if (force || !box.querySelector('.club-gate-loader')) showChecking()
+    try {
+      const result = await apiGet('/api/membership/check', force ? { force: '1' } : {})
+      if (result?.success && result?.data?.is_member) {
+        writeCache(true)
+        openApp()
+        return true
+      }
+      if (result?.success) {
+        writeCache(false)
+        showNotMember()
+        return false
+      }
+      showRetry()
+      return false
+    } catch {
+      showRetry()
+      return false
+    }
+  }
+
+  const cached = readCache()
+  if (cached && cached.isMember) {
+    openApp()
+    window.CabrioMembershipReady = Promise.resolve(true)
+    return
+  }
+  if (cached && cached.isMember === false) {
+    showNotMember()
+    window.CabrioMembershipReady = Promise.resolve(false)
+    return
+  }
+
+  window.CabrioClubBlocked = false
+  window.CabrioMembershipReady = checkMembership()
 })()
 
 // Навигации активный пункт

@@ -66,7 +66,9 @@ try {
         '/api/actions/leave-business-card' => ['POST'],
         '/api/actions/add-car-to-garage' => ['POST'],
         // User locations (map): смотреть / слать / скрыть себя
-        '/api/user-locations' => ['GET', 'POST', 'DELETE']
+        '/api/user-locations' => ['GET', 'POST', 'DELETE'],
+        '/api/audit/client' => ['POST'],
+        '/api/membership/check' => ['GET'],
     ];
     
     // Проверяем точное совпадение
@@ -88,6 +90,9 @@ try {
         $routeExists = true;
     }
     if (!$routeExists && preg_match('/^\/api\/guide-objects\/\d+$/', $route) && ($method === 'GET' || $method === 'PATCH' || $method === 'DELETE')) {
+        $routeExists = true;
+    }
+    if (!$routeExists && preg_match('/^\/api\/reviews\/\d+$/', $route) && ($method === 'PATCH' || $method === 'DELETE')) {
         $routeExists = true;
     }
     // Динамический маршрут для смены роли пользователя: /api/users/{id}/role
@@ -244,6 +249,12 @@ try {
     } elseif ($route === '/api/reviews' && $method === 'POST') {
         require_once __DIR__ . '/../controllers/ReviewController.php';
         (new ReviewController())->create();
+    } elseif (preg_match('/^\/api\/reviews\/(\d+)$/', $route, $matches) && $method === 'PATCH') {
+        require_once __DIR__ . '/../controllers/ReviewController.php';
+        (new ReviewController())->update((int)$matches[1]);
+    } elseif (preg_match('/^\/api\/reviews\/(\d+)$/', $route, $matches) && $method === 'DELETE') {
+        require_once __DIR__ . '/../controllers/ReviewController.php';
+        (new ReviewController())->delete((int)$matches[1]);
     }
     // Публичные маршруты для проверки состояния
     elseif ($route === '/api/health' && $method === 'GET') {
@@ -253,6 +264,12 @@ try {
     } elseif ($route === '/api/stats' && $method === 'GET') {
         require_once __DIR__ . '/../controllers/StatsController.php';
         (new StatsController())->dashboard();
+    } elseif ($route === '/api/audit/client' && $method === 'POST') {
+        require_once __DIR__ . '/../controllers/AuditController.php';
+        (new AuditController())->client();
+    } elseif ($route === '/api/membership/check' && $method === 'GET') {
+        require_once __DIR__ . '/../controllers/MembershipController.php';
+        (new MembershipController())->check();
     }
     // Маршрут для профиля пользователя
     elseif ($route === '/api/users/profile' && $method === 'GET') {

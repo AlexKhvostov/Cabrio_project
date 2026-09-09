@@ -9,6 +9,7 @@ $pageSection = $section['title'] ?? '';
 $hintText = $section['text'] ?? '';
 $hintId = $section['id'] ?? '';
 ?>
+<?php include __DIR__ . '/club_gate_splash.php'; ?>
 <div class="app-topbar">
   <div class="app-topbar-inner<?php echo $pageSection !== '' ? ' has-section' : ''; ?>">
     <span class="app-topbar-name">Cabrio<span>Ride</span></span>

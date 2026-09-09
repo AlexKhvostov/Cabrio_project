@@ -125,18 +125,20 @@ class FunctionRoles {
     const USER_ROLE_SET = 'moderator';
     
     // API endpoints - Users
+    // Списки людей — только member+. Гость чата (guest) и «user» списки не видят.
     const API_USERS_GET_LIST = 'member';
     const API_USERS_GET_BY_ID = 'member';
     const API_USERS_CREATE = 'admin';
-    const API_USERS_GET_PROFILE = 'guest';
+    const API_USERS_GET_PROFILE = 'external';
     // Обновление собственного профиля
     const API_USERS_UPDATE_SELF = 'guest';
     // Правка чужой карточки: модератор и админ
     const API_USERS_UPDATE_OTHER = 'moderator';
     
     // API endpoints - Cars
+    // Список и карточка авто: роль user и выше (гость чата без анкеты — нет). Хозяин в карточке — member.
     const API_CARS_GET_LIST = 'user';
-    const API_CARS_GET_BY_ID = 'member';
+    const API_CARS_GET_BY_ID = 'user';
     const API_CARS_CREATE = 'guest';
     // Включение владельца в ответе по авто (приватность)
     const API_CARS_INCLUDE_OWNER = 'member';
@@ -145,16 +147,18 @@ class FunctionRoles {
     const API_CARS_UPDATE_BY_ID = 'moderator';
     
     // API endpoints - Events
-    const API_EVENTS_GET_LIST = 'guest';
-    const API_EVENTS_GET_BY_ID = 'guest';
+    // События: смотреть список и карточку и ответить «еду» — user (чтобы приехать познакомиться).
+    // Создать / править — member (участник).
+    const API_EVENTS_GET_LIST = 'user';
+    const API_EVENTS_GET_BY_ID = 'user';
     const API_EVENTS_CREATE = 'member';
     const API_EVENTS_UPDATE = 'member';
     const API_EVENTS_DELETE = 'member';
-    const API_EVENTS_RSVP = 'member';
+    const API_EVENTS_RSVP = 'user';
     
     // API endpoints - Guide Objects
-    const API_GUIDE_OBJECTS_GET_LIST = 'guest';
-    const API_GUIDE_OBJECTS_GET_BY_ID = 'guest';
+    const API_GUIDE_OBJECTS_GET_LIST = 'member';
+    const API_GUIDE_OBJECTS_GET_BY_ID = 'member';
     const API_GUIDE_OBJECTS_CREATE = 'member';
     const API_GUIDE_OBJECTS_UPDATE = 'member';
     const API_GUIDE_OBJECTS_DELETE = 'moderator';
@@ -173,6 +177,8 @@ class FunctionRoles {
     // API endpoints - Reviews
     const API_REVIEWS_GET_LIST = 'member';
     const API_REVIEWS_CREATE = 'member';
+    const API_REVIEWS_UPDATE = 'member'; // свой отзыв: правка оценок и текста
+    const API_REVIEWS_DELETE = 'member'; // свой отзыв: удаление
     
     // API endpoints - System
     const API_HEALTH = 'external';
@@ -189,6 +195,12 @@ class FunctionRoles {
     const API_USER_LOCATIONS_INDEX = 'member';
     const API_USER_LOCATIONS_STORE = 'user';
     const API_USER_LOCATIONS_DESTROY = 'user';
+
+    // Журнал: вход и разделы может писать любой, кто открыл Mini App
+    const API_AUDIT_WRITE = 'external';
+
+    // Проверка членства доступна даже роли external, чтобы можно было вернуться в клуб
+    const API_MEMBERSHIP_CHECK = 'external';
 
     /**
      * Получить массив всех функций с их минимальными ролями
@@ -247,6 +259,8 @@ class FunctionRoles {
             // API endpoints - Reviews
             'api.reviews.getList' => self::API_REVIEWS_GET_LIST,
             'api.reviews.create' => self::API_REVIEWS_CREATE,
+            'api.reviews.update' => self::API_REVIEWS_UPDATE,
+            'api.reviews.delete' => self::API_REVIEWS_DELETE,
             
             // API endpoints - System
             'api.health' => self::API_HEALTH,
@@ -262,6 +276,9 @@ class FunctionRoles {
             'api.userLocations.index' => self::API_USER_LOCATIONS_INDEX,
             'api.userLocations.store' => self::API_USER_LOCATIONS_STORE,
             'api.userLocations.destroy' => self::API_USER_LOCATIONS_DESTROY,
+
+            'api.audit.write' => self::API_AUDIT_WRITE,
+            'api.membership.check' => self::API_MEMBERSHIP_CHECK,
         ];
     }
 

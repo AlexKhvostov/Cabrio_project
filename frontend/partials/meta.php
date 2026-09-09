@@ -8,6 +8,14 @@ function render_meta(string $title = 'CabrioRide') {
   echo '<meta name="format-detection" content="telephone=no">';
   echo '<meta name="theme-color" content="#070b12">';
   echo '<title>' . htmlspecialchars($title) . '</title>';
+  echo '<style>html,body{background:#070b12;color:#f5f7fa;margin:0}'
+    . '.club-gate{position:fixed;inset:0;z-index:1700;display:flex;align-items:center;justify-content:center;padding:20px 16px;background:#070b12}'
+    . '</style>';
+  // Высота сразу, не ждём app.js — иначе Mini App секунду «висит» пустым экраном.
+  echo '<script>document.documentElement.style.setProperty("--app-height",(window.innerHeight||700)+"px");</script>';
+  // defer: скрипт Telegram всегда раньше app.js. async ломал меню — SDK ещё не было, нас кидало на заглушку «откройте из бота».
+  echo '<script>window.__cabrioTgPaint=function(){try{var t=window.Telegram&&window.Telegram.WebApp;if(!t)return;t.ready();t.expand();t.setHeaderColor&&t.setHeaderColor("#070b12");t.setBackgroundColor&&t.setBackgroundColor("#070b12");t.setBottomBarColor&&t.setBottomBarColor("#070b12");}catch(e){}}</script>';
+  echo '<script src="https://telegram.org/js/telegram-web-app.js" defer onload="window.__cabrioTgPaint&&window.__cabrioTgPaint()"></script>';
   $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || ((string)($_SERVER['SERVER_PORT'] ?? '') === '443');
   $scheme = $https ? 'https' : (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http');
@@ -24,6 +32,8 @@ function render_meta(string $title = 'CabrioRide') {
   $appBase = getenv('BASE_URL') ?: $defaultApp;
   $appBase = rtrim($appBase, '/');
   echo '<script>window.__BASE_URL = ' . json_encode($appBase, JSON_UNESCAPED_SLASHES) . ';</script>';
+  echo '<script>window.__CHAT_INVITE = ' . json_encode(cabrio_chat_invite(), JSON_UNESCAPED_SLASHES) . ';</script>';
+  echo '<script>window.__HOME_COVER = ' . json_encode(cabrio_frontend_url('assets/img/home-cover.jpg'), JSON_UNESCAPED_SLASHES) . ';</script>';
   $defaultBase = $origin . $appPath . '/backend';
   $apiBase = getenv('BACKEND_API_URL') ?: $defaultBase;
   $apiBase = rtrim($apiBase, '/');
