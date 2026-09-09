@@ -1,6 +1,7 @@
 // Страница «Профиль» — та же карточка человека, те же кнопки Изменить / Отмена / Сохранить
 
 import { phUser, liveTelegramPhotoUrl, selfAvatarFallbacks } from './media.js?v=cabrio20'
+import { roleLabelRu } from './roles.js?v=ru1'
 import { openCarModal } from '../modals/car_modal.js?v=create-car1'
 import {
   escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, renderAddMyCarButton, bindRelLinks, headerActions, openPhotoViewer
@@ -83,7 +84,7 @@ export async function initProfilePage() {
     document.getElementById('profileName').textContent = name
     document.getElementById('profileMeta').innerHTML = meta ? escapeHtml(meta) : '<span class="sheet-empty">город не указан</span>'
     const roleEl = document.getElementById('role')
-    if (roleEl) roleEl.textContent = d.role?.name || d.role?.code || ''
+    if (roleEl) roleEl.textContent = roleLabelRu(d.role)
     const avatarEl = document.getElementById('profileAvatar')
     let isEditing = false
     if (avatarEl) {

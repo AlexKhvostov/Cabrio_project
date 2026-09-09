@@ -141,6 +141,66 @@ html.ui-kit{
 .kit-fab-row{display:flex;gap:14px;align-items:center;padding:12px;background:var(--field);border-radius:12px}
 .kit-map-mark{padding:16px;background:var(--surface);border-radius:12px;display:flex;justify-content:center}
 
+/* П. 79: состояния свайпа роли — только макет до согласования поведения */
+.kit-role-swipe-examples{display:flex;flex-direction:column;gap:14px}
+.kit-role-swipe-label{
+  margin:0 0 5px;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted)
+}
+.kit-role-swipe{
+  position:relative;width:100%;overflow:hidden;border-radius:14px;
+  background:rgba(10,16,26,.55)
+}
+.kit-role-swipe-back{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:flex-end;padding:8px
+}
+.kit-role-swipe.is-down .kit-role-swipe-back{justify-content:flex-start}
+.kit-role-swipe-card{
+  position:relative;z-index:2;
+  transition:transform .22s ease
+}
+.kit-role-swipe.is-up .kit-role-swipe-card{transform:translateX(-88px)}
+.kit-role-swipe.is-down .kit-role-swipe-card{transform:translateX(88px)}
+.kit-role-swipe-action{
+  width:72px;min-height:42px;padding:5px 6px;border:1px solid transparent;
+  border-radius:12px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1px;font:inherit;cursor:pointer;
+  box-shadow:var(--card-highlight), 0 6px 14px rgba(0,0,0,.22)
+}
+.kit-role-swipe-ico{font-size:11px;line-height:1;font-weight:800;opacity:.9}
+.kit-role-swipe-txt{display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.15}
+.kit-role-swipe-txt em{
+  font-style:normal;font-size:8px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;opacity:.72
+}
+.kit-role-swipe-txt strong{font-size:10px;font-weight:750}
+.kit-role-swipe-action.is-up{
+  color:var(--ink);
+  background:var(--gradient-accent);
+  border-color:rgba(70,224,214,.45)
+}
+.kit-role-swipe-action.is-down{
+  color:#ffe8dc;
+  background:linear-gradient(160deg, rgba(255,107,61,.22), rgba(18,12,10,.92));
+  border-color:rgba(255,107,61,.38)
+}
+.kit-role-confirm{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:14px;padding:10px 11px;border-radius:12px;
+  background:rgba(126,143,255,.09);border:1px solid rgba(126,143,255,.2)
+}
+.kit-role-confirm > div:first-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kit-role-confirm strong{font-size:12px}
+.kit-role-confirm span{font-size:10px;color:var(--muted)}
+.kit-role-confirm-actions{display:flex;gap:5px;flex:0 0 auto}
+.kit-role-confirm-actions .btn-ghost,
+.kit-role-confirm-actions .btn-primary{min-height:28px;padding:4px 8px;font-size:10px}
+@media (max-width:420px){
+  .kit-role-confirm{align-items:stretch;flex-direction:column}
+  .kit-role-confirm-actions{justify-content:flex-end}
+}
+
 /* Все примеры имеют ширину среднего экрана телефона */
 .kit-stage > *{grid-column:1}
 
@@ -164,7 +224,7 @@ html.ui-kit{
 }
 .kit-modal-shell .modal-body,
 .kit-modal-shell .sheet-body{
-  max-height:520px;
+  max-height:min(70vh, 640px);
 }
 .kit-modal-hint{
   margin:0;padding:24px 12px;text-align:center;

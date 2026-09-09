@@ -75,6 +75,7 @@ class GuideObjectController extends BaseController
                 Label::syncForGuideObject($id, $input['labels']);
             }
             $this->logUserAction('create_guide_object', ['id' => $id]);
+            $this->audit('create', 'place', $id, 'Добавил место «' . mb_substr($name, 0, 80) . '»', 'guide');
             $item = GuideObject::findExpanded($id);
             $item['permissions'] = $this->guidePermissions($item, (int)$this->getCurrentUserId());
             $this->json(['success' => true, 'data' => $item, 'meta' => $this->getRequestInfo()], 201);
@@ -120,6 +121,7 @@ class GuideObjectController extends BaseController
             }
             $fresh = GuideObject::findExpanded((int)$id);
             $fresh['permissions'] = $this->guidePermissions($fresh, (int)$this->getCurrentUserId());
+            $this->audit('update', 'place', (int)$id, 'Изменил место «' . mb_substr((string)($fresh['name'] ?? $item['name'] ?? ''), 0, 80) . '»', 'guide');
             $this->json(['success' => true, 'data' => $fresh, 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
             Logger::error('GuideObjectController: update error', ['error' => $e->getMessage()]);
@@ -143,6 +145,7 @@ class GuideObjectController extends BaseController
                 return;
             }
             GuideObject::updateStatus((int)$id, Status::idByCode('deleted', 3));
+            $this->audit('delete', 'place', (int)$id, 'Удалил место «' . mb_substr((string)($item['name'] ?? ''), 0, 80) . '»', 'guide');
             $this->json(['success' => true, 'data' => ['id' => (int)$id, 'status' => 'deleted'], 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
             Logger::error('GuideObjectController: delete error', ['error' => $e->getMessage()]);

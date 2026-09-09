@@ -6,7 +6,7 @@
 
 import { phUser, phCar } from './components/media.js?v=cabrio20'
 
-import { renderUserCard, renderMemberCarStack } from './components/cards/user_card.js?v=cabrio14'
+import { renderUserCard, renderMemberCarStack } from './components/cards/user_card.js?v=cabrio19'
 
 import { renderCarCard } from './components/cards/car_card.js?v=cabrio14'
 
@@ -21,11 +21,12 @@ import {
 } from './components/sheet.js?v=write1'
 
 import { bindHintPops } from './components/hints.js?v=tip2'
+import { bindClubInfoTiles } from './modals/club_info_modal.js?v=info2'
 import {
   renderKitModalFrame, renderKitUserModal, renderKitCarModal, renderKitMapModalHint,
-  renderKitEventModal, renderKitGuideModal, renderKitProfilePage, renderKitEditModal,
+  renderKitEventModal, renderKitEventEditModal, renderKitGuideModal, renderKitGuideEditModal, renderKitProfilePage, renderKitEditModal,
   renderKitEventCreate, renderKitGuideCreate, renderKitCreateModal
-} from './ui_kit_modals.js?v=tags1'
+} from './ui_kit_modals.js?v=reglive1'
 
 const EVENT_IMG = new URL('../img/nav/events.png', import.meta.url).href
 const GUIDE_IMG = new URL('../img/nav/guide.png', import.meta.url).href
@@ -215,6 +216,22 @@ put('d-member-card-1', renderUserCard(demoUser1))
 put('d-member-card-empty', renderUserCard(demoUserEmpty))
 put('d-car-stack', renderMemberCarStack(demoUser3.cars))
 
+function roleSwipeDemo(state){
+  const actions = state === 'up'
+    ? `<button class="kit-role-swipe-action is-up" type="button"><span class="kit-role-swipe-ico" aria-hidden="true">↑</span><span class="kit-role-swipe-txt"><em>Повысить</em><strong>Модератор</strong></span></button>`
+    : state === 'down'
+      ? `<button class="kit-role-swipe-action is-down" type="button"><span class="kit-role-swipe-ico" aria-hidden="true">↓</span><span class="kit-role-swipe-txt"><em>Понизить</em><strong>Пользователь</strong></span></button>`
+      : ''
+  return `<div class="kit-role-swipe ${state ? `is-${state}` : ''}">
+    <div class="kit-role-swipe-back">${actions}</div>
+    <div class="kit-role-swipe-card">${renderUserCard(demoUserBase)}</div>
+  </div>`
+}
+
+put('d-role-swipe-rest', roleSwipeDemo(''))
+put('d-role-swipe-up', roleSwipeDemo('up'))
+put('d-role-swipe-down', roleSwipeDemo('down'))
+
 put('d-car-grid', `<div class="cars-grid">${renderCarCard(demoCar)}${renderCarCard(demoCarEmpty)}</div>`)
 
 function kitIsoDays(n){
@@ -315,10 +332,20 @@ const demoEvent = {
   dateLabel: '15 июня 2026',
   time: '19:00',
   city: 'Минск',
+  location: 'Парк у набережной',
   type: 'Поездка',
   status: 'Активно',
+  max_participants: 6,
+  invite: false,
+  dateValue: '2026-06-15',
   description: 'Сбор у парка, дальше — маршрут вдоль воды. Открытый верх приветствуется.',
   photo: EVENT_IMG,
+  going_count: 4,
+  maybe_count: 2,
+  no_count: 1,
+  spots_left: 2,
+  my_rsvp: { confidence: 'yes', plus_one: true },
+  organizer: { name: 'Иван Петров', username: 'ivan_cabriolet' },
 }
 
 const demoGuide = {
@@ -326,6 +353,8 @@ const demoGuide = {
   labels: ['мойка', 'минск', 'кабрио'],
   description: 'Бесконтактная мойка, удобный заезд для кабриолетов.',
   photo: GUIDE_IMG,
+  rating: { overall: 4.1, quality: 4.5, speed: 4.0, price: 3.8, count: 4 },
+  author: { name: 'Иван Петров', username: 'ivan_cabriolet' },
 }
 
 const demoCarView = {
@@ -345,7 +374,9 @@ put('d-modal-user', renderKitUserModal({ ...demoUserBase, country: 'Белару
 put('d-modal-car', renderKitCarModal(demoCarView, demoUserBase))
 put('d-modal-map', renderKitMapModalHint())
 put('d-modal-event', renderKitEventModal(demoEvent))
+put('d-modal-event-edit', renderKitEventEditModal(demoEvent))
 put('d-modal-guide', renderKitGuideModal(demoGuide))
+put('d-modal-guide-edit', renderKitGuideEditModal(demoGuide))
 put('d-modal-profile', renderKitProfilePage({ ...demoUserBase, about: 'Люблю открытый верх.' }, demoUser2.cars))
 put('d-modal-edit', renderKitEditModal({ ...demoCarView, description: 'Люблю вечерние поездки с открытым верхом.' }))
 put('d-modal-create', renderKitCreateModal({ ...demoCarView, description: '' }))
@@ -353,5 +384,6 @@ put('d-modal-event-create', renderKitEventCreate())
 put('d-modal-guide-create', renderKitGuideCreate())
 
 bindHintPops(document)
+bindClubInfoTiles(document)
 
 

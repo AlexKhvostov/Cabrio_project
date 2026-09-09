@@ -70,7 +70,7 @@ export function selfAvatarFallbacks(){
 }
 
 /* Человек без фото: нейтральная иллюстрация без лица, волос и гендерных признаков */
-const USER_PH_SRC = new URL('../../img/ph-user.png?v=2', import.meta.url).href
+const USER_PH_SRC = new URL('../../img/ph-user.png?v=4', import.meta.url).href
 const USER_PH = `<img class="ph-draw ph-user-art" src="${USER_PH_SRC}" alt="" decoding="async">`
 
 /* Заглушка авто: иллюстрация «кабриолет под чехлом на выставке», не фото конкретной машины */

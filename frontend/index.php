@@ -1,45 +1,55 @@
 <?php
 // Простая точка входа. Рендерим главную страницу.
 require __DIR__ . '/partials/meta.php';
+require_once __DIR__ . '/components/club_info.php';
 ?>
 <!doctype html>
 <html lang="ru">
   <head>
     <?php render_meta('CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <?php include __DIR__ . '/components/header.php'; ?>
     <?php include __DIR__ . '/components/nav.php'; ?>
     <main class="page">
       <section class="home">
-        <!-- Приветствие: имя из Telegram подставляется скриптом -->
-        <header class="home-hero">
-          <p class="home-kicker" id="statsTitle">CabrioRide</p>
-          <h1 class="home-hello" id="welcome">Привет</h1>
-          <p class="home-lead">Крыша открыта — можно заходить</p>
-        </header>
+        <!-- Обложка клуба. Тап по фото — отладка только у роли admin -->
+        <figure class="home-cover" id="statsTitle">
+          <img src="<?php echo cabrio_asset_href('assets/img/home-cover.jpg'); ?>" alt="CabrioRide — клуб кабриолетов" width="640" height="360">
+          <span class="home-cover-veil" aria-hidden="true"></span>
+          <figcaption class="home-cover-text">
+            <h1 class="home-hello" id="welcome">Привет</h1>
+            <p class="home-lead">Клуб владельцев кабриолетов</p>
+          </figcaption>
+        </figure>
 
         <div class="home-stats" id="stats">
-          <div class="home-stat">
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/users.php'), ENT_QUOTES); ?>">
             <div class="stat-value" id="stat-members">—</div>
             <div class="stat-label">в клубе</div>
-          </div>
-          <div class="home-stat">
+          </a>
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/cars.php'), ENT_QUOTES); ?>">
             <div class="stat-value" id="stat-cars">—</div>
             <div class="stat-label">кабриолетов</div>
-          </div>
-          <div class="home-stat">
+          </a>
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/events.php'), ENT_QUOTES); ?>">
             <div class="stat-value" id="stat-events">—</div>
             <div class="stat-label">встреч</div>
-          </div>
-          <div class="home-stat">
+          </a>
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/services.php'), ENT_QUOTES); ?>">
+            <div class="stat-value" id="stat-reviews">—</div>
+            <div class="stat-label">отзывов</div>
+          </a>
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/users.php'), ENT_QUOTES); ?>">
             <div class="stat-value" id="stat-cities">—</div>
             <div class="stat-label">городов</div>
-          </div>
+          </a>
+          <a class="home-stat" href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/map.php'), ENT_QUOTES); ?>">
+            <div class="stat-value" id="stat-onmap">—</div>
+            <div class="stat-label">на карте</div>
+          </a>
         </div>
-        <p class="home-onmap" id="stat-onmap" hidden></p>
 
         <!-- Скрытая панель отладки. Админ: тап по слову CabrioRide -->
         <div id="debugPanel" class="card" style="display:none; margin-top:12px; padding:0;">
@@ -54,36 +64,38 @@ require __DIR__ . '/partials/meta.php';
           <pre id="debugLog" style="margin:0; padding:10px 12px; max-height:240px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:12px; line-height:1.4; white-space:pre-wrap; word-break:break-word; background:rgba(0,0,0,0.35);"></pre>
         </div>
 
-        <article class="card home-club home-club--story">
+        <article class="card home-club">
           <p class="home-club-kicker">про нас</p>
           <h2>Люди с поехавшей крышей</h2>
-          <p class="home-club-lead">CabrioRide — клуб владельцев кабриолетов. Не лента для всех, а свои: кто на чём ездит, где сейчас катаются и когда следующая встреча.</p>
-          <p>Минск и вся Беларусь. Ветер, маршруты, проверенные мойки и люди, которым можно махнуть фарами на трассе.</p>
+          <p class="home-club-lead">Не лента для всех, а свои: кто на чём ездит, где катаются и когда следующая встреча. Минск и вся Беларусь.</p>
           <div class="home-outs">
             <a class="home-out" href="https://cabrioride.by" target="_blank" rel="noopener">
               Сайт клуба
               <small>cabrioride.by</small>
             </a>
-            <?php
-              $invite = trim((string)(getenv('CHAT_INVITE_LINK') ?: 'https://t.me/Cabrio_Ride'));
-              if ($invite !== '' && !preg_match('#^https?://#i', $invite)) {
-                  $invite = 'https://' . ltrim($invite, '/');
-              }
-            ?>
-            <a class="home-out" href="<?php echo htmlspecialchars($invite, ENT_QUOTES); ?>" target="_blank" rel="noopener">
+            <a class="home-out" href="<?php echo htmlspecialchars(cabrio_chat_invite(), ENT_QUOTES); ?>" target="_blank" rel="noopener">
               Чат в Telegram
               <small>живой разговор</small>
             </a>
           </div>
         </article>
 
-        <p class="home-hint">В профиле добавь фото — в списке своих тебя сразу узнают.</p>
+        <div class="home-hints">
+          <p class="home-hint">Своё фото в профиле — и в списке участников вас сразу узнают.</p>
+          <p class="home-hint" id="homeHintCar">
+            <a href="<?php echo htmlspecialchars(cabrio_frontend_url('pages/me.php'), ENT_QUOTES); ?>">В профиле можно добавить свой авто, если его там ещё нет.</a>
+          </p>
+        </div>
+        <?php cabrio_home_info_block(); ?>
       </section>
     </main>
     <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php cabrio_club_info_store(); ?>
     <script type="module" src="<?php echo cabrio_asset_href('assets/js/app.js'); ?>"></script>
     <script type="module">
       import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
+      import { bindClubInfoTiles } from '<?php echo cabrio_asset_href('assets/js/modals/club_info_modal.js'); ?>'
+      bindClubInfoTiles(document)
       CabrioAPI.apiGet('/api/stats').then((s)=>{
         if (!s || s.success === false) return
         const d = s.data || {}
@@ -91,20 +103,18 @@ require __DIR__ . '/partials/meta.php';
         set('stat-members', d.users)
         set('stat-cars', d.cars_active)
         set('stat-events', d.events)
+        set('stat-reviews', d.reviews)
         set('stat-cities', d.cities)
-        const onMap = Number(d.on_map || 0)
-        const onEl = document.getElementById('stat-onmap')
-        if (onEl) {
-          if (onMap > 0) {
-            onEl.hidden = false
-            onEl.textContent = onMap === 1 ? 'Сейчас на карте один свой' : `Сейчас на карте ${onMap} своих`
-          } else {
-            onEl.hidden = true
-          }
-        }
+        set('stat-onmap', d.on_map ?? 0)
       }).catch(()=>{})
 
-      // Приветствие по имени из Telegram (если доступно)
+      // Строка про авто — только если в профиле ещё нет машины
+      CabrioAPI.getMe().then((me)=>{
+        const cars = me && me.data && me.data.cars
+        if (Array.isArray(cars) && cars.length) {
+          document.getElementById('homeHintCar')?.setAttribute('hidden', '')
+        }
+      }).catch(()=>{})
       try {
         const u = window.Telegram?.WebApp?.initDataUnsafe?.user
         if (u?.first_name) {
@@ -113,7 +123,7 @@ require __DIR__ . '/partials/meta.php';
         }
       } catch {}
 
-      document.querySelectorAll('.home-out').forEach((a)=>{
+      document.querySelectorAll('a.home-out').forEach((a)=>{
         a.addEventListener('click', (e)=>{
           const href = a.getAttribute('href')
           if (!href) return

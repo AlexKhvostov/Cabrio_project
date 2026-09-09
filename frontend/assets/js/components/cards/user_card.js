@@ -3,6 +3,7 @@
 
 
 import { phUser, phCar, liveTelegramPhotoUrl, selfAvatarFallbacks } from '../media.js?v=cabrio20'
+import { roleLabelRu } from '../roles.js?v=ru1'
 
 
 
@@ -76,7 +77,7 @@ export function renderUserCard(member, options = {}){
 
   const fullName = (`${firstName} ${lastName}`).trim() || 'Без имени'
 
-  const roleLabel = (member.role && (member.role.name || member.role.code)) ? (member.role.name || member.role.code) : ''
+  const roleLabel = roleLabelRu(member.role)
 
   const city = (member.city && String(member.city).trim()) ? String(member.city).trim() : ''
 

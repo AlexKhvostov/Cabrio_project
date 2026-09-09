@@ -38,7 +38,7 @@ function daysUntil(dateStr){
   return Math.round((start - todayStart) / 86400000)
 }
 
-function whenBadge(dateStr){
+export function whenBadge(dateStr){
   const n = daysUntil(dateStr)
   if (n == null) return { text: '', cls: '' }
   if (n === 0) return { text: 'сегодня', cls: 'is-soon' }
@@ -72,6 +72,48 @@ export function renderEventOccupancy(event){
       <b>${escapeHtml(spotsText)}</b>
       <em>мест</em>
     </div>
+  </div>`
+}
+
+/** Табло регистрации в карточке события (кит п. 58): едут / думают / нет, места в полоске */
+export function renderEventRegDash(event){
+  const going = Number(event.going_count || event.participants_count || 0)
+  const maybe = Number(event.maybe_count || 0)
+  const no = Number(event.no_count || 0)
+  const spots = event.spots_left
+  const hasLimit = spots != null && spots !== ''
+  const spotsNum = hasLimit ? Number(spots) : null
+  const limit = hasLimit ? going + spotsNum : null
+  const pct = limit > 0 ? Math.min(100, Math.round((going / limit) * 100)) : 0
+  const mine = event.my_rsvp?.confidence || ''
+  const plus = mine === 'yes' && !!event.my_rsvp?.plus_one
+  const you = mine === 'yes'
+    ? (plus ? 'вы едете +1' : 'вы едете')
+    : (mine === 'maybe' ? 'вы думаете' : (mine === 'no' ? 'вы не едете' : ''))
+  const cap = hasLimit
+    ? (spotsNum === 0 ? `мест нет · ${going} из ${limit}` : `занято ${going} из ${limit} · свободно ${spotsNum}`)
+    : 'лимита нет'
+  const foot = [cap, you].filter(Boolean).join(' · ')
+  const bar = hasLimit
+    ? `<div class="event-reg-dash-bar" aria-hidden="true"><i style="width:${pct}%"></i></div>`
+    : ''
+  return `<div class="event-reg-dash">
+    <div class="event-reg-dash-nums">
+      <div class="event-reg-dash-item is-go">
+        <b>${going}</b>
+        <span>едут</span>
+      </div>
+      <div class="event-reg-dash-item is-maybe">
+        <b>${maybe}</b>
+        <span>думают</span>
+      </div>
+      <div class="event-reg-dash-item is-no">
+        <b>${no}</b>
+        <span>нет</span>
+      </div>
+    </div>
+    ${bar}
+    ${foot ? `<p class="event-reg-dash-cap">${escapeHtml(foot)}</p>` : ''}
   </div>`
 }
 

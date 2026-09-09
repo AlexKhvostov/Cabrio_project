@@ -6,25 +6,25 @@
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
   </head>
   <body>
-    <main class="page" style="display:flex;align-items:center;justify-content:center;">
-      <div class="card" style="max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;">
-        <h2 style="margin:0">CabrioRide</h2>
-        <p style="margin:0;color:#bbb">Это приложение для участников клуба кабриолетов.</p>
-        <p style="margin:0;color:#bbb">Откройте приложение через Telegram, используя кнопку в закреплённом сообщении чата клуба.</p>
-        <div class="divider" style="height:1px;background:var(--border-color);"></div>
-        <?php
-          // Ссылка на клубный чат из .env (CHAT_INVITE_LINK), иначе публичный username
-          $invite = getenv('CHAT_INVITE_LINK') ?: 'https://t.me/Cabrio_Ride';
-          $invite = trim($invite);
-          if ($invite !== '' && !preg_match('#^https?://#i', $invite)) {
-              $invite = 'https://' . ltrim($invite, '/');
-          }
-        ?>
-        <a class="btn-primary" href="<?php echo htmlspecialchars($invite, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Перейти в чат Telegram</a>
-        <p style="margin:0;font-size:12px;color:#888">Если вы ещё не участник, подайте заявку на вступление в чате.</p>
+    <main class="page landing-page">
+      <div class="landing-stack">
+        <!-- Тот же кадр, что на главной Mini App. Здесь нет меню — человек не внутри приложения -->
+        <figure class="home-cover">
+          <img src="<?php echo cabrio_asset_href('assets/img/home-cover.jpg'); ?>" alt="CabrioRide — клуб кабриолетов" width="640" height="360">
+          <span class="home-cover-veil" aria-hidden="true"></span>
+          <figcaption class="home-cover-text">
+            <h1 class="home-hello">CabrioRide</h1>
+            <p class="home-lead">Клуб кабриолетов. Приложение для своих.</p>
+          </figcaption>
+        </figure>
+
+        <article class="card home-club">
+          <p>Приложение открывается из Telegram: кнопка у бота @CabrioRideBot или ссылка в чате клуба. В браузере списки людей и машин не показываем.</p>
+        </article>
+
+        <a class="btn-primary" href="<?php echo htmlspecialchars(cabrio_chat_invite(), ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Перейти в чат клуба</a>
+        <p class="home-hint">Ещё не в клубе — заявку оставляют в чате.</p>
       </div>
     </main>
   </body>
-  </html>
-
-
+</html>

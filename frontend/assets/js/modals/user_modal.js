@@ -1,6 +1,7 @@
 // Большая карточка участника. Пустые поля на месте. Авто — ссылки на полную карточку, не плитки списка.
 
 import { phUser } from '../components/media.js?v=cabrio20'
+import { roleLabelRu, ROLE_LABELS, assignableRoles, roleCodeOf } from '../components/roles.js?v=ru2'
 import {
   escapeHtml, viewVal, sheetField, personName, personIni, renderCarLink, renderAddMyCarButton, bindRelLinks, headerActions, openPhotoViewer,
   tgUsername, isSameTelegramUser, openTelegramDialog
@@ -24,7 +25,7 @@ export async function openUserModal(member){
   overlay.className = 'modal-overlay modal-above-nav'
   const cars = Array.isArray(member.cars) ? member.cars : []
   const fullName = personName(member) || 'Без имени'
-  const roleLabel = member.role?.name || member.role?.code || ''
+  const roleLabel = roleLabelRu(member.role)
   const meta = [member.username ? '@'+member.username : '', member.city || ''].filter(Boolean).join(' · ')
   const photoUrl = member.photo?.urls?.orig || member.photo?.urls?.medium || member.photo?.url || member.photo_url || ''
   let isEditing = false
@@ -85,12 +86,12 @@ export async function openUserModal(member){
           <span class="sheet-label">Роль</span>
           <div class="sheet-role-row">
             <select id="roleSelect" class="filter-select">
-              <option value="external">external</option>
-              <option value="guest">guest</option>
-              <option value="user">user</option>
-              <option value="member">member</option>
-              <option value="moderator">moderator</option>
-              <option value="admin">admin</option>
+              <option value="external">${ROLE_LABELS.external}</option>
+              <option value="guest">${ROLE_LABELS.guest}</option>
+              <option value="user">${ROLE_LABELS.user}</option>
+              <option value="member">${ROLE_LABELS.member}</option>
+              <option value="moderator">${ROLE_LABELS.moderator}</option>
+              <option value="admin">${ROLE_LABELS.admin}</option>
             </select>
             <button id="roleSaveBtn" class="btn-primary" type="button" disabled>Сохранить</button>
           </div>
@@ -227,19 +228,25 @@ export async function openUserModal(member){
   renderFields()
 
   ;(async () => {
+    let myRole = ''
     try {
       const me = await (window.CabrioAPI?.getMe ? window.CabrioAPI.getMe() : null)
       meId = me?.data?.id || null
       paintHeader()
       paintCars(member.cars || [])
-      const myRole = me?.data?.role?.code || ''
-      const isStaff = ['moderator','admin'].includes(String(myRole).toLowerCase())
+      myRole = roleCodeOf(me?.data?.role)
+      const isStaff = ['moderator','admin'].includes(myRole)
       if (!(isStaff && Number(meId) !== Number(member.id))) return
     } catch { return }
     const editor = overlay.querySelector('#roleEditor')
     const select = overlay.querySelector('#roleSelect')
     const badge = overlay.querySelector('#userRoleBadge')
     if (!editor || !select) return
+    const allowed = assignableRoles(myRole)
+    ;[...select.options].forEach((opt) => {
+      if (!allowed.includes(opt.value)) opt.remove()
+    })
+    if (!allowed.length) return
     editor.style.display = ''
     if (badge) badge.hidden = false
     let originalRole = member.role?.code || 'guest'
@@ -257,7 +264,7 @@ export async function openUserModal(member){
       }
       originalRole = role
       saveBtn.disabled = true
-      if (badge) badge.textContent = res.data?.role?.name || res.data?.role?.code || role
+      if (badge) badge.textContent = roleLabelRu(res.data?.role || role)
     })
   })()
 }

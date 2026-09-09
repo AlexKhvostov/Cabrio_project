@@ -33,7 +33,7 @@ class CarController extends BaseController
      * Получить список автомобилей
      * 
      * Требует авторизации: Да
-     * Минимальная роль: member
+     * Минимальная роль: user
      */
     public function getList()
     {
@@ -238,6 +238,11 @@ class CarController extends BaseController
             $updated['permissions'] = [ 'canEdit' => $isOwner || $this->isModerator() || $this->isAdmin() ];
 
             $this->logUserAction('update_car', [ 'car_id' => (int)$id, 'fields' => array_keys($updateData) ]);
+            $label = trim((string)(($updated['brand']['name'] ?? $updated['brand_name'] ?? '') . ' ' . ($updated['model'] ?? '')));
+            if ($label === '') {
+                $label = 'id ' . (int)$id;
+            }
+            $this->audit('update', 'car', (int)$id, 'Изменил авто «' . mb_substr($label, 0, 80) . '»', 'cars');
             $this->json(['success' => true, 'data' => $updated, 'meta' => $this->getRequestInfo()]);
 
         } catch (Throwable $e) {
@@ -253,7 +258,7 @@ class CarController extends BaseController
      * Получить автомобиль по id
      * 
      * Требует авторизации: Да
-     * Минимальная роль: member
+     * Минимальная роль: user (свою карточку правит и без роли member)
      */
     public function getById($id)
     {
@@ -318,7 +323,7 @@ class CarController extends BaseController
      * Создать новый автомобиль
      * 
      * Требует авторизации: Да
-     * Минимальная роль: member
+     * Минимальная роль: guest
      */
     public function create()
     {
@@ -363,6 +368,8 @@ class CarController extends BaseController
             // Создатель = владелец, сразу можно править свою карточку
             $car['permissions'] = [ 'canEdit' => true ];
             $car = Car::applyRegNumberPrivacy($car, true);
+            $label = trim((string)(($car['brand']['name'] ?? $car['brand_name'] ?? '') . ' ' . ($car['model'] ?? '')));
+            $this->audit('create', 'car', (int)($car['id'] ?? 0), 'Добавил авто «' . mb_substr($label !== '' ? $label : 'новое', 0, 80) . '»', 'cars');
 
             $this->json([
                 'success' => true,

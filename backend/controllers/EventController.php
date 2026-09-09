@@ -1,6 +1,6 @@
 <?php
 /**
- * События клуба: список, карточка, создание, правка, удаление (статус «удалён»), ответ «еду / нет / возможно».
+ * События клуба: список, карточка и «еду» с роли user; создать / править — member.
  */
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/Event.php';
@@ -19,6 +19,7 @@ class EventController extends BaseController
             $uid = (int)$this->getCurrentUserId();
             foreach ($events as &$e) {
                 $e['permissions'] = $this->eventPermissions($e, $uid);
+                $this->hidePeopleIfNeeded($e);
             }
             unset($e);
             $this->logUserAction('get_events_list', ['count' => count($events)]);
@@ -41,6 +42,7 @@ class EventController extends BaseController
                 return;
             }
             $event['permissions'] = $this->eventPermissions($event, (int)$this->getCurrentUserId());
+            $this->hidePeopleIfNeeded($event);
             $this->json(['success' => true, 'data' => $event, 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
             Logger::error('EventController: getById error', ['error' => $e->getMessage()]);
@@ -81,6 +83,7 @@ class EventController extends BaseController
                 'registration_type' => $private ? 'invitation' : 'free',
             ]);
             $this->logUserAction('create_event', ['event_id' => $id]);
+            $this->audit('create', 'event', $id, 'Создал встречу «' . mb_substr($title, 0, 80) . '»', 'events');
             $event = Event::findExpanded($id, $this->getCurrentUserId());
             $event['permissions'] = $this->eventPermissions($event, (int)$this->getCurrentUserId());
             $this->json(['success' => true, 'data' => $event, 'meta' => $this->getRequestInfo()], 201);
@@ -124,6 +127,7 @@ class EventController extends BaseController
             }
             Event::updateById((int)$id, $payload);
             $fresh = Event::findExpanded((int)$id, $this->getCurrentUserId());
+            $this->audit('update', 'event', (int)$id, 'Изменил встречу «' . mb_substr((string)($fresh['title'] ?? $event['title'] ?? ''), 0, 80) . '»', 'events');
             $fresh['permissions'] = $this->eventPermissions($fresh, (int)$this->getCurrentUserId());
             $this->json(['success' => true, 'data' => $fresh, 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
@@ -149,6 +153,7 @@ class EventController extends BaseController
             }
             Event::updateStatus((int)$id, Status::idByCode('deleted', 3));
             $this->logUserAction('delete_event', ['event_id' => (int)$id]);
+            $this->audit('delete', 'event', (int)$id, 'Удалил встречу «' . mb_substr((string)($event['title'] ?? ''), 0, 80) . '»', 'events');
             $this->json(['success' => true, 'data' => ['id' => (int)$id, 'status' => 'deleted'], 'meta' => $this->getRequestInfo()]);
         } catch (Throwable $e) {
             Logger::error('EventController: delete error', ['error' => $e->getMessage()]);
@@ -171,6 +176,8 @@ class EventController extends BaseController
             $confidence = strtolower(trim((string)($input['confidence'] ?? '')));
             LinkEventParticipant::upsert((int)$id, (int)$this->getCurrentUserId(), $confidence, !empty($input['plus_one']));
             $fresh = Event::findExpanded((int)$id, $this->getCurrentUserId());
+            $rsvpRu = ['yes' => 'еду', 'going' => 'еду', 'maybe' => 'может быть', 'no' => 'не еду'][$confidence] ?? $confidence;
+            $this->audit('update', 'event', (int)$id, 'Отметил участие («' . $rsvpRu . '») во встрече «' . mb_substr((string)($fresh['title'] ?? $event['title'] ?? ''), 0, 80) . '»', 'events');
             $fresh['permissions'] = $this->eventPermissions($fresh, (int)$this->getCurrentUserId());
             $this->json(['success' => true, 'data' => $fresh, 'meta' => $this->getRequestInfo()]);
         } catch (InvalidArgumentException $e) {
@@ -185,6 +192,21 @@ class EventController extends BaseController
     {
         $orgId = (int)($event['org_user_id'] ?? $event['organizer']['id'] ?? 0);
         $canEdit = ($orgId && $orgId === $uid) || $this->isModerator() || $this->isAdmin();
-        return ['canEdit' => $canEdit];
+        return [
+            'canEdit' => $canEdit,
+            'canRsvp' => $this->checkAccess('api.events.rsvp'),
+            'canSeeRsvpNames' => $this->checkAccess('api.users.getList'),
+        ];
+    }
+
+    // Роль user видит когда и где, но не список людей (это раздел «Участники»).
+    private function hidePeopleIfNeeded(&$event)
+    {
+        if (!empty($event['permissions']['canSeeRsvpNames'])) {
+            return;
+        }
+        $event['rsvp_going'] = [];
+        $event['rsvp_maybe'] = [];
+        $event['organizer'] = null;
     }
 }

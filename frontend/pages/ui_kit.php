@@ -5,6 +5,7 @@
  */
 require __DIR__ . '/../partials/meta.php';
 require_once __DIR__ . '/../components/nav_icons.php';
+require_once __DIR__ . '/../components/club_info.php';
 
 function kit_open(int $n, string $title, string $used = ''): void {
   echo '<article class="kit-item" id="k-' . $n . '">';
@@ -31,10 +32,28 @@ function kit_ph_user(string $ini = ''): string {
   $iniH = htmlspecialchars($ini);
   $has = $ini !== '' ? ' ph-has-ini' : '';
   $iniHtml = $ini !== '' ? '<span class="ph-ini">' . $iniH . '</span>' : '';
-  return '<div class="ph ph-user' . $has . '"><span class="ph-fallback" aria-hidden="true"><img class="ph-draw ph-user-art" src="../assets/img/ph-user.png?v=2" alt="">' . $iniHtml . '</span></div>';
+  return '<div class="ph ph-user' . $has . '"><span class="ph-fallback" aria-hidden="true"><img class="ph-draw ph-user-art" src="../assets/img/ph-user.png?v=4" alt="">' . $iniHtml . '</span></div>';
 }
 function kit_ph_car(): string {
   return '<div class="ph ph-car"><span class="ph-fallback" aria-hidden="true"><img class="ph-draw" src="../assets/img/ph-car.png" alt=""></span></div>';
+}
+
+/** Нижнее меню как в приложении — для пункта 45 */
+function kit_nav_menu(): void {
+  $items = [
+    ['people', 'Участники', true],
+    ['car', 'Авто', false],
+    ['map', 'Карта', false],
+    ['events', 'События', false],
+    ['guide', 'Отзывы', false],
+    ['profile', 'Профиль', false],
+  ];
+  echo '<div class="kit-nav-demo"><nav class="bottom-nav" aria-label="Пример меню">';
+  foreach ($items as [$pic, $label, $on]) {
+    $cls = $on ? 'nav-item active' : 'nav-item';
+    echo '<a class="' . $cls . '" href="#k-45"><span class="nav-icon">' . cabrio_nav_pic($pic) . '</span><span class="nav-label">' . htmlspecialchars($label) . '</span></a>';
+  }
+  echo '</nav></div>';
 }
 
 $toc = [
@@ -45,7 +64,7 @@ $toc = [
   'Фото' => [27=>'Аватар-заглушка',28=>'Аватар с фото',29=>'Рамка авто-заглушка',30=>'Рамка авто с фото',31=>'Большая обложка 16:9',32=>'Кнопка загрузки фото',62=>'Все заглушки'],
   'Списки' => [33=>'Бейдж роли',34=>'Бейдж статуса авто',35=>'Карточка человека',36=>'Компоновка авто',37=>'Карточка авто в сетке',67=>'Плитка события',68=>'Плитка отзыва',38=>'Ссылка хозяин ↔ авто'],
   'Большая карточка' => [39=>'Шапка карточки',40=>'Шапка человека (фото + имя)',41=>'Поля большой карточки',42=>'Карточка целиком'],
-  'Экраны' => [43=>'Статистика главной',44=>'Пустой / инфо-блок',45=>'Нижнее меню',46=>'Название в шапке Telegram',63=>'Всплывающая подсказка i'],
+  'Экраны' => [43=>'Статистика главной',69=>'Стартовый экран',70=>'Нет доступа — не в группе',44=>'Пустой / инфо-блок',45=>'Нижнее меню',46=>'Название в шапке Telegram',63=>'Всплывающая подсказка i'],
   'Карта и прочее' => [47=>'Переключатель геолокации',48=>'Круглые кнопки карты',49=>'Метка на карте',50=>'Кто сейчас на карте',51=>'Просмотр фото',52=>'Спиннер',53=>'Ошибка / тост'],
   'Модалки разделов' => [
     54=>'Каркас модалки',
@@ -53,12 +72,17 @@ $toc = [
     56=>'Авто — карточка машины',
     57=>'Карта — открытие с метки',
     58=>'События — карточка встречи',
+    72=>'События — правка карточки',
     59=>'Отзывы — карточка',
+    71=>'Отзывы — правка карточки',
     60=>'Профиль — sheet на странице',
     61=>'Режим редактирования',
     66=>'Режим создания',
     64=>'События — создание',
     65=>'Отзывы — добавление',
+    73=>'Справка — роли и доступы',
+    75=>'Справка — разделы',
+    74=>'Справка — доступы (снято)',
   ],
 ];
 
@@ -130,7 +154,7 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_group('Типографика', 'Компактная шкала текста без случайных размеров.'); ?>
-<?php kit_open(9, 'Приветствие главной', 'Экран статистики'); ?>
+<?php kit_open(9, 'Приветствие главной', 'Поверх обложки, п. 69'); ?>
   <p class="home-hello kit-type-hero">Привет, Иван</p>
   <p class="home-lead">Клуб владельцев кабриолетов</p>
 <?php kit_close(); ?>
@@ -195,8 +219,8 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_open(18, 'Выпадающий список', 'Фильтр роли, статус авто, крыша'); ?>
   <select class="filter-select">
     <option>Пользователь и выше</option>
-    <option>Участники</option>
-    <option>Модераторы</option>
+    <option>Участник</option>
+    <option>Модератор</option>
   </select>
 <?php kit_close(); ?>
 
@@ -362,6 +386,35 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
   </div>
 <?php kit_close(); ?>
 
+<?php kit_open(79, 'Свайп роли участника', 'Экран Участники, только модератор и администратор'); ?>
+  <p class="kit-note">Свайп только открывает компактную кнопку. Влево — повысить справа, вправо — понизить слева. После нажатия обязательно подтверждение. Одновременно открыта только одна строка.</p>
+  <div class="kit-role-swipe-examples">
+    <div>
+      <p class="kit-role-swipe-label">Обычная плитка</p>
+      <div id="d-role-swipe-rest"></div>
+    </div>
+    <div>
+      <p class="kit-role-swipe-label">Свайп влево</p>
+      <div id="d-role-swipe-up"></div>
+    </div>
+    <div>
+      <p class="kit-role-swipe-label">Свайп вправо</p>
+      <div id="d-role-swipe-down"></div>
+    </div>
+  </div>
+  <div class="kit-role-confirm">
+    <div>
+      <strong>Изменить роль?</strong>
+      <span>Иван Петров · Участник → Модератор</span>
+    </div>
+    <div class="kit-role-confirm-actions">
+      <button class="btn-ghost" type="button">Отмена</button>
+      <button class="btn-primary" type="button">Повысить</button>
+    </div>
+  </div>
+  <p class="kit-note">Ограничение: модератор не может назначать модераторов/администраторов и менять людей с равной или более высокой ролью. Администратор может менять доступные роли, кроме своей собственной.</p>
+<?php kit_close(); ?>
+
 <?php kit_open(36, 'Компоновка авто в карточке человека', 'Пункт 35 — читаемые мини-карточки с маркой'); ?>
   <p class="kit-note">Клик по любой мини-карточке открывает авто. Для 1–2 машин изображение и марка видны полностью; компактный нахлёст используется только начиная с третьей.</p>
   <div class="kit-stack-preview">
@@ -503,11 +556,76 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_group('Экраны и навигация', 'Главная, пустые состояния и нижнее меню приложения.'); ?>
-<?php kit_open(43, 'Статистика главной', 'Первый экран приложения'); ?>
+<?php kit_open(43, 'Статистика главной', 'Стартовый экран, п. 69'); ?>
+  <p class="kit-note">Два ряда по три. Компактные, без лишнего воздуха. Подпись обрезается, если не влезает.</p>
   <div class="home-stats">
-    <div class="home-stat"><div class="stat-value">82</div><div class="stat-label">участники</div></div>
-    <div class="home-stat"><div class="stat-value">71</div><div class="stat-label">авто</div></div>
-    <div class="home-stat"><div class="stat-value">12</div><div class="stat-label">встречи</div></div>
+    <a class="home-stat" href="#k-69"><div class="stat-value">82</div><div class="stat-label">в клубе</div></a>
+    <a class="home-stat" href="#k-69"><div class="stat-value">71</div><div class="stat-label">кабриолетов</div></a>
+    <a class="home-stat" href="#k-69"><div class="stat-value">12</div><div class="stat-label">встреч</div></a>
+    <a class="home-stat" href="#k-69"><div class="stat-value">24</div><div class="stat-label">отзывов</div></a>
+    <a class="home-stat" href="#k-69"><div class="stat-value">9</div><div class="stat-label">городов</div></a>
+    <a class="home-stat" href="#k-69"><div class="stat-value">0</div><div class="stat-label">на карте</div></a>
+  </div>
+<?php kit_close(); ?>
+
+<?php
+  $homeCover = '../assets/img/home-cover.jpg';
+  $homeCoverV = is_file(__DIR__ . '/../assets/img/home-cover.jpg') ? filemtime(__DIR__ . '/../assets/img/home-cover.jpg') : time();
+  kit_open(69, 'Стартовый экран', 'frontend/index.php; вне Telegram — landing.php с тем же кадром');
+?>
+  <p class="kit-note">Внизу справка: две плитки — роли и разделы (п. 73 и 75).</p>
+  <section class="home">
+    <figure class="home-cover">
+      <img src="<?php echo htmlspecialchars($homeCover . '?v=' . $homeCoverV, ENT_QUOTES); ?>" alt="" width="640" height="360">
+      <span class="home-cover-veil" aria-hidden="true"></span>
+      <figcaption class="home-cover-text">
+        <h1 class="home-hello">Привет, Иван</h1>
+        <p class="home-lead">Клуб владельцев кабриолетов</p>
+      </figcaption>
+    </figure>
+    <div class="home-stats">
+      <a class="home-stat" href="#k-69"><div class="stat-value">82</div><div class="stat-label">в клубе</div></a>
+      <a class="home-stat" href="#k-69"><div class="stat-value">71</div><div class="stat-label">кабриолетов</div></a>
+      <a class="home-stat" href="#k-69"><div class="stat-value">12</div><div class="stat-label">встреч</div></a>
+      <a class="home-stat" href="#k-69"><div class="stat-value">24</div><div class="stat-label">отзывов</div></a>
+      <a class="home-stat" href="#k-69"><div class="stat-value">9</div><div class="stat-label">городов</div></a>
+      <a class="home-stat" href="#k-69"><div class="stat-value">0</div><div class="stat-label">на карте</div></a>
+    </div>
+    <article class="card home-club">
+      <p class="home-club-kicker">про нас</p>
+      <h2>Люди с поехавшей крышей</h2>
+      <p class="home-club-lead">Не лента для всех, а свои: кто на чём ездит, где катаются и когда следующая встреча. Минск и вся Беларусь.</p>
+      <div class="home-outs">
+        <a class="home-out" href="#k-69">Сайт клуба <small>cabrioride.by</small></a>
+        <a class="home-out" href="#k-69">Чат в Telegram <small>живой разговор</small></a>
+      </div>
+    </article>
+    <div class="home-hints">
+      <p class="home-hint">Своё фото в профиле — и в списке участников вас сразу узнают.</p>
+      <p class="home-hint">В профиле можно добавить свой авто, если его там ещё нет.</p>
+    </div>
+    <?php cabrio_home_info_block(); ?>
+  </section>
+<?php kit_close(); ?>
+
+<?php kit_open(70, 'Нет доступа — не в группе', 'Любой экран Mini App, роль external'); ?>
+  <p class="kit-note">Человек открыл бота, но не в клубном чате. Живой экран — оверлей в app.js на любом разделе Mini App. Кто уже в чате: пользователь видит авто, события и может ответить «еду»; люди и отзывы — с роли участник.</p>
+  <div class="kit-modal-shell">
+    <div class="club-gate-card">
+      <figure class="home-cover">
+        <img src="<?php echo htmlspecialchars($homeCover . '?v=' . $homeCoverV, ENT_QUOTES); ?>" alt="" width="640" height="360">
+        <span class="home-cover-veil" aria-hidden="true"></span>
+      </figure>
+      <div class="club-gate-body">
+        <p class="home-club-kicker">клуб закрыт</p>
+        <h2>Для вас доступ закрыт</h2>
+        <p>Разделы открыты только участникам клубной группы. Вступите в чат и затем нажмите «Проверить снова».</p>
+        <div class="club-gate-actions">
+          <a class="btn-primary" href="#k-70">Вступить в чат клуба</a>
+          <button class="btn-ghost" type="button">Проверить снова</button>
+        </div>
+      </div>
+    </div>
   </div>
 <?php kit_close(); ?>
 
@@ -519,16 +637,8 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_open(45, 'Нижнее меню', 'Все экраны клуба, кроме лендинга'); ?>
-  <div class="kit-nav-demo">
-    <nav class="bottom-nav" aria-label="Пример меню">
-      <a class="nav-item active" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('people'); ?></span><span class="nav-label">Участники</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('car'); ?></span><span class="nav-label">Авто</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('map'); ?></span><span class="nav-label">Карта</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('events'); ?></span><span class="nav-label">События</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('guide'); ?></span><span class="nav-label">Отзывы</span></a>
-      <a class="nav-item" href="#k-45"><span class="nav-icon"><?php echo cabrio_nav_pic('profile'); ?></span><span class="nav-label">Профиль</span></a>
-    </nav>
-  </div>
+  <p class="kit-note">Как в приложении: 3D-картинки, лёгкая рамка на кнопках, активный пункт с бирюзой.</p>
+  <?php kit_nav_menu(); ?>
 <?php kit_close(); ?>
 
 <?php kit_open(46, 'Название в шапке Telegram', 'Полоска между «свернуть» и «закрыть»: приложение + раздел + i'); ?>
@@ -643,13 +753,23 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_open(58, 'События — карточка встречи', 'Экран События, тап по событию в списке'); ?>
-  <p class="kit-note">Просмотр: шапка и тело до меню, счётчики участия, ответ «еду / возможно / нет».</p>
+  <p class="kit-note">«Кто ответил»: заголовок блока, затем рубрики Едут / Думают / Не едут сильнее имён. Список столбиком, гость +1 справа.</p>
   <div id="d-modal-event"></div>
 <?php kit_close(); ?>
 
+<?php kit_open(72, 'События — правка карточки', 'Та же модалка п. 58 после «Изменить»'); ?>
+  <p class="kit-note">Тот же каркас. Название, описание, дата, место, тип, лимит и «по приглашению» чуть светлее. Статус и автор как есть. Регистрация не редактируется здесь.</p>
+  <div id="d-modal-event-edit"></div>
+<?php kit_close(); ?>
+
 <?php kit_open(59, 'Отзывы — карточка', 'Экран Отзывы, тап по объекту в списке'); ?>
-  <p class="kit-note">Средняя из 5 на обложке и в блоке отзывов. Написать отзыв — три ряда звёзд 1–5 и текст.</p>
+  <p class="kit-note">Под фото: название, описание, ярлыки отдельной плашкой. Автор тонкой серой строкой. Дальше три средние, «Поставить отзыв», список отзывов.</p>
   <div id="d-modal-guide"></div>
+<?php kit_close(); ?>
+
+<?php kit_open(71, 'Отзывы — правка карточки', 'Та же модалка п. 59 после «Изменить»'); ?>
+  <p class="kit-note">Тот же каркас. Название, описание и ярлыки чуть светлее и доступны для правки. Автор, средние и список отзывов не трогаем. В шапке Отмена и Сохранить.</p>
+  <div id="d-modal-guide-edit"></div>
 <?php kit_close(); ?>
 
 <?php kit_open(60, 'Профиль — sheet на странице', 'Раздел Профиль в меню, без overlay'); ?>
@@ -668,18 +788,33 @@ $kitUrl = 'https://dev.cabrioride.by/app/frontend/pages/ui_kit.php';
 <?php kit_close(); ?>
 
 <?php kit_open(64, 'События — создание', 'Кнопка + на экране События'); ?>
-  <p class="kit-note">Как п. 66: «Создание события» в шапке, кнопки внизу, светлые поля.</p>
+  <p class="kit-note">Те же поля, что в правке п. 72: название, описание, дата, время, город, место, тип, лимит, по приглашению. Без автора, статуса и регистрации. Кнопки внизу.</p>
   <div id="d-modal-event-create"></div>
 <?php kit_close(); ?>
 
 <?php kit_open(65, 'Отзывы — добавление', 'Кнопка + на экране Отзывы'); ?>
-  <p class="kit-note">Как п. 66: название, описание, фото и ярлыки (#мойка).</p>
+  <p class="kit-note">Порядок как в карточке: название, описание, ярлыки. Кнопки внизу, как п. 66.</p>
   <div id="d-modal-guide-create"></div>
+<?php kit_close(); ?>
+
+<?php kit_open(73, 'Справка — роли и доступы', 'Главная, плитка в блоке «Как устроен клуб»'); ?>
+  <p class="kit-note">Имя роли — заголовок карточки. Внутри три тихих блока: описание, как получить, доступ. Левая линия — ступеньки.</p>
+  <div class="kit-modal-shell"><?php cabrio_club_info_sheet('roles'); ?></div>
+<?php kit_close(); ?>
+
+<?php kit_open(75, 'Справка — разделы', 'Главная, плитка «Разделы»'); ?>
+  <p class="kit-note">Главная и нижнее меню. В каждой карточке: для чего, что можно делать, кто имеет доступ. Без лестницы — это не ступени роли.</p>
+  <div class="kit-modal-shell"><?php cabrio_club_info_sheet('sections'); ?></div>
+<?php kit_close(); ?>
+
+<?php kit_open(74, 'Справка — доступы (снято)', 'Больше не отдельная модалка'); ?>
+  <p class="kit-note">Отдельную плитку и окно убрали: всё вшито в п. 73, чтобы не дублировать.</p>
 <?php kit_close(); ?>
 
         </main>
       </div>
     </div>
+    <?php cabrio_club_info_store(); ?>
     <script type="module" src="../assets/js/ui_kit_demo.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/ui_kit_demo.js'); ?>"></script>
   </body>
 </html>

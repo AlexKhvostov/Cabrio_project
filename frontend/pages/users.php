@@ -4,7 +4,6 @@
   <head>
     <?php render_meta('Участники — CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <?php include __DIR__ . '/../components/header.php'; ?>
@@ -18,11 +17,11 @@
     ]; include __DIR__ . '/../components/filters.php'; ?>
 <div id="usersAccessBanner" class="info-block" style="margin-bottom:12px;display:none">
   <h3>Доступ к списку участников</h3>
-  <p style="margin:0 0 6px 0">Список доступен полноправным участникам клуба.</p>
+  <p style="margin:0 0 6px 0">Список открыт с роли участник и выше. Как получить роль — на главной, в блоке «Справка».</p>
   <ul style="margin:0 0 6px 18px; color:#ccc">
-    <li>Добавьте свой автомобиль в приложении</li>
+    <li>Добавьте свой автомобиль в профиле</li>
     <li>Познакомьтесь лично на встрече</li>
-    <li>Получите роль <b>member</b> или выше</li>
+    <li>Модератор ставит роль «участник»</li>
   </ul>
 </div>
 <div id="users" class="users-list"><div class="list-busy"><div class="spinner"></div>Загрузка…</div></div>
@@ -33,15 +32,20 @@
       import '<?php echo cabrio_asset_href('assets/js/app.js'); ?>'
       import '<?php echo cabrio_asset_href('assets/js/components.js'); ?>'
       import '<?php echo cabrio_asset_href('assets/js/modals/user_modal.js'); ?>'
+      import { wrapMemberSwipe, bindMemberRoleSwipe } from '<?php echo cabrio_asset_href('assets/js/components/role_swipe.js'); ?>'
       const usersEl = document.getElementById('users')
       const usersAccessBanner = document.getElementById('usersAccessBanner')
       const searchInput = document.getElementById('filters-search')
       const roleSelect = document.getElementById('roleFilter')
       const { renderMemberCard } = window.CabrioComponents
-      const { openUserModal } = window.CabrioModals
       let list = []
+      let me = null
       // Спиннер уже в списке (list-busy) — полноэкранный CabrioBusy не включаем, иначе их два
-      CabrioAPI.apiGet('/api/users').then(json=>{
+      Promise.all([
+        CabrioAPI.apiGet('/api/users'),
+        CabrioAPI.getMe ? CabrioAPI.getMe() : Promise.resolve(null)
+      ]).then(([json, meJson])=>{
+        me = meJson?.data || null
         if(!json || json.__httpStatus===401 || json.__httpStatus===403 || json.success===false){
           // Недостаточно прав — показываем пояснение и не рендерим список
           usersEl.innerHTML = ''
@@ -51,16 +55,15 @@
         if (usersAccessBanner) usersAccessBanner.style.display = 'none'
         list = json.data||[]
         // Заполним роли
-        const ROLE_ORDER = ['external','guest','user','member','moderator','admin']
         const roleOptions = [
           { value: 'user_plus', label: 'Пользователь и выше' },
           { value: 'all', label: 'Все роли' },
-          { value: 'admin', label: 'Администраторы' },
-          { value: 'moderator', label: 'Модераторы' },
-          { value: 'member', label: 'Участники' },
-          { value: 'user', label: 'Пользователи' },
-          { value: 'guest', label: 'Гости' },
-          { value: 'external', label: 'Внешние' }
+          { value: 'admin', label: 'Администратор' },
+          { value: 'moderator', label: 'Модератор' },
+          { value: 'member', label: 'Участник' },
+          { value: 'user', label: 'Пользователь' },
+          { value: 'guest', label: 'Гость' },
+          { value: 'external', label: 'Внешний' }
         ]
         if (roleSelect){
           // Очистим и добавим варианты
@@ -71,6 +74,14 @@
           roleSelect.addEventListener('change', render)
         }
         if(searchInput){ searchInput.addEventListener('input', render) }
+        bindMemberRoleSwipe(usersEl, {
+          members: () => list,
+          onChanged: (updated) => {
+            const i = list.findIndex(u => Number(u.id) === Number(updated.id))
+            if (i >= 0) list[i] = { ...list[i], ...updated }
+            render()
+          }
+        })
         render()
         usersEl.addEventListener('click', (e)=>{
           const chip = e.target.closest('.member-car-stack-item, .member-car-thumb, .member-car-chip')
@@ -79,6 +90,8 @@
             if (window.CabrioNav) window.CabrioNav.openCar(chip.getAttribute('data-car-id'))
             return
           }
+          if (e.target.closest('.member-swipe-action')) return
+          if (e.target.closest('.member-swipe.is-up, .member-swipe.is-down')) return
           const card = e.target.closest('.member-card')
           if(!card) return
           if (window.CabrioNav) window.CabrioNav.openUser(card.getAttribute('data-id'))
@@ -119,7 +132,7 @@
           const ra = getRoleCode(a), rb = getRoleCode(b)
           return ROLE_ORDER_SORT.indexOf(ra) - ROLE_ORDER_SORT.indexOf(rb)
         })
-        usersEl.innerHTML = filtered.map(u=>renderMemberCard(u)).join('') || 'Пусто'
+        usersEl.innerHTML = filtered.map(u=>wrapMemberSwipe(renderMemberCard(u), u, me)).join('') || 'Пусто'
       }
     </script>
   </body>

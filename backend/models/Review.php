@@ -182,16 +182,48 @@ class Review {
     }
 
     /**
-     * Обновить отзыв
+     * Правка отзыва: свой — всегда; чужой — только если $asStaff (модератор/админ).
      */
-    public function update($data) {
-        // ... реализация обновления в БД
+    public static function updateByAuthor($id, $userId, $data, $asStaff = false) {
+        $review = self::findById($id);
+        if (!$review) {
+            return null;
+        }
+        if (!$asStaff && (int)$review->author_user_id !== (int)$userId) {
+            return null;
+        }
+        $q = max(1, min(5, (int)$data['quality_rating']));
+        $s = max(1, min(5, (int)$data['speed_rating']));
+        $p = max(1, min(5, (int)$data['price_rating']));
+        $feedback = trim((string)($data['feedback'] ?? ''));
+        $pdo = Database::getInstance();
+        $stmt = $pdo->prepare(
+            'UPDATE reviews SET quality_rating = ?, speed_rating = ?, price_rating = ?, feedback = ?, updated_at = NOW() WHERE id = ?'
+        );
+        $stmt->execute([$q, $s, $p, $feedback, (int)$id]);
+        return (int)$review->guide_object_id;
     }
 
     /**
-     * Удалить отзыв
+     * Удаление: свой отзыв или любое, если $asStaff.
      */
-    public function delete() {
-        // ... реализация удаления из БД
+    public static function deleteByAuthor($id, $userId, $asStaff = false) {
+        $review = self::findById($id);
+        if (!$review) {
+            return null;
+        }
+        if (!$asStaff && (int)$review->author_user_id !== (int)$userId) {
+            return null;
+        }
+        $guideId = (int)$review->guide_object_id;
+        $pdo = Database::getInstance();
+        if ($asStaff) {
+            $stmt = $pdo->prepare('DELETE FROM reviews WHERE id = ?');
+            $stmt->execute([(int)$id]);
+        } else {
+            $stmt = $pdo->prepare('DELETE FROM reviews WHERE id = ? AND author_user_id = ?');
+            $stmt->execute([(int)$id, (int)$userId]);
+        }
+        return $guideId;
     }
 } 

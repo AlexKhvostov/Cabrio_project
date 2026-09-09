@@ -4,7 +4,6 @@
   <head>
     <?php render_meta('Карта — CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=<?php echo getenv('map_ya_key') ?: ''; ?>&lang=ru_RU" type="text/javascript"></script>
     <style>
       /* Карта на весь экран. Список и подсказки — ниже кнопок Telegram, не в padding (absolute его игнорирует). */

@@ -170,6 +170,15 @@ ROOT_IDS=111111111              # список ID root-админов (чере�
 MODERATOR_IDS=222222222,333333333 # список ID модераторов
 CLUB_CHAT_ID=-1001234567890     # ID основного чата (можно несколько через запятую)
 
+# Админка /app/admin/ — пост от бота этой среды (не роли клуба, не Mini App)
+ADMIN_PANEL_USER=your_admin_login
+ADMIN_PANEL_PASSWORD=your_admin_password
+# Журнал Mini App: /app/admin/logs.php (таблица app_audit_logs, не activity_logs)
+# Первый id из ADMIN_IDS подставляется как «отправить себе в личку»
+# Готовые тексты: файлы в admin/posts/*.html
+# После настройки Mini App в BotFather, например https://t.me/CabrioRideBot/app
+MINI_APP_LINK=https://t.me/CabrioRideBot/app
+
 # Настройки приложения
 # APP_URL — адрес WebApp этой среды (см. docs/ENVIRONMENTS.md)
 APP_NAME=CabrioRide

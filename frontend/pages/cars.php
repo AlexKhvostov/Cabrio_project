@@ -4,7 +4,6 @@
   <head>
     <?php render_meta('Автомобили — CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <?php include __DIR__ . '/../components/header.php'; ?>

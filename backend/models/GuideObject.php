@@ -236,4 +236,17 @@ class GuideObject {
         $guideObject['rating'] = Review::averages((int)$row['id']);
         return $guideObject;
     }
+
+    /** Сколько карточек в разделе «Отзывы» (без удалённых) */
+    public static function countListed()
+    {
+        $pdo = Database::getInstance();
+        $stmt = $pdo->query(
+            "SELECT COUNT(*)
+             FROM guide_objects go
+             LEFT JOIN ref_statuses s ON go.status_id = s.id
+             WHERE LOWER(COALESCE(s.code,'')) <> 'deleted'"
+        );
+        return (int)$stmt->fetchColumn();
+    }
 } 

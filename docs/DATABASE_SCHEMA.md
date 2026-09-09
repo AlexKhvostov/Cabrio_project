@@ -31,6 +31,7 @@
 | link_event_participants  | Связь участников и событий                               |
 | moderation_logs          | История действий модераторов с профилями пользователей   |
 | activity_logs            | История выдачи активности между пользователями              |
+| app_audit_logs           | Журнал действий в Mini App (кто, когда, что сделал)         |
 | sessions                 | Сессии пользователей (авторизация, хранение токенов)   |
 
 ---
@@ -367,6 +368,26 @@
 - idx_date (date)
 - idx_created_at (created_at)
 - UNIQUE (from_user_id, to_user_id, date) — чтобы нельзя было поставить активность одному человеку более 1 раза в сутки
+
+---
+
+## app_audit_logs
+
+**Назначение:** журнал поведения в Mini App: открыл приложение, зашёл в раздел, создал/правил/удалил авто, место, отзыв, встречу, отметил «еду», загрузил фото, изменил профиль. Не путать с `activity_logs` (выдача «активности» между людьми). Скрипт: `database/scripts/2026-09-09_app_audit_logs.sql`. Смотреть в админке `/app/admin/logs.php`.
+
+**Поля:**
+| Поле         | Тип                | Описание |
+|--------------|--------------------|----------|
+| id           | BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY | Запись |
+| user_id      | BIGINT UNSIGNED NULL | Кто (`users.id`) |
+| actor_name   | VARCHAR(190)       | Имя на момент записи |
+| actor_role   | VARCHAR(32)        | Код роли |
+| action       | VARCHAR(32)        | `login`, `view`, `create`, `update`, `delete` |
+| entity_type  | VARCHAR(32)        | `app`, `page`, `car`, `event`, `place`, `review`, `photo`, `user` |
+| entity_id    | BIGINT UNSIGNED NULL | Id объекта, если есть |
+| section      | VARCHAR(32)        | Раздел: home, users, cars, map, events, guide, me |
+| summary      | VARCHAR(500)       | Строка для человека |
+| created_at   | DATETIME           | UTC |
 
 **Особенности:**
 - Используется для контроля лимитов и истории

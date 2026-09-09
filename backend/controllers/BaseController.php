@@ -15,6 +15,7 @@
 
 require_once __DIR__ . '/../utils/AppContext.php';
 require_once __DIR__ . '/../utils/Logger.php';
+require_once __DIR__ . '/../utils/AppAudit.php';
 require_once __DIR__ . '/../../config/sectionGroups.php';
 
 class BaseController
@@ -233,6 +234,18 @@ class BaseController
             'user_id' => $userId,
             'request_id' => AppContext::getRequestId()
         ], $data));
+    }
+
+    /** Журнал для админки: кто, когда, что. Не ломает запрос при сбое. */
+    protected function audit(string $action, string $entityType, $entityId, string $summary, string $section = ''): void
+    {
+        AppAudit::write([
+            'action' => $action,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'section' => $section,
+            'summary' => $summary,
+        ]);
     }
     
     /**

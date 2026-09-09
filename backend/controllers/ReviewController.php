@@ -80,9 +80,69 @@ class ReviewController extends BaseController
             $this->logUserAction('create_review', ['review_id' => $id, 'guide_object_id' => $guideId]);
             require_once __DIR__ . '/../models/GuideObject.php';
             $place = GuideObject::findExpanded($guideId);
+            $placeName = (string)($place['name'] ?? '');
+            $this->audit('create', 'review', $id, 'Написал отзыв о «' . mb_substr($placeName !== '' ? $placeName : ('место ' . $guideId), 0, 80) . '»', 'guide');
             $this->json(['success' => true, 'data' => $place, 'meta' => $this->getRequestInfo()], 201);
         } catch (Throwable $e) {
             Logger::error('ReviewController: create error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);
+            $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
+        }
+    }
+
+    /**
+     * Изменить свой отзыв (оценки и текст).
+     */
+    public function update($id)
+    {
+        try {
+            if (!$this->requireAccess('api.reviews.update')) {
+                return;
+            }
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $feedback = trim((string)($input['feedback'] ?? ''));
+            if ($feedback === '') {
+                $this->json(['success' => false, 'error' => ['code' => 'VALIDATION', 'message' => 'Напишите текст отзыва']], 400);
+                return;
+            }
+            $staff = $this->isModerator() || $this->isAdmin();
+            $guideId = Review::updateByAuthor((int)$id, (int)$this->getCurrentUserId(), $input, $staff);
+            if (!$guideId) {
+                $this->json(['success' => false, 'error' => ['code' => 'FORBIDDEN', 'message' => 'Чужой отзыв может править только модератор']], 403);
+                return;
+            }
+            $this->logUserAction('update_review', ['review_id' => (int)$id, 'guide_object_id' => $guideId]);
+            $this->audit('update', 'review', (int)$id, 'Изменил отзыв (место id ' . (int)$guideId . ')', 'guide');
+            require_once __DIR__ . '/../models/GuideObject.php';
+            $place = GuideObject::findExpanded($guideId);
+            $this->json(['success' => true, 'data' => $place, 'meta' => $this->getRequestInfo()]);
+        } catch (Throwable $e) {
+            Logger::error('ReviewController: update error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);
+            $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
+        }
+    }
+
+    /**
+     * Удалить свой отзыв.
+     */
+    public function delete($id)
+    {
+        try {
+            if (!$this->requireAccess('api.reviews.delete')) {
+                return;
+            }
+            $staff = $this->isModerator() || $this->isAdmin();
+            $guideId = Review::deleteByAuthor((int)$id, (int)$this->getCurrentUserId(), $staff);
+            if (!$guideId) {
+                $this->json(['success' => false, 'error' => ['code' => 'FORBIDDEN', 'message' => 'Чужой отзыв может удалить только модератор']], 403);
+                return;
+            }
+            $this->logUserAction('delete_review', ['review_id' => (int)$id, 'guide_object_id' => $guideId]);
+            $this->audit('delete', 'review', (int)$id, 'Удалил отзыв (место id ' . (int)$guideId . ')', 'guide');
+            require_once __DIR__ . '/../models/GuideObject.php';
+            $place = GuideObject::findExpanded($guideId);
+            $this->json(['success' => true, 'data' => $place, 'meta' => $this->getRequestInfo()]);
+        } catch (Throwable $e) {
+            Logger::error('ReviewController: delete error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);
             $this->json(['success' => false, 'error' => ['code' => 'INTERNAL_ERROR', 'message' => $e->getMessage()]], 500);
         }
     }

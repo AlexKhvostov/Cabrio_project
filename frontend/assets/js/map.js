@@ -30,11 +30,11 @@ function phUserUrl() {
 	for (let i = 0; i < scripts.length; i++) {
 		const src = scripts[i].src || ''
 		if (src.includes('/assets/js/map.js')) {
-			return src.replace(/\/assets\/js\/map\.js.*$/, '/assets/img/ph-user.png?v=2')
+			return src.replace(/\/assets\/js\/map\.js.*$/, '/assets/img/ph-user.png?v=4')
 		}
 	}
 	const front = String(window.__FRONT_URL || '/app/frontend').replace(/\/$/, '')
-	return front + '/assets/img/ph-user.png?v=2'
+	return front + '/assets/img/ph-user.png?v=4'
 }
 
 function escapeHtml(s) {

@@ -1,6 +1,6 @@
 // Карточки списков. Тяжёлые модалки лежат в modals/ — здесь только делегирование.
 
-import { renderUserCard as renderMemberCard } from './components/cards/user_card.js?v=cabrio18'
+import { renderUserCard as renderMemberCard } from './components/cards/user_card.js?v=cabrio19'
 import { renderCarCard } from './components/cards/car_card.js?v=cabrio18'
 
 export function openMemberModal(member){

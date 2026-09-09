@@ -170,23 +170,43 @@ class UserController extends BaseController
             }
 
             $input = json_decode(file_get_contents('php://input'), true) ?: [];
-            $roleCode = $input['role'] ?? null;
-            $roleId = isset($input['role_id']) ? (int)$input['role_id'] : null;
-
-            if (!$roleId && $roleCode) {
-                require_once __DIR__ . '/../../config/sectionGroups.php';
-                $roleId = Roles::getRoleId($roleCode);
+            $roleCode = isset($input['role']) ? strtolower(trim((string)$input['role'])) : '';
+            $roleId = isset($input['role_id']) ? (int)$input['role_id'] : 0;
+            $newRoleCode = '';
+            if ($roleCode !== '') {
+                $newRoleCode = $roleCode;
+            } elseif ($roleId > 0 && isset(Roles::ID_ROLES[$roleId])) {
+                $newRoleCode = Roles::getRoleById($roleId);
             }
-
-            if (!$roleId) {
-                $this->json(['success'=>false,'error'=>['code'=>'NO_ROLE','message'=>'Не указана роль']],400);
+            if ($newRoleCode === '' || !isset(Roles::ROLE_IDS[$newRoleCode])) {
+                $this->json(['success'=>false,'error'=>['code'=>'NO_ROLE','message'=>'Не указана или неизвестна роль']],400);
                 return;
             }
+            $roleId = Roles::getRoleId($newRoleCode);
 
             // Нельзя понизить/повысить себя через этот эндпоинт (безопасность)
             $currentUser = $this->requireUser();
             if ((int)$currentUser['id'] === $targetUserId) {
                 $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Нельзя менять свою роль']],403);
+                return;
+            }
+
+            $target = User::findById($targetUserId);
+            if (!$target) {
+                $this->json(['success'=>false,'error'=>['code'=>'NOT_FOUND','message'=>'Пользователь не найден']],404);
+                return;
+            }
+            $targetRoleCode = Roles::getRoleById((int)$target->role_id);
+            $actorIndex = Roles::getIndex($currentRoleCode);
+            $targetIndex = Roles::getIndex($targetRoleCode);
+            $newIndex = Roles::getIndex($newRoleCode);
+            // Нельзя трогать равных и выше; назначить можно только роль ниже своей
+            if ($targetIndex === false || $actorIndex === false || $targetIndex >= $actorIndex) {
+                $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Нельзя менять роль этого человека']],403);
+                return;
+            }
+            if ($newIndex === false || $newIndex >= $actorIndex) {
+                $this->json(['success'=>false,'error'=>['code'=>'FORBIDDEN','message'=>'Нельзя назначить эту роль']],403);
                 return;
             }
 
@@ -200,6 +220,9 @@ class UserController extends BaseController
             // Возвращаем пользователя с развернутыми данными
             $updated = User::findByIdWithDetails($targetUserId);
             $this->logUserAction('update_user_role', ['target_user_id'=>$targetUserId,'role_id'=>$roleId]);
+            $who = trim((string)(($updated['first_name_app'] ?? $updated['first_name'] ?? '') . ' ' . ($updated['last_name_app'] ?? $updated['last_name'] ?? '')));
+            $roleRu = AppAudit::roleName((string)($updated['role']['code'] ?? $roleCode ?? ''));
+            $this->audit('update', 'user', $targetUserId, 'Сменил роль: ' . ($who !== '' ? $who : ('id ' . $targetUserId)) . ' → ' . $roleRu, 'users');
             $this->json(['success'=>true,'data'=>$updated,'meta'=>$this->getRequestInfo()]);
         } catch (Throwable $e) {
             Logger::error('UserController: updateRole error', [ 'error'=>$e->getMessage(), 'user_id'=>$this->getCurrentUserId() ]);
@@ -260,7 +283,7 @@ class UserController extends BaseController
      * Получить профиль текущего пользователя
      * 
      * Требует авторизации: Да
-     * Минимальная роль: guest
+     * Минимальная роль: external (свой профиль даже если человек не в чате)
      */
     public function getProfile()
     {
@@ -402,6 +425,8 @@ class UserController extends BaseController
             }
 
             $this->logUserAction('update_profile_self', ['fields' => array_keys($updateData), 'target_id' => $targetId]);
+            $self = $targetId === $currentUserId;
+            $this->audit('update', 'user', $targetId, $self ? 'Изменил свой профиль' : ('Изменил профиль человека id ' . $targetId), $self ? 'me' : 'users');
 
             $this->json([
                 'success' => true,

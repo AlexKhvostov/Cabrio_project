@@ -35,3 +35,13 @@ function cabrio_app_base(): string
 {
     return (string) preg_replace('#/frontend$#', '', rtrim(cabrio_frontend_base(), '/'));
 }
+
+/** Ссылка в клубный чат из .env, иначе публичный канал */
+function cabrio_chat_invite(): string
+{
+    $invite = trim((string) (getenv('CHAT_INVITE_LINK') ?: 'https://t.me/Cabrio_Ride'));
+    if ($invite !== '' && !preg_match('#^https?://#i', $invite)) {
+        $invite = 'https://' . ltrim($invite, '/');
+    }
+    return $invite;
+}

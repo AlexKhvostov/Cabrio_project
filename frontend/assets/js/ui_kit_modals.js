@@ -1,7 +1,10 @@
 // Макеты модалок для UI Kit — эталон до внедрения в разделы приложения.
 // Используем те же классы и функции sheet.js, что и в боевых модалках.
 
+import { hintBubble } from './components/hints.js?v=tip2'
+import { renderEventRegDash } from './components/cards/event_card.js?v=reglive1'
 import { phUser, phCar } from './components/media.js?v=cabrio20'
+import { roleLabelRu } from './components/roles.js?v=ru1'
 import {
   escapeHtml, viewVal, sheetField, renderPersonLink, renderCarLink, renderAddMyCarButton, headerActions, renderLabelChips
 } from './components/sheet.js?v=tags1'
@@ -24,12 +27,6 @@ function createShell(title, bodyHtml){
   </div>`
 }
 
-function occupancyLine(going, spots, maybe){
-  const mid = spots == null ? '∞' : String(spots)
-  return `<div class="event-fill">
-    <span class="event-fill-nums"><b>${going}</b><i>·</i><b>${escapeHtml(mid)}</b><i>·</i><b>${maybe}</b></span>
-  </div>`
-}
 export function kitModalShell(inner, { asPage = false } = {}){
   const cls = asPage ? 'kit-modal-shell kit-modal-shell--page' : 'kit-modal-shell'
   return `<div class="${cls}">${inner}</div>`
@@ -64,7 +61,7 @@ export function renderKitUserModal(user, cars = []){
   const fullName = `${user.first_name_app || ''} ${user.last_name_app || ''}`.trim() || 'Без имени'
   const ini = (user.first_name_app?.[0] || '') + (user.last_name_app?.[0] || '')
   const meta = [user.username ? '@' + user.username : '', user.city || ''].filter(Boolean).join(' · ')
-  const role = user.role?.name || user.role?.code || ''
+  const role = roleLabelRu(user.role)
 
   const hero = `<div class="sheet-hero-wrap">
     <div class="sheet-hero">
@@ -153,107 +150,278 @@ export function renderKitMapModalHint(){
   </div>`
 }
 
-/** п. 58 — События: карточка встречи (целевой вид sheet-card) */
-export function renderKitEventModal(event){
-  const title = event.title || 'Событие'
-  const cover = event.photo
-    ? `<div class="main-photo-compact">
-        <img class="main-image ph-img" src="${escapeHtml(event.photo)}" alt="">
-        <div class="sheet-photo-caption">
-          <div class="sheet-photo-title">${escapeHtml(title)}</div>
-          <div class="sheet-photo-meta">${escapeHtml(event.city || '')}</div>
-        </div>
-      </div>`
-    : ''
+const EVENT_INVITE_HINT = 'Снято — открытая встреча, любой участник видит её и может ответить «еду».\n\nСтоит — встреча по приглашению.'
 
-  const scheduleFields = [
+function kitEventCover(event, { fab = false } = {}){
+  const img = event.photo
+    ? `<img class="main-image ph-img" src="${escapeHtml(event.photo)}" alt="">`
+    : `<div class="ph ph-event" style="position:relative;height:160px"><span class="ph-fallback"></span></div>`
+  const when = fab ? '' : `<div class="event-when-badge">15 июня</div>`
+  const fabBtn = fab
+    ? `<button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>`
+    : ''
+  return `<div class="main-photo-compact">${img}${when}${fabBtn}</div>`
+}
+
+function kitEventAuthor(event){
+  const org = event.organizer || { name: 'Иван Петров', username: 'ivan_cabriolet' }
+  const line = [org.name, org.username ? '@' + String(org.username).replace(/^@/, '') : ''].filter(Boolean).join(' · ')
+  return `<p class="guide-place-author">автор ${escapeHtml(line)}</p>`
+}
+
+function kitEventFacts(event, { editing = false, creating = false } = {}){
+  const limit = event.max_participants == null || event.max_participants === ''
+    ? 'без лимита'
+    : String(event.max_participants)
+  const format = event.invite ? 'по приглашению' : 'открытая'
+  const typeSel = `<select class="filter-select"><option selected>Поездка</option><option>Встреча</option></select>`
+  const inviteRow = `<label class="sheet-check"><input type="checkbox"${event.invite ? ' checked' : ''}/> да</label>${hintBubble(EVENT_INVITE_HINT, { label: 'Что значит эта галка' })}`
+  if (editing || creating) {
+    const rows = [
+      sheetField('Дата', `<input class="filter-input" type="date" value="${escapeHtml(event.dateValue || '2026-06-15')}">`),
+      sheetField('Время', `<input class="filter-input" type="time" value="${escapeHtml(event.time || '19:00')}">`),
+      sheetField('Город', `<input class="filter-input" value="${escapeHtml(event.city || '')}">`),
+      sheetField('Место', `<input class="filter-input" value="${escapeHtml(event.location || '')}">`),
+      sheetField('Тип', typeSel),
+      sheetField('Лимит', `<input class="filter-input" type="number" min="1" placeholder="нет" value="${escapeHtml(event.max_participants == null ? '' : String(event.max_participants))}">`),
+      sheetField('По приглашению', `<div class="sheet-check-row">${inviteRow}</div>`),
+    ]
+    if (editing && !creating) {
+      rows.push(sheetField('Статус', viewVal(event.status || 'Активно')))
+    }
+    return rows.join('')
+  }
+  return [
     sheetField('Дата', viewVal(event.dateLabel)),
     sheetField('Время', viewVal(event.time)),
     sheetField('Город', viewVal(event.city)),
-    sheetField('Место', viewVal(event.location || 'Парк у набережной'), 'full'),
-  ].join('')
-  const eventFields = [
+    sheetField('Место', viewVal(event.location || 'Парк у набережной')),
     sheetField('Тип', viewVal(event.type)),
-    sheetField('Статус', viewVal(event.status)),
-    sheetField('Описание', viewVal(event.description), 'full'),
+    sheetField('Лимит', viewVal(limit)),
+    sheetField('Формат', viewVal(format)),
+    sheetField('Статус', viewVal(event.status || 'Активно')),
   ].join('')
-  const rsvp = `<div class="sheet-section-title">Участие</div>
-    ${occupancyLine(4, 2, 1)}
-    <div class="sheet-label">Кто едет</div>
-    <div class="rsvp-people">
-      <div class="rsvp-person">Иван Петров<em> · +1 гость</em></div>
-      <div class="rsvp-person">Анна К.</div>
+}
+
+function kitEventReg(event){
+  return `<section class="guide-block guide-block-reviews">
+    <p class="guide-block-kicker">регистрация</p>
+    ${renderEventRegDash(event)}
+    <div class="event-reg-vote">
+      <p class="guide-block-kicker">ваш ответ</p>
+      <div class="rsvp-row">
+        <button type="button" class="rsvp-btn is-on">Да</button>
+        <button type="button" class="rsvp-btn">Возможно</button>
+        <button type="button" class="rsvp-btn">Нет</button>
+      </div>
+      <label class="sheet-check rsvp-plus"><input type="checkbox" checked/> +1 гость</label>
     </div>
-    <div class="sheet-section-title">Будете участвовать?</div>
-    <div class="rsvp-row">
-      <button type="button" class="rsvp-btn is-on">Да</button>
-      <button type="button" class="rsvp-btn">Возможно</button>
-      <button type="button" class="rsvp-btn">Нет</button>
-    </div>`
+  </section>
+  <section class="guide-block guide-block-who">
+    <p class="event-reg-who-title">Кто ответил</p>
+    <div class="event-reg-people">
+      <div class="event-reg-people-block">
+        <p class="event-reg-people-h"><span>Едут</span><b>3</b></p>
+        <ul class="event-who-list">
+          <li>Иван Петров <em>+1</em></li>
+          <li>Анна К.</li>
+          <li>Дмитрий Л.</li>
+        </ul>
+      </div>
+      <div class="event-reg-people-block is-soft">
+        <p class="event-reg-people-h"><span>Думают</span><b>1</b></p>
+        <ul class="event-who-list">
+          <li>Сергей М.</li>
+        </ul>
+      </div>
+      <div class="event-reg-people-block is-no">
+        <p class="event-reg-people-h"><span>Не едут</span><b>1</b></p>
+        <ul class="event-who-list">
+          <li>Олег Н.</li>
+        </ul>
+      </div>
+    </div>
+  </section>`
+}
 
+/** п. 58 — просмотр: все поля встречи + регистрация */
+export function renderKitEventModal(event){
+  const title = event.title || 'Событие'
   const actions = `<button type="button" class="btn-ghost">Изменить</button><button type="button" class="modal-close">×</button>`
-
-  return kitModalShell(sheetCard(
-    'Событие',
-    actions,
-    cover + sheetSection('Когда и где', scheduleFields) + sheetSection('О событии', eventFields) + rsvp
-  ))
+  const body = `
+    <div class="guide-modal-stack">
+      <section class="guide-block">
+        ${kitEventCover(event)}
+        <div class="event-info-head">
+          <h3 class="guide-place-title">${escapeHtml(title)}</h3>
+          <p class="guide-place-desc">${escapeHtml(event.description || '')}</p>
+        </div>
+        <div class="sheet-grid">${kitEventFacts(event)}</div>
+        ${kitEventAuthor(event)}
+      </section>
+      ${kitEventReg(event)}
+    </div>`
+  return kitModalShell(sheetCard('Событие', actions, body))
 }
 
-/** п. 64 — создание события, как п. 66 */
+/** п. 72 — та же карточка в правке: светлые поля, регистрация и автор как есть */
+export function renderKitEventEditModal(event){
+  const title = event.title || 'Событие'
+  const actions = headerActions({ canEdit: true, editing: true, withClose: true })
+  const body = `
+    <div class="guide-modal-stack">
+      <section class="guide-block">
+        ${kitEventCover(event, { fab: true })}
+        <div class="event-info-head">
+          <input class="filter-input event-title-input" value="${escapeHtml(title)}">
+          <textarea class="filter-input event-desc-input" rows="3">${escapeHtml(event.description || '')}</textarea>
+        </div>
+        <div class="sheet-grid">${kitEventFacts(event, { editing: true })}</div>
+        ${kitEventAuthor(event)}
+      </section>
+      ${kitEventReg(event)}
+    </div>`
+  return kitModalShell(sheetCard('Событие', actions, body, 'editing'))
+}
+
+/** п. 64 — создание: те же поля встречи, без регистрации */
 export function renderKitEventCreate(){
-  const cover = `<div class="main-photo-compact">
-    <div class="ph ph-event" style="position:relative;height:160px"><span class="ph-fallback"></span></div>
-    <button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>
-  </div>`
-  const when = [
-    sheetField('Дата', `<input class="filter-input" type="date" value="2026-06-15">`),
-    sheetField('Время', `<input class="filter-input" type="time" value="19:00">`),
-    sheetField('Город', `<input class="filter-input" value="Минск">`),
-    sheetField('Место', `<input class="filter-input" value="Парк у набережной">`, 'full'),
-  ].join('')
-  const about = [
-    sheetField('Название', `<input class="filter-input" value="Вечерний заезд">`),
-    sheetField('Тип', `<select class="filter-select"><option>Поездка</option></select>`),
-    sheetField('Лимит', `<input class="filter-input" type="number" value="6">`),
-    sheetField('Описание', `<textarea class="filter-input" rows="2">Сбор у парка.</textarea>`, 'full'),
-  ].join('')
-  return kitModalShell(createShell('Создание события', cover + sheetSection('Когда и где', when) + sheetSection('О событии', about)))
+  const event = {
+    title: 'Вечерний заезд по набережной',
+    description: 'Сбор у парка, дальше — маршрут вдоль воды. Открытый верх приветствуется.',
+    dateValue: '2026-06-15',
+    time: '19:00',
+    city: 'Минск',
+    location: 'Парк у набережной',
+    max_participants: 6,
+    invite: false,
+  }
+  const body = `
+    <div class="guide-modal-stack">
+      <section class="guide-block">
+        ${kitEventCover(event, { fab: true })}
+        <div class="event-info-head">
+          <input class="filter-input event-title-input" value="${escapeHtml(event.title)}">
+          <textarea class="filter-input event-desc-input" rows="3">${escapeHtml(event.description)}</textarea>
+        </div>
+        <div class="sheet-grid">${kitEventFacts(event, { creating: true })}</div>
+      </section>
+    </div>`
+  return kitModalShell(createShell('Создание события', body))
 }
 
-/** п. 59 — Отзывы: карточка */
+// Звёзды для средней по категории (как на плитке, шаг 0.5)
+function kitAvgStars(value){
+  const n = Number(value)
+  const filled = !isFinite(n) ? 0 : Math.max(0, Math.min(5, Math.round(n * 2) / 2))
+  const cells = [1, 2, 3, 4, 5].map((i) => {
+    let cls = 'is-empty'
+    if (filled >= i) cls = 'is-full'
+    else if (filled >= i - 0.5) cls = 'is-half'
+    return `<span class="guide-star ${cls}" aria-hidden="true">★</span>`
+  }).join('')
+  return `<div class="guide-stars" aria-hidden="true">${cells}</div>`
+}
+
+function kitAvgCell(label, value){
+  const num = Number(value)
+  const text = isFinite(num) ? num.toFixed(1) : '—'
+  return `<div class="guide-avg-cell">
+    <div class="guide-avg-label">${escapeHtml(label)}</div>
+    <div class="guide-avg-num">${escapeHtml(text)}</div>
+    ${kitAvgStars(value)}
+  </div>`
+}
+
+function kitGuideAuthorLine(place){
+  const author = place.author || { name: 'Иван Петров', username: 'ivan_cabriolet' }
+  const line = [author.name, author.username ? '@' + String(author.username).replace(/^@/, '') : '']
+    .filter(Boolean).join(' · ')
+  return `<p class="guide-place-author">автор ${escapeHtml(line)}</p>`
+}
+
+function kitGuideCover(place, { editing = false } = {}){
+  const rating = place.rating || { overall: 4.1 }
+  const fab = editing
+    ? `<button type="button" class="photo-upload-fab photo-upload-center"><span>📷</span><span>Фото</span></button>`
+    : ''
+  if (!place.photo && !editing) return ''
+  const img = place.photo
+    ? `<img class="main-image ph-img" src="${escapeHtml(place.photo)}" alt="">`
+    : `<div class="ph ph-place" style="position:relative;height:160px"><span class="ph-fallback"></span></div>`
+  return `<div class="main-photo-compact">
+    ${img}
+    <span class="sheet-photo-badge">${escapeHtml(String(rating.overall))} / 5</span>
+    ${fab}
+  </div>`
+}
+
+function kitGuideAvgsBlock(place){
+  const rating = place.rating || { overall: 4.1, quality: 4.5, speed: 4.0, price: 3.8, count: 4 }
+  return `<section class="guide-block">
+    <p class="guide-block-kicker">средние оценки · ${escapeHtml(String(rating.count || 0))} отзыва</p>
+    <div class="guide-avg-grid">
+      ${kitAvgCell('Качество', rating.quality)}
+      ${kitAvgCell('Скорость', rating.speed)}
+      ${kitAvgCell('Цена', rating.price)}
+    </div>
+  </section>`
+}
+
+function kitGuideReviewsBlock(){
+  return `<section class="guide-block guide-block-reviews">
+    <p class="guide-block-kicker">отзывы</p>
+    <div class="review-list">
+      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Иван Петров</span><span class="review-row-text">Удобный заезд, быстро сушат верх.</span></span><span class="review-row-score">4.3</span><span class="review-row-go">›</span></button>
+      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Анна К.</span><span class="review-row-text">Цена нормальная, сушка чуть подольше.</span></span><span class="review-row-score">3.7</span><span class="review-row-go">›</span></button>
+    </div>
+  </section>`
+}
+
+/** п. 59 — Отзывы: карточка места. Под фото: название, описание, ярлыки; автор тонкой строкой. */
 export function renderKitGuideModal(place){
   const title = place.title || 'Место'
   const labels = place.labels || ['мойка']
-  const cover = place.photo
-    ? `<div class="main-photo-compact">
-        <img class="main-image ph-img" src="${escapeHtml(place.photo)}" alt="">
-        <div class="sheet-photo-caption">
-          <div class="sheet-photo-title">${escapeHtml(title)}</div>
-          <div class="sheet-photo-meta">${labels.map(n => '#' + n).join(' ')}</div>
-        </div>
-      </div>`
-    : ''
-
-  const body = [
-    sheetField('Ярлыки', renderLabelChips(labels)),
-    sheetField('Описание', viewVal(place.description), 'full'),
-  ].join('')
-
   const actions = `<button type="button" class="btn-ghost">Изменить</button><button type="button" class="modal-close">×</button>`
-  const reviews = `<div class="sheet-section-title">Оценки</div>
-    <div class="review-avg">Средняя 4.1 из 5 · 4 отзыва</div>
-    <div class="review-avg-parts">качество 4.5 · скорость 4.0 · цена 4.0</div>
-    <button type="button" class="btn-ghost" style="width:100%">Написать отзыв</button>
-    <div class="sheet-section-title">Отзывы</div>
-    <div class="review-list">
-      <button type="button" class="review-row"><span class="review-row-main"><span class="review-row-name">Иван Петров</span><span class="review-row-text">Удобный заезд, быстро сушат верх.</span></span><span class="review-row-score">4.3</span><span class="review-row-go">›</span></button>
+  const body = `
+    <div class="guide-modal-stack">
+      <section class="guide-block">
+        ${kitGuideCover(place)}
+        <h3 class="guide-place-title">${escapeHtml(title)}</h3>
+        <p class="guide-place-desc">${escapeHtml(place.description || '')}</p>
+        <div class="guide-place-tags">${renderLabelChips(labels)}</div>
+        ${kitGuideAuthorLine(place)}
+      </section>
+      ${kitGuideAvgsBlock(place)}
+      <button type="button" class="btn-primary btn-review-cta">Поставить отзыв</button>
+      ${kitGuideReviewsBlock()}
     </div>`
-
-  return kitModalShell(sheetCard('Карточка', actions, cover + `<div class="sheet-grid">${body}</div>` + reviews))
+  return kitModalShell(sheetCard('Карточка', actions, body))
 }
 
-/** п. 65 — создание места, как п. 66 */
+/** п. 71 — та же карточка места в режиме правки: те же блоки, поля чуть светлее */
+export function renderKitGuideEditModal(place){
+  const title = place.title || 'Место'
+  const labels = place.labels || ['мойка']
+  const actions = headerActions({ canEdit: true, editing: true, withClose: true })
+  const body = `
+    <div class="guide-modal-stack">
+      <section class="guide-block">
+        ${kitGuideCover(place, { editing: true })}
+        <div class="sheet-grid">
+          ${sheetField('Название', `<input class="filter-input" value="${escapeHtml(title)}">`, 'full')}
+          ${sheetField('Описание', `<textarea class="filter-input" rows="2">${escapeHtml(place.description || '')}</textarea>`, 'full')}
+          ${sheetField('Ярлыки', `<div class="label-editor">${renderLabelChips(labels, { editing: true, wrap: false })}<input class="filter-input" placeholder="+"></div>`, 'full')}
+        </div>
+        ${kitGuideAuthorLine(place)}
+      </section>
+      ${kitGuideAvgsBlock(place)}
+      ${kitGuideReviewsBlock()}
+    </div>`
+  return kitModalShell(sheetCard('Карточка', actions, body, 'editing'))
+}
+
+/** п. 65 — создание места: название, описание, ярлыки */
 export function renderKitGuideCreate(){
   const cover = `<div class="main-photo-compact">
     <div class="ph ph-place" style="position:relative;height:160px"><span class="ph-fallback"></span></div>
@@ -261,8 +429,8 @@ export function renderKitGuideCreate(){
   </div>`
   const main = [
     sheetField('Название', `<input class="filter-input" value="Автомойка SelfWash">`, 'full'),
-    sheetField('Ярлыки', `<div class="label-editor">${renderLabelChips(['мойка', 'минск'], { editing: true, wrap: false })}<input class="filter-input" placeholder="+"></div>`),
-    sheetField('Описание', `<textarea class="filter-input" rows="2">Бесконтактная мойка.</textarea>`, 'full'),
+    sheetField('Описание', `<textarea class="filter-input" rows="2">Бесконтактная мойка, удобный заезд для кабриолетов.</textarea>`, 'full'),
+    sheetField('Ярлыки', `<div class="label-editor">${renderLabelChips(['мойка', 'минск', 'кабрио'], { editing: true, wrap: false })}<input class="filter-input" placeholder="+"></div>`, 'full'),
   ].join('')
   return kitModalShell(createShell('Добавить', cover + `<div class="sheet-grid">${main}</div>`))
 }
@@ -272,7 +440,7 @@ export function renderKitProfilePage(user, cars = []){
   const fullName = `${user.first_name_app || ''} ${user.last_name_app || ''}`.trim() || 'Без имени'
   const ini = (user.first_name_app?.[0] || '') + (user.last_name_app?.[0] || '')
   const meta = [user.username ? '@' + user.username : '', user.city || ''].filter(Boolean).join(' · ')
-  const role = user.role?.name || user.role?.code || ''
+  const role = roleLabelRu(user.role)
 
   const inner = `<div class="sheet-card page-card">
     <div class="sheet-head">

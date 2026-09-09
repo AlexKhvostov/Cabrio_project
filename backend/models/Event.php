@@ -160,13 +160,15 @@ class Event {
         $tally = LinkEventParticipant::tallyByEventIds(array_column($events, 'id'));
         foreach ($events as &$event) {
             $eid = (int)$event['id'];
-            $counts = $tally[$eid] ?? ['going_count' => 0, 'maybe_count' => 0];
+            $counts = $tally[$eid] ?? ['going_count' => 0, 'maybe_count' => 0, 'no_count' => 0];
             $going = (int)$counts['going_count'];
             $maybe = (int)$counts['maybe_count'];
+            $no = (int)$counts['no_count'];
             $max = isset($event['max_participants']) && $event['max_participants'] !== '' && $event['max_participants'] !== null
                 ? (int)$event['max_participants'] : 0;
             $event['going_count'] = $going;
             $event['maybe_count'] = $maybe;
+            $event['no_count'] = $no;
             $event['participants_count'] = $going;
             $event['spots_left'] = $max > 0 ? max(0, $max - $going) : null;
         }
@@ -176,15 +178,19 @@ class Event {
             $people = LinkEventParticipant::peopleForEvent((int)$id);
             $goingPeople = [];
             $maybePeople = [];
+            $noPeople = [];
             foreach ($people as $p) {
                 if (($p['confidence'] ?? '') === 'yes') {
                     $goingPeople[] = $p;
                 } elseif (($p['confidence'] ?? '') === 'maybe') {
                     $maybePeople[] = $p;
+                } elseif (($p['confidence'] ?? '') === 'no') {
+                    $noPeople[] = $p;
                 }
             }
             $events[0]['rsvp_going'] = $goingPeople;
             $events[0]['rsvp_maybe'] = $maybePeople;
+            $events[0]['rsvp_no'] = $noPeople;
         }
         return $events;
     }

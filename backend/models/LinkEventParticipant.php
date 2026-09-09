@@ -62,7 +62,7 @@ class LinkEventParticipant {
 
     /**
      * Счётчики по нескольким событиям сразу (для списка, без лишних запросов).
-     * going_count — едут с учётом +1, maybe_count — сколько ответили «возможно».
+     * going_count — едут с учётом +1, maybe_count — «возможно», no_count — «не еду».
      */
     public static function tallyByEventIds(array $eventIds) {
         $ids = array_values(array_unique(array_filter(array_map('intval', $eventIds))));
@@ -74,7 +74,8 @@ class LinkEventParticipant {
         $stmt = $pdo->prepare(
             "SELECT event_id,
                     COALESCE(SUM(CASE WHEN confidence = 'yes' THEN 1 + IF(plus_one, 1, 0) ELSE 0 END), 0) AS going_count,
-                    COALESCE(SUM(CASE WHEN confidence = 'maybe' THEN 1 ELSE 0 END), 0) AS maybe_count
+                    COALESCE(SUM(CASE WHEN confidence = 'maybe' THEN 1 ELSE 0 END), 0) AS maybe_count,
+                    COALESCE(SUM(CASE WHEN confidence = 'no' THEN 1 ELSE 0 END), 0) AS no_count
              FROM link_event_participants
              WHERE event_id IN ($placeholders)
              GROUP BY event_id"
@@ -85,6 +86,7 @@ class LinkEventParticipant {
             $out[(int)$row['event_id']] = [
                 'going_count' => (int)$row['going_count'],
                 'maybe_count' => (int)$row['maybe_count'],
+                'no_count' => (int)$row['no_count'],
             ];
         }
         return $out;

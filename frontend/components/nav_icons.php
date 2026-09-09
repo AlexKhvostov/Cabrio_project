@@ -12,9 +12,9 @@ function cabrio_nav_pic(string $name): string
         return '';
     }
     if ($name === 'profile') {
-        $src = htmlspecialchars(cabrio_frontend_url('assets/img/ph-user.png') . '?v=2', ENT_QUOTES);
+        $src = htmlspecialchars(cabrio_frontend_url('assets/img/ph-user.png') . '?v=4', ENT_QUOTES);
         return '<img class="nav-pic" src="' . $src . '" alt="" width="32" height="32" decoding="async">';
     }
-    $src = htmlspecialchars(cabrio_frontend_url('assets/img/nav/' . $name . '.png') . '?v=2', ENT_QUOTES);
+    $src = htmlspecialchars(cabrio_frontend_url('assets/img/nav/' . $name . '.png') . '?v=5', ENT_QUOTES);
     return '<img class="nav-pic" src="' . $src . '" alt="" width="32" height="32" decoding="async">';
 }

@@ -151,6 +151,9 @@ class PhotoController extends BaseController
                 'uploaded_by' => $currentUserId,
             ];
 
+            $typeRu = ['user' => 'профиля', 'car' => 'авто', 'event' => 'встречи', 'guide_object' => 'места', 'business_card' => 'визитки'][$entityType] ?? $entityType;
+            $photoSection = ['user' => 'me', 'car' => 'cars', 'event' => 'events', 'guide_object' => 'guide'][$entityType] ?? '';
+            $this->audit('create', 'photo', (int)$newId, 'Загрузил фото ' . $typeRu . ' (id ' . (int)$entityId . ')', $photoSection);
             return $this->json(['success'=>true,'data'=>$resp,'meta'=>$this->getRequestInfo()], 201);
         } catch (Throwable $e) {
             Logger::error('PhotoController: upload error', ['error' => $e->getMessage(), 'user_id' => $this->getCurrentUserId()]);

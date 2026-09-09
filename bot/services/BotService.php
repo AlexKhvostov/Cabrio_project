@@ -46,22 +46,35 @@ class BotService {
     
     /**
      * Отправляет текстовое сообщение
+     * $extra — необязательные поля Telegram: disable_web_page_preview, reply_markup
      */
-    public function sendMessage($chat_id, $text, $parse_mode = 'HTML') {
+    public function sendMessage($chat_id, $text, $parse_mode = 'HTML', array $extra = []) {
         writeToLog("BotService: Sending message", [
             'chat_id' => $chat_id,
-            'text' => $text,
+            'text_len' => mb_strlen((string)$text),
             'parse_mode' => $parse_mode
         ]);
         
-        $result = $this->makeRequest('sendMessage', [
+        $payload = array_merge([
             'chat_id' => $chat_id,
             'text' => $text,
             'parse_mode' => $parse_mode
-        ]);
+        ], $extra);
+        
+        $result = $this->makeRequest('sendMessage', $payload);
         
         writeToLog("BotService: Message sent successfully");
         return $result;
+    }
+
+    /** Кто этот бот (имя, @username) — для админки рассылки */
+    public function getMe() {
+        return $this->makeRequest('getMe', []);
+    }
+
+    /** Данные чата по id — заголовок группы */
+    public function getChat($chat_id) {
+        return $this->makeRequest('getChat', ['chat_id' => $chat_id]);
     }
     
     /**
@@ -179,9 +192,13 @@ class BotService {
      * Делает запрос к Telegram API
      */
     public function makeRequest($method, $data = []) {
+        $logData = $data;
+        if (isset($logData['text'])) {
+            $logData['text'] = '[скрыто, длина ' . mb_strlen((string)$data['text']) . ']';
+        }
         writeToLog("BotService: Making request", [
             'method' => $method,
-            'data' => $data
+            'data' => $logData
         ]);
         
         $url = "https://api.telegram.org/bot{$this->token}/{$method}";
@@ -194,7 +211,7 @@ class BotService {
             'http' => [
                 'header' => "Content-Type: application/json\r\n",
                 'method' => 'POST',
-                'content' => json_encode($data),
+                'content' => json_encode($data === [] ? new stdClass() : $data),
                 'ignore_errors' => true
             ]
         ];

@@ -76,6 +76,8 @@ http://localhost/app/
 #### ⭐ Отзывы
 - `GET /api/reviews` — управление отзывами
 - `POST /api/reviews` — создание отзывов
+- `POST /api/audit/client` — клиентский журнал: вход в Mini App и открытие раздела
+- `GET /api/membership/check` — проверка участия текущего человека в клубном Telegram-чате
 
 #### ⚙️ Системные эндпоинты
 - `POST /api/system/user-sync` — синхронизация пользователей

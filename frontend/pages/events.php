@@ -4,7 +4,6 @@
   <head>
     <?php render_meta('События — CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <?php include __DIR__ . '/../components/header.php'; ?>
@@ -18,7 +17,7 @@
     ]; include __DIR__ . '/../components/filters.php'; ?>
 <div id="eventsAccessBanner" class="info-block" style="margin-bottom:12px;display:none">
   <h3>Доступ к событиям</h3>
-  <p style="margin:0">Список встреч открыт участникам клуба (роль member и выше).</p>
+  <p style="margin:0">Список встреч открыт с роли пользователь. Гость чата без анкеты его не видит. Ответить «еду» — с роли пользователь. Создать встречу — с роли участник.</p>
 </div>
       <div id="events" class="cars-grid"><div class="list-busy" style="grid-column:1/-1"><div class="spinner"></div>Загрузка…</div></div>
       <button type="button" id="addEventFab" class="fab fab-add" hidden title="Добавить событие" aria-label="Добавить событие"><span class="fab-icon">+</span></button>

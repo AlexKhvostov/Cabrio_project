@@ -1,0 +1,256 @@
+/* UI Kit 2 — новая тема «сумерки», не осветлённая копия ночи.
+   Только эта страница. Канон styles.css не меняем.
+
+   Смысл: асфальт вечера + тёплый песок полей. Текст на полях тёмный,
+   шапка и фото остаются тёмными. Так контраст есть, а мрака нет. */
+
+html.ui-kit2-page, html.ui-kit2-page body{
+  --bg:#3d4754;
+  --surface:#4c5666;
+  --field:#efe6d4;
+  --field-hover:#f6efe0;
+  --line:#6d5f4e;
+  --text:#f4efe6;
+  --muted:#c9bba8;
+  --empty:#8a7d6c;
+  --accent:#2bb8a8;
+  --accent-2:#d4a05a;
+  --accent-dim:rgba(43,184,168,.18);
+  --ink:#1d3a36;
+  --primary-color:#2bb8a8;
+  --border-color:#6d5f4e;
+  --card-bg:#2a303a;
+  --hover-bg:rgba(244,239,230,.08);
+  --control-bg:#f6efe0;
+  --control-bg-hover:#fff8ec;
+  --control-border:#cbbba4;
+  --control-border-focus:#2bb8a8;
+  --gradient-card:#2a303a;
+  --gradient-accent:linear-gradient(135deg,#3cc9b8 0%,#2bb8a8 50%,#1f9e90 100%);
+  --card-glow:0 14px 32px rgba(28,34,44,.35);
+  --card-highlight:none;
+  --ink-field:#2a2622;
+  --muted-field:#6f6558;
+  background:
+    radial-gradient(900px 480px at 0% -20%, rgba(212,160,90,.22), transparent 46%),
+    radial-gradient(700px 420px at 100% 0%, rgba(43,184,168,.16), transparent 42%),
+    var(--bg);
+}
+
+html.ui-kit2-page{
+  --kit-panel:#4c5666;
+}
+
+html.ui-kit2-page .kit-hero{
+  background:#2a303a;
+  border-color:#5c6574;
+  color:var(--text);
+}
+html.ui-kit2-page .kit-hero p{color:#c9bba8}
+html.ui-kit2-page .kit-toc{
+  background:#2a303a;
+  border-color:#5c6574;
+}
+html.ui-kit2-page .kit-item{
+  background:#4c5666;
+  border-color:#5c6574;
+}
+html.ui-kit2-page .kit-num{
+  background:#d4a05a;
+  color:#2a2214;
+}
+
+.ui-kit2{
+  --bg:#3d4754;
+  --field:#efe6d4;
+  --text:#f4efe6;
+  --muted:#c9bba8;
+  --accent:#2bb8a8;
+  --ink:#1d3a36;
+  --gradient-card:#2a303a;
+  --gradient-accent:linear-gradient(135deg,#3cc9b8 0%,#2bb8a8 50%,#1f9e90 100%);
+}
+
+.ui-kit2 .kit-modal-shell{
+  background:rgba(38,44,54,.45);
+  border-color:rgba(212,160,90,.28);
+}
+
+.ui-kit2 .sheet-card,
+.ui-kit2 .modal-content.sheet-card{
+  background:#2a303a;
+  border:1px solid #5c6574;
+  box-shadow:0 16px 36px rgba(22,28,36,.4);
+}
+
+.ui-kit2 .modal-header{
+  background:#232830;
+  border-bottom:1px solid #5c6574;
+  color:#f4efe6;
+}
+.ui-kit2 .modal-title{color:#f4efe6}
+
+.ui-kit2 .btn-ghost{
+  background:#3a424e;
+  color:#f4efe6;
+  border-color:#6d7788;
+}
+.ui-kit2 .btn-primary{
+  background:#2bb8a8;
+  color:#14332f;
+  border:none;
+  box-shadow:0 4px 12px rgba(43,184,168,.28);
+}
+
+.ui-kit2 .modal-content .main-photo-compact,
+.ui-kit2 .modal-content.modal-compact .main-photo-compact{
+  background:#3a332e;
+  border:1px solid #6d5f4e;
+}
+
+/* Поля — песочная бумага на тёмной карточке */
+.ui-kit2 .sheet-grid{
+  gap:7px;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  padding:0;
+}
+.ui-kit2 .sheet-field{
+  background:#efe6d4;
+  border:none;
+  border-radius:12px;
+  padding:9px 11px;
+  box-shadow:0 1px 0 rgba(42,38,34,.08);
+}
+.ui-kit2 .sheet-grid > .sheet-field:last-child{
+  border-bottom:none;
+}
+.ui-kit2 .sheet-label{
+  color:#6f6558;
+  font-weight:700;
+}
+.ui-kit2 .sheet-value,
+.ui-kit2 .sheet-field .filter-input,
+.ui-kit2 .sheet-field .filter-select,
+.ui-kit2 .sheet-field .combo-input{
+  color:#2a2622 !important;
+  caret-color:#2bb8a8;
+}
+.ui-kit2 .sheet-empty{color:#8a7d6c}
+
+.ui-kit2 .event-info-head{
+  margin-bottom:10px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:#efe6d4;
+}
+.ui-kit2 .event-info-head .guide-place-title,
+.ui-kit2 .event-title-input{
+  color:#2a2622 !important;
+}
+.ui-kit2 .event-info-head .guide-place-desc,
+.ui-kit2 .event-desc-input{
+  color:#4a433a !important;
+}
+
+.ui-kit2 .sheet-card.editing .sheet-field .filter-input,
+.ui-kit2 .sheet-card.editing .sheet-field .filter-select,
+.ui-kit2 .create-sheet .sheet-field .filter-input,
+.ui-kit2 .create-sheet .sheet-field .filter-select,
+.ui-kit2 .sheet-card.editing .event-info-head .filter-input,
+.ui-kit2 .create-sheet .event-info-head .filter-input{
+  background:#fff8ec !important;
+  border:1px solid #dcc9ae !important;
+  border-radius:8px !important;
+  padding:6px 8px !important;
+  color:#2a2622 !important;
+}
+
+.ui-kit2 .guide-place-author{
+  color:#c9bba8;
+}
+
+/* Блоки гида: тёмный камень, внутри — песок */
+.ui-kit2 .guide-block{
+  background:#323844;
+  border:1px solid #5c6574;
+  box-shadow:none;
+}
+.ui-kit2 .guide-block-reviews{
+  background:#323844;
+  border-color:#5c6574;
+}
+.ui-kit2 .guide-place-title{color:#f4efe6}
+.ui-kit2 .guide-place-desc{color:#d4c8b6}
+.ui-kit2 .guide-place-tags{
+  background:#efe6d4;
+  border:none;
+}
+.ui-kit2 .label-chip{
+  background:#2a303a;
+  color:#f4efe6;
+  border-color:#2a303a;
+}
+.ui-kit2 .guide-avg-cell{
+  background:#efe6d4;
+  border:none;
+}
+.ui-kit2 .guide-avg-label{color:#6f6558}
+.ui-kit2 .guide-avg-num{color:#2a2622}
+.ui-kit2 .guide-block-kicker{color:#d4a05a}
+
+.ui-kit2 .rsvp-btn{
+  background:#efe6d4;
+  color:#2a2622;
+  border:none;
+}
+.ui-kit2 .rsvp-btn.is-on{
+  background:#2bb8a8;
+  color:#14332f;
+}
+.ui-kit2 .event-reg-vote,
+.ui-kit2 .event-reg-lists{
+  border-top-color:#5c6574;
+}
+.ui-kit2 .event-rsvp-name{color:#f4efe6}
+.ui-kit2 .event-rsvp-group{color:#d4a05a}
+.ui-kit2 .event-stat-mini{
+  background:#efe6d4;
+  border-radius:12px;
+  padding:6px 8px;
+}
+.ui-kit2 .event-stat-cell{
+  background:transparent;border:none
+}
+.ui-kit2 .event-stat-cell b,
+.ui-kit2 .event-stat-spots b{color:#2a2622}
+.ui-kit2 .event-stat-cell em,
+.ui-kit2 .event-stat-spots em{color:#6f6558}
+
+.ui-kit2 .sheet-check-row{color:#2a2622}
+.ui-kit2 .sheet-check-row .sheet-check{color:#2a2622}
+.ui-kit2 .event-reg-vote .sheet-check,
+.ui-kit2 .rsvp-plus{color:#c9bba8}
+.ui-kit2 .review-row{
+  background:#efe6d4;
+  color:#2a2622;
+  border:none;
+}
+.ui-kit2 .review-row-text{color:#6f6558}
+.ui-kit2 .review-row-score{color:#2bb8a8}
+.ui-kit2 .btn-review-cta{
+  background:#d4a05a;
+  color:#2a2214;
+  box-shadow:none;
+}
+
+.ui-kit2-palette{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px
+}
+.ui-kit2-swatch{
+  border-radius:12px;padding:10px;font-size:11px;line-height:1.35;
+  border:none
+}
+.ui-kit2-swatch b{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;opacity:.8}

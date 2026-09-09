@@ -4,7 +4,6 @@
   <head>
     <?php render_meta('Отзывы — CabrioRide'); ?>
     <link rel="stylesheet" href="<?php echo cabrio_asset_href('assets/css/styles.css'); ?>" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <?php include __DIR__ . '/../components/header.php'; ?>
@@ -18,7 +17,7 @@
     ]; include __DIR__ . '/../components/filters.php'; ?>
 <div id="guideAccessBanner" class="info-block" style="margin-bottom:12px;display:none">
   <h3>Доступ к отзывам</h3>
-  <p style="margin:0">Раздел открыт участникам клуба (роль member и выше).</p>
+  <p style="margin:0">Раздел открыт с роли участник и выше.</p>
 </div>
       <div id="guide" class="cars-grid"><div class="list-busy" style="grid-column:1/-1"><div class="spinner"></div>Загрузка…</div></div>
       <button type="button" id="addGuideFab" class="fab fab-add" hidden title="Добавить" aria-label="Добавить"><span class="fab-icon">+</span></button>

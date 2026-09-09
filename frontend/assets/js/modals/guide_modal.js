@@ -1,9 +1,8 @@
-// Карточка места: фото, название, описание, ярлыки. Отзывы — в просмотре.
+// Карточка места: как в UI Kit п. 59 / 71 / 65 — название, описание, ярлыки; три средние; отзывы.
 
 import { phPlace, photoUrl } from '../components/media.js?v=cabrio21'
 import {
-  escapeHtml, viewVal, sheetField, headerActions, openPhotoViewer, renderLabelChips, labelCode,
-  renderPersonLink, bindRelLinks
+  escapeHtml, viewVal, sheetField, headerActions, openPhotoViewer, renderLabelChips, labelCode
 } from '../components/sheet.js?v=tags2'
 
 function readTelegramUser(){
@@ -35,6 +34,35 @@ function starPicker(key, label, value){
     <input type="hidden" data-edit-key="${key}" value="${v}">
     <div class="review-star-row">${stars}</div>
   </label>`
+}
+
+// Средняя по категории: те же звёзды, что на плитке (шаг 0.5)
+function avgStarsHtml(value){
+  const n = Number(value)
+  const filled = !isFinite(n) ? 0 : Math.max(0, Math.min(5, Math.round(n * 2) / 2))
+  const cells = [1, 2, 3, 4, 5].map((i) => {
+    let cls = 'is-empty'
+    if (filled >= i) cls = 'is-full'
+    else if (filled >= i - 0.5) cls = 'is-half'
+    return `<span class="guide-star ${cls}" aria-hidden="true">★</span>`
+  }).join('')
+  return `<div class="guide-stars" aria-hidden="true">${cells}</div>`
+}
+
+function avgCell(label, value){
+  if (value == null || value === '') {
+    return `<div class="guide-avg-cell">
+      <div class="guide-avg-label">${escapeHtml(label)}</div>
+      <div class="guide-avg-num">—</div>
+    </div>`
+  }
+  const n = Number(value)
+  const text = isFinite(n) ? n.toFixed(1) : '—'
+  return `<div class="guide-avg-cell">
+    <div class="guide-avg-label">${escapeHtml(label)}</div>
+    <div class="guide-avg-num">${escapeHtml(text)}</div>
+    ${isFinite(n) ? avgStarsHtml(n) : ''}
+  </div>`
 }
 
 export function openGuideModal(place, options = {}){
@@ -99,19 +127,21 @@ export function openGuideModal(place, options = {}){
         <div id="guideHeaderActions" class="sheet-actions"></div>
       </div>
       <div class="modal-body">
-        <div class="main-photo-compact">
-          <span id="guidePhotoInner"></span>
-          <span id="guideRateBadge"></span>
-          <div class="sheet-photo-caption">
-            <div class="sheet-photo-title" id="guideCoverTitle"></div>
-            <div class="sheet-photo-meta" id="guideCoverMeta"></div>
-          </div>
-          <div class="photo-upload-overlay" id="guideUploadOverlay" style="display:none"><div class="spinner"></div><span>Загрузка…</span></div>
+        <div class="guide-modal-stack">
+          <section class="guide-block" id="guideObjectBlock">
+            <div class="main-photo-compact">
+              <span id="guidePhotoInner"></span>
+              <span id="guideRateBadge"></span>
+              <div class="sheet-photo-caption is-off">
+                <div class="sheet-photo-title" id="guideCoverTitle"></div>
+                <div class="sheet-photo-meta" id="guideCoverMeta"></div>
+              </div>
+              <div class="photo-upload-overlay" id="guideUploadOverlay" style="display:none"><div class="spinner"></div><span>Загрузка…</span></div>
+            </div>
+            <div id="guidePlaceHead"></div>
+          </section>
+          <div id="guideReviews"></div>
         </div>
-        <div id="guideNameRow"></div>
-        <div id="guideAuthor"></div>
-        <div class="sheet-grid" id="guideMain"></div>
-        <div id="guideReviews"></div>
       </div>
       <div class="modal-footer create-foot" id="guideCreateFoot" ${isNew ? '' : 'hidden'}>
         <button type="button" class="btn-ghost" data-create-cancel>Отмена</button>
@@ -124,7 +154,6 @@ export function openGuideModal(place, options = {}){
   overlay.querySelector('[data-create-cancel]')?.addEventListener('click', close)
   overlay.querySelector('[data-create-save]')?.addEventListener('click', () => savePlace())
   document.body.appendChild(overlay)
-  bindRelLinks(overlay)
   paintHeader()
   renderAll()
 
@@ -142,7 +171,7 @@ export function openGuideModal(place, options = {}){
     const avg = data.rating || {}
     if (badge) {
       badge.innerHTML = (!isNew && avg.overall != null)
-        ? `<span class="sheet-photo-badge">${escapeHtml(String(avg.overall))} / 5 · ${Number(avg.count || 0)} отз.</span>`
+        ? `<span class="sheet-photo-badge">${escapeHtml(String(avg.overall))} / 5</span>`
         : ''
     }
   }
@@ -214,37 +243,36 @@ export function openGuideModal(place, options = {}){
     })
   }
 
+  function authorLine(){
+    const a = data.author
+    if (!a) return ''
+    const name = [a.first_name, a.last_name].filter(Boolean).join(' ').trim()
+    const nick = a.username ? '@' + String(a.username).replace(/^@/, '') : ''
+    const line = [name, nick].filter(Boolean).join(' · ')
+    if (!line) return ''
+    return `<p class="guide-place-author">автор ${escapeHtml(line)}</p>`
+  }
+
   function renderAll(){
     cover()
     const inp = (key, extra='') => `<input data-edit-key="${key}" class="filter-input" value="${escapeHtml(data[key]||'')}" ${extra}>`
-    const nameRow = overlay.querySelector('#guideNameRow')
-    if (nameRow) {
-      nameRow.innerHTML = isNew ? '' : sheetField(
-        'Название',
-        isEditing ? inp('name') : viewVal(data.name),
-        'full'
-      )
-    }
-    const authorBox = overlay.querySelector('#guideAuthor')
-    if (authorBox) {
-      authorBox.innerHTML = (!isNew && data.author) ? renderPersonLink(data.author) : ''
-    }
-    const main = overlay.querySelector('#guideMain')
-    if (isNew) {
-      main.innerHTML = [
-        sheetField('Название', inp('name'), 'full'),
-        sheetField('Ярлыки', labelsInner()),
-        sheetField('Описание', `<textarea data-edit-key="description" class="filter-input" rows="1">${escapeHtml(data.description||'')}</textarea>`, 'full'),
-      ].join('')
+    const descEdit = `<textarea data-edit-key="description" class="filter-input" rows="2">${escapeHtml(data.description||'')}</textarea>`
+    const head = overlay.querySelector('#guidePlaceHead')
+    if (!head) return
+    if (isNew || isEditing) {
+      // Правка и создание: название → описание → ярлыки, чуть светлый фон полей
+      head.innerHTML = `<div class="sheet-grid">
+        ${sheetField('Название', inp('name'), 'full')}
+        ${sheetField('Описание', descEdit, 'full')}
+        ${sheetField('Ярлыки', labelsInner(), 'full')}
+      </div>${isNew ? '' : authorLine()}`
       bindLabels()
     } else {
-      main.innerHTML = [
-        sheetField('Ярлыки', labelsInner()),
-        sheetField('Описание', isEditing
-          ? `<textarea data-edit-key="description" class="filter-input" rows="1">${escapeHtml(data.description||'')}</textarea>`
-          : viewVal(data.description), 'full'),
-      ].join('')
-      if (isEditing) bindLabels()
+      head.innerHTML = `
+        <h3 class="guide-place-title">${escapeHtml(data.name || 'Место')}</h3>
+        <p class="guide-place-desc">${viewVal(data.description)}</p>
+        <div class="guide-place-tags">${labelsInner()}</div>
+        ${authorLine()}`
     }
     renderReviews()
     if (isEditing) ensureUpload()
@@ -270,20 +298,19 @@ export function openGuideModal(place, options = {}){
     const canReview = !isEditing && !!meId && data.permissions?.canReview !== false
     const n = Number(avg.count || 0)
     const word = (n % 10 === 1 && n % 100 !== 11) ? 'отзыв' : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'отзыва' : 'отзывов')
-    const avgLine = avg.overall != null
-      ? `Средняя ${avg.overall} из 5 · ${n} ${word}`
-      : 'Пока нет оценок'
-    const avgParts = avg.overall != null
-      ? `<div class="review-avg-parts">качество ${avg.quality} · скорость ${avg.speed} · цена ${avg.price}</div>`
+    const writeLabel = mine ? 'Изменить мой отзыв' : 'Поставить отзыв'
+    const cta = canReview
+      ? `<button type="button" class="btn-primary btn-review-cta" id="guideReviewWrite">${escapeHtml(writeLabel)}</button>`
       : ''
-    const writeLabel = mine ? 'Изменить мой отзыв' : 'Написать отзыв'
-    box.innerHTML = `
-      <div class="sheet-section-title">Оценки</div>
-      <div class="review-avg">${escapeHtml(avgLine)}</div>
-      ${avgParts}
-      ${canReview ? `<button type="button" class="btn-ghost" id="guideReviewWrite">${escapeHtml(writeLabel)}</button>` : ''}
-      <div class="sheet-section-title">Отзывы</div>
-      <div class="review-list">${list.map(r => {
+    const avgBlock = `<section class="guide-block">
+      <p class="guide-block-kicker">${avg.overall != null ? `средние оценки · ${n} ${word}` : 'средние оценки'}</p>
+      <div class="guide-avg-grid">
+        ${avgCell('Качество', avg.quality)}
+        ${avgCell('Скорость', avg.speed)}
+        ${avgCell('Цена', avg.price)}
+      </div>
+    </section>`
+    const listHtml = list.map(r => {
         const preview = String(r.feedback || '').trim()
         const short = preview.length > 70 ? preview.slice(0, 70) + '…' : preview
         return `<button type="button" class="review-row" data-review-id="${escapeHtml(r.id)}">
@@ -294,7 +321,14 @@ export function openGuideModal(place, options = {}){
           <span class="review-row-score">${escapeHtml(String(reviewScore(r)))}</span>
           <span class="review-row-go" aria-hidden="true">›</span>
         </button>`
-      }).join('') || '<p class="sheet-empty">Пока нет отзывов</p>'}</div>`
+      }).join('') || '<p class="sheet-empty">Пока нет отзывов</p>'
+    box.innerHTML = `
+      ${avgBlock}
+      ${cta}
+      <section class="guide-block guide-block-reviews">
+        <p class="guide-block-kicker">отзывы</p>
+        <div class="review-list">${listHtml}</div>
+      </section>`
     box.querySelector('#guideReviewWrite')?.addEventListener('click', () => openReviewForm(mine || {}))
     box.querySelectorAll('[data-review-id]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -362,16 +396,14 @@ export function openGuideModal(place, options = {}){
           alert('Напишите текст отзыва')
           return
         }
-        const res = await window.CabrioAPI.apiPost('/api/reviews', payload)
+        const res = mine.id
+          ? await window.CabrioAPI.apiPatch('/api/reviews/' + mine.id, payload)
+          : await window.CabrioAPI.apiPost('/api/reviews', payload)
         if (!res || res.success === false) {
           alert((res && res.error && res.error.message) || 'Не удалось сохранить отзыв')
           return
         }
-        data = res.data || data
-        try {
-          const fresh = await window.CabrioAPI.apiGet(`/api/guide-objects/${data.id}`)
-          if (fresh && fresh.success !== false && fresh.data) data = Object.assign(data, fresh.data)
-        } catch {}
+        await refreshPlace(res.data)
         closeStack()
         paintHeader(); renderAll()
         options.onChanged?.(data)
@@ -379,7 +411,41 @@ export function openGuideModal(place, options = {}){
     })
   }
 
+  function isMyReview(r){
+    const meId = Number(window.__ME_ID || 0)
+    if (!meId) return false
+    return Number(r.author_user_id) === meId || Number(r.author?.id) === meId
+  }
+
+  function isClubStaff(){
+    const c = String(window.__ME_ROLE || '').toLowerCase()
+    return c === 'moderator' || c === 'admin'
+  }
+
+  async function refreshPlace(fromRes){
+    if (fromRes && fromRes.id) data = fromRes
+    try {
+      const fresh = await window.CabrioAPI.apiGet(`/api/guide-objects/${data.id}`)
+      if (fresh && fresh.success !== false && fresh.data) data = Object.assign(data, fresh.data)
+    } catch {}
+  }
+
+  async function deleteReview(r, closeView){
+    if (!confirm(isMyReview(r) ? 'Удалить ваш отзыв? Его нельзя будет вернуть.' : 'Удалить этот отзыв? Его нельзя будет вернуть.')) return
+    const res = await window.CabrioAPI.apiDelete('/api/reviews/' + r.id)
+    if (!res || res.success === false) {
+      alert((res && res.error && res.error.message) || 'Не удалось удалить отзыв')
+      return
+    }
+    closeView?.()
+    await refreshPlace(res.data)
+    paintHeader(); renderAll()
+    options.onChanged?.(data)
+  }
+
   function openReviewView(r){
+    const mine = isMyReview(r)
+    const canManage = mine || isClubStaff()
     const rows = [
       sheetField('Кто', viewVal(reviewWho(r))),
       sheetField('Качество', viewVal(r.quality_rating)),
@@ -387,13 +453,23 @@ export function openGuideModal(place, options = {}){
       sheetField('Цена', viewVal(r.price_rating)),
       sheetField('Текст', viewVal(r.feedback), 'full'),
     ].join('')
-    openStack({
+    const foot = canManage
+      ? `<button type="button" class="btn-ghost" data-review-edit>Изменить</button>
+        <button type="button" class="btn-ghost" data-review-delete>Удалить</button>
+        <button type="button" class="btn-ghost" data-create-cancel>Закрыть</button>`
+      : `<button type="button" class="btn-ghost" data-create-cancel>Закрыть</button>`
+    const stack = openStack({
       title: 'Отзыв',
       body: `<div class="sheet-grid">${rows}</div>
         <div class="review-avg">Среднее по этому отзыву: ${escapeHtml(String(reviewScore(r)))} из 5</div>`,
-      foot: `<button type="button" class="btn-ghost" data-create-cancel>Закрыть</button>`,
+      foot,
       onSave: (_s, closeStack) => closeStack()
     })
+    stack.querySelector('[data-review-edit]')?.addEventListener('click', () => {
+      stack.remove()
+      openReviewForm(r)
+    })
+    stack.querySelector('[data-review-delete]')?.addEventListener('click', () => deleteReview(r, () => stack.remove()))
   }
 
   function val(key){
@@ -516,6 +592,7 @@ export function openGuideModal(place, options = {}){
 
   window.CabrioAPI.getMe().then(me=>{
     window.__ME_ID = me?.data?.id || me?.id || 0
+    window.__ME_ROLE = String((me?.data?.role && (me.data.role.code || me.data.role)) || '').toLowerCase()
   }).finally(()=> loadLabelHints().then(()=>{ paintHeader(); renderAll() }))
 }
 
